@@ -29,6 +29,15 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Supabase Realtime
+
+This project is wired to a local Supabase stack for live database notifications.
+
+- Realtime feed: `accident.notifications`
+- Local API URL: `http://127.0.0.1:54321`
+- Database sample rows live in `supabase/sql/001-create-accident-notifications.sql`
+- A standalone compose stack is available in `docker-compose.supabase.yml` if you want an isolated setup
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

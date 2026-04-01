@@ -1,65 +1,46 @@
-import Image from "next/image";
+import { RealtimeIncidentStream } from "@/components/realtime-incident-stream";
+import { createLocalSupabaseToken, localSupabaseUrl } from "@/lib/supabase/local-jwt";
 
 export default function Home() {
+  const token = createLocalSupabaseToken("service_role");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fbff_0%,#eef6ff_100%)] text-slate-900">
+      <section className="relative isolate border-b border-sky-200/70 px-6 py-8 sm:px-10 lg:px-14">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.26),_transparent_26%),radial-gradient(circle_at_80%_20%,_rgba(59,130,246,0.16),_transparent_30%),linear-gradient(180deg,_rgba(255,255,255,0.96),_rgba(239,246,255,0.92))]" />
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 lg:gap-12">
+          <header className="flex flex-col gap-4 border-b border-sky-200/70 pb-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-xs uppercase tracking-[0.38em] text-sky-600">
+                Supabase Realtime / accident
+              </p>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                Live incident feed, wired straight to the database.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+                This Next.js app is connected to the local Supabase stack already
+                running on this machine. Rows inserted into `accident.notifications`
+                appear instantly without a page refresh.
+              </p>
+            </div>
+            <div className="grid gap-2 rounded-2xl border border-sky-200 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-sm">
+              <span className="uppercase tracking-[0.28em] text-sky-500">
+                Endpoint
+              </span>
+              <span className="font-mono text-slate-900">{localSupabaseUrl}</span>
+              <span className="mt-2 uppercase tracking-[0.28em] text-sky-500">
+                Channel
+              </span>
+              <span className="font-mono text-slate-900">accident.notifications</span>
+            </div>
+          </header>
+
+          <RealtimeIncidentStream
+            supabaseKey={token}
+            supabaseUrl={localSupabaseUrl}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }

@@ -1,0 +1,1 @@
+create publication supabase_realtime for all tables;

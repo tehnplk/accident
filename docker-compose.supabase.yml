@@ -1,0 +1,76 @@
+services:
+  db:
+    image: public.ecr.aws/supabase/postgres:17.6.1.095
+    container_name: accident-supabase-db
+    restart: unless-stopped
+    ports:
+      - "55432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: accident
+    command:
+      - postgres
+      - -c
+      - listen_addresses=*
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=5
+      - -c
+      - max_wal_senders=5
+      - -c
+      - log_min_messages=fatal
+    volumes:
+      - accident_pgdata:/var/lib/postgresql/data
+      - ./supabase/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d accident"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  realtime:
+    image: public.ecr.aws/supabase/realtime:v2.78.10
+    container_name: accident-supabase-realtime
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4001:4000"
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: accident
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_ENC_KEY: supabaserealtime
+      DB_SSL: "false"
+      DB_IP_VERSION: ipv4
+      REPLICATION_MODE: logical
+      REALTIME_IP_VERSION: ipv4
+      SLOT_NAME: supabase_realtime
+      TEMPORARY_SLOT: "false"
+      PUBLICATIONS: '["supabase_realtime"]'
+      SECURE_CHANNELS: "false"
+      JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      API_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      METRICS_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      APP_NAME: realtime
+      SECRET_KEY_BASE: EAx3IQ/wRG1v47ZD4NE4/9RzBI8Jmil3x0yhcW4V2NHBP6c2iPIzwjofi2Ep4HIG
+      JWT_CLAIM_VALIDATORS: "{}"
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
+      EXPOSE_METRICS: "false"
+      DB_RECONNECT_BACKOFF_MIN: 1000
+      DB_RECONNECT_BACKOFF_MAX: 5000
+      REPLICATION_POLL_INTERVAL: 1000
+      SUBSCRIPTION_SYNC_INTERVAL: 10000
+      MAX_CHANGES: 100
+      MAX_RECORD_BYTES: 1048576
+
+volumes:
+  accident_pgdata:
