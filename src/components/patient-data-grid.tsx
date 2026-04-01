@@ -240,9 +240,9 @@ export function PatientDataGrid() {
           </p>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <input
-            className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             placeholder="กรอง รพ."
             value={filters.hospital}
             onChange={(event) => {
@@ -250,7 +250,7 @@ export function PatientDataGrid() {
             }}
           />
           <input
-            className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             placeholder="กรอง ชื่อ-นามสกุล"
             value={filters.name}
             onChange={(event) => {
@@ -258,7 +258,7 @@ export function PatientDataGrid() {
             }}
           />
           <input
-            className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             placeholder="กรอง HN"
             value={filters.hn}
             onChange={(event) => {
@@ -266,7 +266,7 @@ export function PatientDataGrid() {
             }}
           />
           <select
-            className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             value={filters.sex}
             onChange={(event) => {
               updateFilter({ sex: event.target.value, page: 1 });
@@ -278,7 +278,7 @@ export function PatientDataGrid() {
           </select>
           <button
             type="button"
-            className="h-11 border border-sky-200 bg-sky-50 px-3 text-[12px] font-medium text-sky-800 transition hover:bg-sky-100"
+            className="h-9 border border-sky-200 bg-sky-50 px-3 text-[12px] font-medium text-sky-800 transition hover:bg-sky-100"
             onClick={() => {
               setFilters((current) => ({
                 ...current,
@@ -303,7 +303,7 @@ export function PatientDataGrid() {
             <label className="flex items-center gap-2">
               <span>Rows:</span>
               <select
-                className="h-9 border border-sky-200 bg-white px-2 text-slate-900 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                className="h-8 border border-sky-200 bg-white px-2 text-slate-900 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                 value={filters.pageSize}
                 onChange={(event) => {
                   updateFilter({ pageSize: Number(event.target.value), page: 1 });
@@ -318,7 +318,7 @@ export function PatientDataGrid() {
             </label>
             <button
               type="button"
-              className="h-9 border border-sky-200 bg-white px-3 text-slate-700 disabled:opacity-40"
+              className="h-8 border border-sky-200 bg-white px-3 text-slate-700 disabled:opacity-40"
               onClick={() => updateFilter({ page: Math.max(1, filters.page - 1) })}
               disabled={filters.page <= 1 || loading}
             >
@@ -329,7 +329,7 @@ export function PatientDataGrid() {
             </span>
             <button
               type="button"
-              className="h-9 border border-sky-200 bg-white px-3 text-slate-700 disabled:opacity-40"
+              className="h-8 border border-sky-200 bg-white px-3 text-slate-700 disabled:opacity-40"
               onClick={() => updateFilter({ page: Math.min(totalPages, filters.page + 1) })}
               disabled={filters.page >= totalPages || loading}
             >
