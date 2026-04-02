@@ -29,6 +29,8 @@ export type PatientRow = {
   vehicle: string | null;
   alcohol: string | null;
   area: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   source: string | null;
   pdx: { code?: string; name?: string } | null;
   ext_dx: { code?: string; name?: string } | null;
@@ -178,7 +180,7 @@ export type FilterState = {
   vehicle: string;
   alcohol: string;
   sex: string;
-  sortBy: "visit_date" | "visit_date_time" | "age";
+  sortBy: "visit_date" | "visit_date_time" | "age" | "created_at";
   sortDir: "asc" | "desc";
   page: number;
   pageSize: number;
@@ -188,6 +190,7 @@ export type PatientGridInitialData = {
   rows: PatientRow[];
   total: number;
   filters: FilterState;
+  authToken: string;
   hospitalOptions: string[];
   hospitalChoices: HospitalOption[];
   areaOptions: string[];
@@ -234,6 +237,10 @@ function padTimePart(value: number) {
   return String(value).padStart(2, "0");
 }
 
+function sanitizeAgeInput(value: string) {
+  return value.replace(/\D/g, "").slice(0, 3);
+}
+
 function createInitialPatientDraft(): PatientCreateDraft {
   const now = new Date();
   return {
@@ -270,6 +277,8 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
         ? "visit_date_time"
         : searchParams.get("sortBy") === "age"
           ? "age"
+          : searchParams.get("sortBy") === "created_at"
+            ? "created_at"
           : "visit_date_time",
     sortDir: searchParams.get("sortDir") === "asc" ? "asc" : "desc",
     page: normalizePage(searchParams.get("page"), 1),
@@ -311,6 +320,22 @@ function formatTime(input: string | Date | null) {
   const match = rawTime.match(/^(\d{2}):(\d{2})/);
   if (match) return `${match[1]}:${match[2]} น.`;
   return "-";
+}
+
+function formatSentAt(input: string | null) {
+  if (!input) return "-";
+  const normalized = input.replace(" ", "T");
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return input;
+  }
+
+  const day = String(parsed.getDate()).padStart(2, "0");
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const shortYear = String((parsed.getFullYear() + 543) % 100).padStart(2, "0");
+  const hours = String(parsed.getHours()).padStart(2, "0");
+  const minutes = String(parsed.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${shortYear} ${hours}:${minutes}`;
 }
 
 function toDateInputValue(input: string | null | undefined) {
@@ -418,8 +443,27 @@ function isManualSource(source: string | null | undefined) {
   return source === "man";
 }
 
-async function fetchPatientGrid(filters: FilterState, signal?: AbortSignal) {
-  const response = await fetch(`/api/patient?${buildQueryString(filters)}`, { signal });
+function buildPatientApiUrl(path: string, authToken: string) {
+  const url = new URL(path, "http://localhost");
+  url.searchParams.set("token", authToken);
+  return `${url.pathname}${url.search}`;
+}
+
+function createPatientApiHeaders(authToken: string, headers?: HeadersInit) {
+  const nextHeaders = new Headers(headers);
+  nextHeaders.set("Authorization", `Bearer ${authToken}`);
+  return nextHeaders;
+}
+
+async function fetchPatientGridWithAuth(
+  filters: FilterState,
+  authToken: string,
+  signal?: AbortSignal,
+) {
+  const response = await fetch(`/api/patient?${buildQueryString(filters)}`, {
+    signal,
+    headers: createPatientApiHeaders(authToken),
+  });
   const payload = (await response.json().catch(() => ({}))) as Partial<GridResponse> & {
     message?: string;
   };
@@ -535,7 +579,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [selectedProvinceCode, setSelectedProvinceCode] = useState(DEFAULT_PROVINCE_CODE);
   const [selectedAmphoeCode, setSelectedAmphoeCode] = useState("");
   const [selectedTambonCode, setSelectedTambonCode] = useState("");
-  const [addressLoading, setAddressLoading] = useState(false);
+  const [districtLoading, setDistrictLoading] = useState(false);
+  const [subdistrictLoading, setSubdistrictLoading] = useState(false);
   const [detailDraft, setDetailDraft] = useState<Record<AcdGroupName, PatientDetailDraftItem>>(
     () => emptyDetailDraft(),
   );
@@ -544,11 +589,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailSaving, setDetailSaving] = useState(false);
   const addonInputRefs = useRef<Partial<Record<AcdGroupName, HTMLInputElement | null>>>({});
+  const hospitalSuggestRef = useRef<HTMLLabelElement | null>(null);
   const hospitalOptions = initialData.hospitalOptions;
   const hospitalChoices = initialData.hospitalChoices;
   const areaOptions = initialData.areaOptions;
   const vehicleOptions = initialData.vehicleOptions;
   const alcoholOptions = initialData.alcoholOptions;
+  const authToken = initialData.authToken;
 
   useEffect(() => {
     setFilters(stateFromSearchParams(searchParams));
@@ -593,6 +640,23 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       document.body.style.overflow = previousOverflow;
     };
   }, [isCreateModalOpen]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen || createModalMode === "edit") {
+      setIsHospitalSuggestOpen(false);
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (hospitalSuggestRef.current?.contains(target)) return;
+      setIsHospitalSuggestOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [createModalMode, isCreateModalOpen]);
 
   useEffect(() => {
     if (!isDetailModalOpen) return;
@@ -652,7 +716,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
     const controller = new AbortController();
 
-    fetch(`/api/patient/${selectedRow.id}/location`, { signal: controller.signal })
+    fetch(`/api/patient/${selectedRow.id}/location`, {
+      signal: controller.signal,
+      headers: createPatientApiHeaders(authToken),
+    })
       .then(async (response) => {
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
@@ -676,8 +743,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             if (!defaultRow) return;
 
             setSelectedProvinceCode(String(defaultRow.province_code));
-            setSelectedAmphoeCode(String(defaultRow.district_code));
+            setSelectedAmphoeCode("");
             setSelectedTambonCode("");
+            setDraft((current) => ({
+              ...current,
+              amphoe: "",
+              tumbon: "",
+            }));
           });
         }
 
@@ -706,7 +778,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       });
 
     return () => controller.abort();
-  }, [isModalOpen, selectedRow]);
+  }, [authToken, isModalOpen, selectedRow]);
 
   useEffect(() => {
     if (!isDetailModalOpen || !selectedDetailRow) return;
@@ -714,7 +786,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     const controller = new AbortController();
     setDetailLoading(true);
 
-    fetch(`/api/patient/${selectedDetailRow.id}/detail`, { signal: controller.signal })
+    fetch(`/api/patient/${selectedDetailRow.id}/detail`, {
+      signal: controller.signal,
+      headers: createPatientApiHeaders(authToken),
+    })
       .then(async (response) => {
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
@@ -747,13 +822,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setDetailLoading(false));
 
     return () => controller.abort();
-  }, [isDetailModalOpen, selectedDetailRow]);
+  }, [authToken, isDetailModalOpen, selectedDetailRow]);
 
   useEffect(() => {
     if (provinceOptions.length > 0) return;
 
     const controller = new AbortController();
-    setAddressLoading(true);
 
     fetchThaiAddressOptions("level=province", controller.signal)
       .then((rows) => {
@@ -762,8 +836,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .catch((fetchError: unknown) => {
         if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
         setError(fetchError instanceof Error ? fetchError.message : "Load address failed");
-      })
-      .finally(() => setAddressLoading(false));
+      });
 
     return () => controller.abort();
   }, [provinceOptions.length]);
@@ -771,6 +844,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   useEffect(() => {
     if (!isModalOpen || !selectedProvinceCode || provinceOptions.length === 0) {
       setAmphoeOptions([]);
+      setSelectedAmphoeCode("");
+      setTambonOptions([]);
+      setSelectedTambonCode("");
       return;
     }
 
@@ -778,17 +854,29 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     if (!selectedProvince) return;
 
     const controller = new AbortController();
-    setAddressLoading(true);
+    setDistrictLoading(true);
 
     fetchThaiAddressOptions(`level=district&province_id=${selectedProvince.id}`, controller.signal)
       .then((rows) => {
-        setAmphoeOptions(rows);
+        const sortedRows = [...rows].sort((a, b) => a.name.localeCompare(b.name, "th"));
+        setAmphoeOptions(sortedRows);
+        const hasSelectedAmphoe = sortedRows.some((option) => String(option.code) === selectedAmphoeCode);
+        if (!hasSelectedAmphoe) {
+          setSelectedAmphoeCode("");
+          setSelectedTambonCode("");
+          setTambonOptions([]);
+          setDraft((current) => ({
+            ...current,
+            amphoe: "",
+            tumbon: "",
+          }));
+        }
       })
       .catch((fetchError: unknown) => {
         if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
         setError(fetchError instanceof Error ? fetchError.message : "Load address failed");
       })
-      .finally(() => setAddressLoading(false));
+      .finally(() => setDistrictLoading(false));
 
     return () => controller.abort();
   }, [isModalOpen, provinceOptions, selectedProvinceCode]);
@@ -803,17 +891,26 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     if (!selectedAmphoe) return;
 
     const controller = new AbortController();
-    setAddressLoading(true);
+    setSubdistrictLoading(true);
 
     fetchThaiAddressOptions(`level=subdistrict&district_id=${selectedAmphoe.id}`, controller.signal)
       .then((rows) => {
-        setTambonOptions(rows);
+        const sortedRows = [...rows].sort((a, b) => a.name.localeCompare(b.name, "th"));
+        setTambonOptions(sortedRows);
+        const hasSelectedTambon = sortedRows.some((option) => String(option.code) === selectedTambonCode);
+        if (!hasSelectedTambon) {
+          setSelectedTambonCode("");
+          setDraft((current) => ({
+            ...current,
+            tumbon: "",
+          }));
+        }
       })
       .catch((fetchError: unknown) => {
         if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
         setError(fetchError instanceof Error ? fetchError.message : "Load address failed");
       })
-      .finally(() => setAddressLoading(false));
+      .finally(() => setSubdistrictLoading(false));
 
     return () => controller.abort();
   }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode]);
@@ -823,7 +920,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setLoading(true);
     setError(null);
 
-    fetchPatientGrid(filters, controller.signal)
+    fetchPatientGridWithAuth(filters, authToken, controller.signal)
       .then((payload) => {
         setRows(payload.rows);
         setTotal(payload.total);
@@ -840,7 +937,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     }
 
     return () => controller.abort();
-  }, [filters, pathname, router, searchParamsString]);
+  }, [authToken, filters, pathname, router, searchParamsString]);
 
   const totalPages = useMemo(
     () => (total > 0 ? Math.max(1, Math.ceil(total / filters.pageSize)) : 1),
@@ -849,7 +946,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
   const refreshRows = async () => {
     try {
-      const payload = await fetchPatientGrid(filters);
+      const payload = await fetchPatientGridWithAuth(filters, authToken);
       setRows(payload.rows);
       setTotal(payload.total);
     } catch (fetchError) {
@@ -865,7 +962,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
     const refreshForRealtime = async () => {
       try {
-        const payload = await fetchPatientGrid(filters);
+        const payload = await fetchPatientGridWithAuth(filters, authToken);
         if (!active) return;
         setRows(payload.rows);
         setTotal(payload.total);
@@ -906,7 +1003,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
       stopPolling();
       eventSource?.close();
-      eventSource = new EventSource(`/api/patient/stream?${buildQueryString(filters)}`);
+      eventSource = new EventSource(
+        buildPatientApiUrl(`/api/patient/stream?${buildQueryString(filters)}`, authToken),
+      );
 
       eventSource.addEventListener("message", () => {
         void refreshForRealtime();
@@ -932,7 +1031,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       stopPolling();
       if (reconnectTimer) clearTimeout(reconnectTimer);
     };
-  }, [filters, pollIntervalMs, realtimeMode, streamRetryMs]);
+  }, [authToken, filters, pollIntervalMs, realtimeMode, streamRetryMs]);
 
   const provinceLabel = useMemo(() => {
     const selectedProvince = provinceOptions.find((option) => String(option.code) === selectedProvinceCode);
@@ -975,7 +1074,16 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     });
   };
 
+  const toggleCreatedAtSort = () => {
+    updateFilter({
+      sortBy: "created_at",
+      sortDir: filters.sortDir === "asc" ? "desc" : "asc",
+      page: 1,
+    });
+  };
+
   const startEdit = (row: PatientRow) => {
+    setError(null);
     setSelectedRow(row);
     setDraft({
       changwat: DEFAULT_PROVINCE_NAME,
@@ -994,6 +1102,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const cancelEdit = () => {
+    setError(null);
+    setSaving(false);
     setIsModalOpen(false);
     setSelectedRow(null);
     setDraft(EMPTY_DRAFT);
@@ -1006,6 +1116,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
   const openCreateModal = () => {
     const nextDraft = createInitialPatientDraft();
+    setError(null);
     setCreateDraft(nextDraft);
     setCreateHospitalQuery("");
     setIsHospitalSuggestOpen(false);
@@ -1016,6 +1127,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const openUpdatePatientModal = (row: PatientRow) => {
+    setError(null);
     setCreateDraft({
       hoscode: row.hoscode ?? "",
       hosname: row.hosname ?? "",
@@ -1025,7 +1137,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       visit_date: toDateInputValue(row.visit_date),
       visit_time: toTimeInputValue(row.visit_time),
       sex: row.sex ?? "",
-      age: row.age === null || row.age === undefined ? "" : String(row.age),
+      age: row.age === null || row.age === undefined ? "" : sanitizeAgeInput(String(row.age)),
       triage: row.triage ?? "",
       status: row.status ?? "",
       cc: row.cc ?? "",
@@ -1039,6 +1151,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const cancelCreate = () => {
+    setError(null);
     setIsCreateModalOpen(false);
     setCreateDraft(createInitialPatientDraft());
     setCreateHospitalQuery("");
@@ -1067,6 +1180,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const openDetailModal = (row: PatientRow) => {
+    setError(null);
     setSelectedDetailRow(row);
     setDetailDraft(emptyDetailDraft());
     setIsDetailModalOpen(true);
@@ -1079,6 +1193,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     try {
       const response = await fetch(`/api/patient/${row.id}`, {
         method: "DELETE",
+        headers: createPatientApiHeaders(authToken),
       });
       const payload = (await response.json().catch(() => ({}))) as { message?: string };
       if (!response.ok) {
@@ -1114,6 +1229,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const closeDetailModal = () => {
+    setError(null);
     setIsDetailModalOpen(false);
     setSelectedDetailRow(null);
     setDetailDraft(emptyDetailDraft());
@@ -1129,7 +1245,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     try {
       const response = await fetch(`/api/patient/${selectedRow.id}/location`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: createPatientApiHeaders(authToken, { "Content-Type": "application/json" }),
         body: JSON.stringify({
           prov_code: selectedProvinceCode,
           amp_code: selectedAmphoeCode,
@@ -1188,18 +1304,18 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
     try {
       const body = {
-        hoscode: createDraft.hoscode,
-        hosname: createDraft.hosname,
-        hn: createDraft.hn,
-        cid: createDraft.cid,
-        patient_name: createDraft.patient_name,
+        hoscode: createDraft.hoscode.trim(),
+        hosname: createDraft.hosname.trim(),
+        hn: createDraft.hn.trim(),
+        cid: createDraft.cid.trim(),
+        patient_name: createDraft.patient_name.trim(),
         visit_date: createDraft.visit_date,
         visit_time: createDraft.visit_time,
         sex: createDraft.sex,
-        age: createDraft.age,
+        age: parsedAge,
         triage: createDraft.triage,
         status: createDraft.status,
-        cc: createDraft.cc,
+        cc: createDraft.cc.trim(),
       };
 
       const response = await fetch(
@@ -1208,7 +1324,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           : "/api/patient",
         {
           method: createModalMode === "edit" && editingPatientId ? "PATCH" : "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: createPatientApiHeaders(authToken, { "Content-Type": "application/json" }),
           body: JSON.stringify(body),
         },
       );
@@ -1254,7 +1370,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
       const response = await fetch(`/api/patient/${selectedDetailRow.id}/detail`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: createPatientApiHeaders(authToken, { "Content-Type": "application/json" }),
         body: JSON.stringify(body),
       });
 
@@ -1445,6 +1561,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                 <VerticalHeader className="w-[85px] px-2 py-3">พื้นที่</VerticalHeader>
                 <VerticalHeader className="w-[85px] px-2 py-3">รถ</VerticalHeader>
                 <VerticalHeader className="w-[85px] px-2 py-3">สุรา</VerticalHeader>
+                <SortableAngledHeader
+                  className="w-[110px] px-2 py-3"
+                  onClick={toggleCreatedAtSort}
+                  title={`Sort วันที่ส่งข้อมูล ${filters.sortDir === "asc" ? "descending" : "ascending"}`}
+                >
+                  วันที่ส่งข้อมูล
+                </SortableAngledHeader>
                 <VerticalHeader className="w-[52px] px-2 py-3">จุดเกิดเหตุ</VerticalHeader>
                 <VerticalHeader className="w-[52px] px-2 py-3">เพิ่มเติม</VerticalHeader>
                 <VerticalHeader className="w-[72px] px-2 py-3">Action</VerticalHeader>
@@ -1469,11 +1592,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="px-2 py-3">{renderSexDisplay(row.sex)}</td>
                     <td className="px-2 py-3">{row.age ?? "-"}</td>
                     <td className="px-2 py-3">{row.triage ?? "-"}</td>
-                    <td className="break-words px-2 py-3">{row.cc ?? "-"}</td>
-                    <td className="break-words px-2 py-3">{formatDx(row.pdx)}</td>
+                    <td className="break-words px-2 py-3 text-[10px]">{row.cc ?? "-"}</td>
+                    <td className="break-words px-2 py-3 text-[10px]">{formatDx(row.pdx)}</td>
                     <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.alcohol ?? "-"}</td>
+                    <td className="whitespace-nowrap px-2 py-3 text-[10px] text-slate-600">{formatSentAt(row.created_at)}</td>
                     <td className="px-2 py-3">
                       <div className="flex items-center justify-end">
                         <button
@@ -1528,6 +1652,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           }}
         >
           <div
+            key={`${createModalMode}-${editingPatientId ?? "new"}`}
             className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-4xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
             role="dialog"
             aria-modal="true"
@@ -1537,7 +1662,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 id="patient-create-title" className="text-[14px] font-semibold text-slate-900">
-                    {createModalMode === "edit" ? "Update patient" : "เพิ่ม patient"}
+                    {createModalMode === "edit" ? `Update patient (${editingPatientId ?? "-"})` : "เพิ่ม patient"}
                   </h2>
                   <p className="mt-1 text-[12px] leading-5 text-slate-600">
                     {createModalMode === "edit"
@@ -1559,7 +1684,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             <div className="flex-1 overflow-y-auto px-5 py-5">
               <div className="space-y-5">
                 <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
-                  <label className="relative grid min-w-0 gap-2 text-[12px] text-slate-700">
+                  <label ref={hospitalSuggestRef} className="relative grid min-w-0 gap-2 text-[12px] text-slate-700">
                     <span>รพ.</span>
                     <input
                       className={`h-10 w-full min-w-0 border px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
@@ -1583,9 +1708,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           hosname: nextValue.trim(),
                         });
                       }}
-                      onBlur={() => {
-                        window.setTimeout(() => setIsHospitalSuggestOpen(false), 120);
-                      }}
+                      autoComplete="off"
                     />
                     {isHospitalSuggestOpen ? (
                       <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-56 overflow-y-auto border border-sky-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
@@ -1595,8 +1718,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                               key={`${option.hoscode ?? "unknown"}-${option.hosname}`}
                               type="button"
                               className="flex w-full items-center justify-between gap-3 border-b border-sky-50 px-3 py-2 text-left text-[12px] text-slate-700 transition last:border-b-0 hover:bg-sky-50"
-                              onMouseDown={(event) => event.preventDefault()}
-                              onClick={() => selectHospitalChoice(option)}
+                              onMouseDown={(event) => {
+                                event.preventDefault();
+                                selectHospitalChoice(option);
+                              }}
                             >
                               <span className="min-w-0 truncate font-medium text-slate-900">{option.hosname}</span>
                               <span className="shrink-0 text-slate-500">{option.hoscode ?? "-"}</span>
@@ -1631,6 +1756,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           inputMode="numeric"
                           maxLength={13}
+                          autoComplete="off"
                           placeholder="เลขประจำตัวประชาชน"
                           value={createDraft.cid}
                           onChange={(event) =>
@@ -1643,6 +1769,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           placeholder="เลข HN"
+                          autoComplete="off"
                           value={createDraft.hn}
                           onChange={(event) => updateCreateDraft({ hn: event.target.value })}
                         />
@@ -1652,6 +1779,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           placeholder="ชื่อ-นามสกุล"
+                          autoComplete="off"
                           value={createDraft.patient_name}
                           onChange={(event) => updateCreateDraft({ patient_name: event.target.value })}
                         />
@@ -1671,13 +1799,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
                         <span>อายุ <span className="text-rose-600">*</span></span>
                         <input
-                          type="number"
-                          min="0"
-                          max="150"
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           placeholder="ปี"
                           value={createDraft.age}
-                          onChange={(event) => updateCreateDraft({ age: event.target.value })}
+                          onChange={(event) => updateCreateDraft({ age: sanitizeAgeInput(event.target.value) })}
                         />
                       </label>
                     </div>
@@ -1742,6 +1870,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         <textarea
                           className="min-h-[128px] w-full min-w-0 border border-sky-200 bg-white px-3 py-3 text-[12px] leading-5 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           placeholder="บันทึกอาการสำคัญหรือหมายเหตุเบื้องต้น"
+                          autoComplete="off"
                           value={createDraft.cc}
                           onChange={(event) => updateCreateDraft({ cc: event.target.value })}
                         />
@@ -1929,12 +2058,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         tumbon: "",
                       }));
                     }}
-                    disabled={!selectedProvinceCode || (addressLoading && amphoeOptions.length === 0)}
+                    disabled={!selectedProvinceCode || (districtLoading && amphoeOptions.length === 0)}
                   >
                     <option value="">
                       {!selectedProvinceCode
                         ? "เลือกจังหวัดก่อน"
-                        : addressLoading && amphoeOptions.length === 0
+                        : districtLoading && amphoeOptions.length === 0
                           ? "Loading..."
                           : "เลือกอำเภอ"}
                     </option>
@@ -1961,12 +2090,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         tumbon: matchedTambon?.name ?? "",
                       }));
                     }}
-                    disabled={!selectedAmphoeCode || (addressLoading && tambonOptions.length === 0)}
+                    disabled={!selectedAmphoeCode || (subdistrictLoading && tambonOptions.length === 0)}
                   >
                     <option value="">
                       {!selectedAmphoeCode
                         ? "เลือกอำเภอก่อน"
-                        : addressLoading && tambonOptions.length === 0
+                        : subdistrictLoading && tambonOptions.length === 0
                           ? "Loading..."
                           : "เลือกตำบล"}
                     </option>

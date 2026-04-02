@@ -37,6 +37,7 @@ yarn-error.log*
 .playwright/
 .playwright-cli/
 tmp/
+py-example/
 playwright-report/
 test-results/
 .vscode/

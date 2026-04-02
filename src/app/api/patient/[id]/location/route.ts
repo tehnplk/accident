@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbQuery } from "@/lib/db";
+import { patientApiAuthorized } from "@/lib/patient-security";
 
 type LocationBody = {
   prov_code?: string;
@@ -83,6 +84,10 @@ async function fetchLatestLocation(patientId: number) {
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    if (!patientApiAuthorized(_request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const patientId = parseId(id);
 
@@ -105,6 +110,10 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    if (!patientApiAuthorized(request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const patientId = parseId(id);
 
