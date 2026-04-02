@@ -14,6 +14,7 @@ export type PatientRow = {
   patient_name: string | null;
   visit_date: string | null;
   visit_time: string | null;
+  shift_name: string | null;
   sex: string | null;
   age: number | null;
   house_no: string | null;
@@ -333,6 +334,13 @@ function renderSexDisplay(sex: string | null) {
   if (sex === "ชาย") return <span title="ชาย" aria-label="ชาย">ช</span>;
   if (sex === "หญิง") return <span title="หญิง" aria-label="หญิง">ญ</span>;
   return <span>-</span>;
+}
+
+function getShiftTextClass(shiftName: string | null) {
+  if (shiftName === "เวรเช้า") return "text-amber-600";
+  if (shiftName === "เวรบ่าย") return "text-orange-600";
+  if (shiftName === "เวรดึก") return "text-indigo-600";
+  return "text-slate-500";
 }
 
 async function fetchPatientGrid(filters: FilterState, signal?: AbortSignal) {
@@ -1141,6 +1149,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="whitespace-nowrap px-2 py-3 text-slate-600">
                       <span className="block">{formatDate(row.visit_date)}</span>
                       <span className="block text-[11px] text-slate-400">{formatTime(row.visit_time)}</span>
+                      <span className={`block text-[11px] ${getShiftTextClass(row.shift_name)}`}>{row.shift_name ?? "-"}</span>
                     </td>
                     <td className="break-words px-2 py-3">{formatHospitalName(row.hosname)}</td>
                     <td className="break-words px-2 py-3">{row.patient_name ?? "-"}</td>

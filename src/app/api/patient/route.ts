@@ -84,6 +84,16 @@ export async function GET(request: NextRequest) {
         ORDER BY l.id DESC
         LIMIT 1
       ) loc ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT tt.time_name AS shift_name
+        FROM public.timetable tt
+        WHERE (
+          (tt.time_begin <= tt.time_end AND p.visit_time BETWEEN tt.time_begin AND tt.time_end)
+          OR (tt.time_begin > tt.time_end AND (p.visit_time >= tt.time_begin OR p.visit_time <= tt.time_end))
+        )
+        ORDER BY tt.id ASC
+        LIMIT 1
+      ) shift ON TRUE
     `;
     const orderBy =
       sortBy === "visit_date_time"
@@ -122,6 +132,7 @@ export async function GET(request: NextRequest) {
         p.ext_dx,
         detail.vehicle AS vehicle,
         detail.alcohol AS alcohol,
+        shift.shift_name AS shift_name,
         loc.area AS area
       ${baseFrom}
       ${whereClause}
