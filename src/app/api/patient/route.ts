@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbQuery } from "@/lib/db";
+import {
+  getPatientAesSecret,
+  patientApiAuthorized,
+  patientDecryptedColumnSql,
+  patientEncryptedValueSql,
+} from "@/lib/patient-security";
 import { normalizeShiftName } from "@/lib/shift";
 
 const PAGE_SIZES = new Set([20, 50, 100]);
@@ -30,6 +36,10 @@ function normalizeText(value: unknown) {
 
 export async function GET(request: NextRequest) {
   try {
+    if (!patientApiAuthorized(request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const params = request.nextUrl.searchParams;
     const hospital = params.get("hospital")?.trim() ?? "";
     const name = params.get("name")?.trim() ?? "";
@@ -43,6 +53,8 @@ export async function GET(request: NextRequest) {
         ? "visit_date_time"
         : params.get("sortBy") === "age"
           ? "age"
+          : params.get("sortBy") === "created_at"
+            ? "created_at"
           : "visit_date_time";
     const sortDir = params.get("sortDir") === "asc" ? "asc" : "desc";
 
@@ -51,36 +63,58 @@ export async function GET(request: NextRequest) {
     const pageSize = PAGE_SIZES.has(pageSizeRaw) ? pageSizeRaw : 20;
     const offset = (page - 1) * pageSize;
 
+    const aesSecret = getPatientAesSecret();
+    const filterValues: unknown[] = [];
     const whereParts: string[] = [];
-    const values: unknown[] = [];
+    const hospitalParam = hospital ? `%${hospital}%` : null;
+    const nameParam = name ? `%${name}%` : null;
+    const hnParam = hn ? `%${hn}%` : null;
+    const areaParam = area || null;
+    const vehicleParam = vehicle || null;
+    const alcoholParam = alcohol || null;
+    const sexParam = sex || null;
 
-    if (hospital) {
-      values.push(`%${hospital}%`);
-      whereParts.push(`p.hosname ILIKE $${values.length}`);
+    if (hospitalParam) filterValues.push(hospitalParam);
+    if (nameParam) filterValues.push(nameParam);
+    if (hnParam) filterValues.push(hnParam);
+    if (areaParam) filterValues.push(areaParam);
+    if (vehicleParam) filterValues.push(vehicleParam);
+    if (alcoholParam) filterValues.push(alcoholParam);
+    if (sexParam) filterValues.push(sexParam);
+
+    const dataSecretParamIndex = filterValues.length + 1;
+    const decryptedPatientNameSql = patientDecryptedColumnSql("patient_name", dataSecretParamIndex);
+    const decryptedHnSql = patientDecryptedColumnSql("hn", dataSecretParamIndex);
+    const decryptedCidSql = patientDecryptedColumnSql("cid", dataSecretParamIndex);
+    let paramIndex = 0;
+
+    if (hospitalParam) {
+      paramIndex += 1;
+      whereParts.push(`p.hosname ILIKE $${paramIndex}`);
     }
-    if (name) {
-      values.push(`%${name}%`);
-      whereParts.push(`p.patient_name ILIKE $${values.length}`);
+    if (nameParam) {
+      paramIndex += 1;
+      whereParts.push(`${decryptedPatientNameSql} ILIKE $${paramIndex}`);
     }
-    if (hn) {
-      values.push(`%${hn}%`);
-      whereParts.push(`p.hn ILIKE $${values.length}`);
+    if (hnParam) {
+      paramIndex += 1;
+      whereParts.push(`${decryptedHnSql} ILIKE $${paramIndex}`);
     }
-    if (area) {
-      values.push(area);
-      whereParts.push(`loc.area = $${values.length}`);
+    if (areaParam) {
+      paramIndex += 1;
+      whereParts.push(`loc.area = $${paramIndex}`);
     }
-    if (vehicle) {
-      values.push(vehicle);
-      whereParts.push(`detail.vehicle = $${values.length}`);
+    if (vehicleParam) {
+      paramIndex += 1;
+      whereParts.push(`detail.vehicle = $${paramIndex}`);
     }
-    if (alcohol) {
-      values.push(alcohol);
-      whereParts.push(`detail.alcohol = $${values.length}`);
+    if (alcoholParam) {
+      paramIndex += 1;
+      whereParts.push(`detail.alcohol = $${paramIndex}`);
     }
-    if (sex) {
-      values.push(sex);
-      whereParts.push(`p.sex = $${values.length}`);
+    if (sexParam) {
+      paramIndex += 1;
+      whereParts.push(`p.sex = $${paramIndex}`);
     }
 
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
@@ -120,23 +154,26 @@ export async function GET(request: NextRequest) {
         ? `p.visit_date ${sortDir.toUpperCase()}, p.visit_time ${sortDir.toUpperCase()}, p.id ${sortDir.toUpperCase()}`
         : sortBy === "age"
           ? `p.age ${sortDir.toUpperCase()} NULLS LAST, p.id ${sortDir.toUpperCase()}`
+          : sortBy === "created_at"
+            ? `p.created_at ${sortDir.toUpperCase()} NULLS LAST, p.id ${sortDir.toUpperCase()}`
           : `p.visit_date ${sortDir.toUpperCase()}, p.id ${sortDir.toUpperCase()}`;
 
     const countQuery = `SELECT count(*)::int AS total ${baseFrom} ${whereClause}`;
-    const countResult = await dbQuery<{ total: number }>(countQuery, values);
+    const countValues = nameParam || hnParam ? [...filterValues, aesSecret] : filterValues;
+    const countResult = await dbQuery<{ total: number }>(countQuery, countValues);
     const total = countResult.rows[0]?.total ?? 0;
 
-    const pageValues = [...values, pageSize, offset];
+    const pageValues = [...filterValues, aesSecret, pageSize, offset];
     const dataQuery = `
       SELECT
         p.id,
         p.hoscode,
         p.hosname,
-        p.hn,
-        p.cid,
-        p.patient_name,
-        p.visit_date,
-        p.visit_time,
+        ${decryptedHnSql} AS hn,
+        ${decryptedCidSql} AS cid,
+        ${decryptedPatientNameSql} AS patient_name,
+        to_char(p.visit_date, 'YYYY-MM-DD') AS visit_date,
+        to_char(p.visit_time, 'HH24:MI:SS') AS visit_time,
         p.sex,
         p.age,
         p.house_no,
@@ -154,7 +191,9 @@ export async function GET(request: NextRequest) {
         detail.vehicle AS vehicle,
         detail.alcohol AS alcohol,
         shift.shift_name AS shift_name,
-        loc.area AS area
+        loc.area AS area,
+        to_char(p.created_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+        to_char(p.updated_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS updated_at
       ${baseFrom}
       ${whereClause}
       ORDER BY ${orderBy}
@@ -187,6 +226,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!patientApiAuthorized(request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const body = (await request.json()) as CreatePatientBody;
     const hoscode = normalizeText(body.hoscode) || null;
     const hosname = normalizeText(body.hosname) || null;
@@ -217,37 +260,72 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Age must be between 0 and 150" }, { status: 400 });
     }
 
+    const aesSecret = getPatientAesSecret();
     const sql = `
-      INSERT INTO public.patient (
-        hoscode,
-        hosname,
-        hn,
-        cid,
-        patient_name,
-        visit_date,
-        visit_time,
-        sex,
-        age,
-        triage,
-        status,
-        cc,
-        source
+      WITH inserted AS (
+        INSERT INTO public.patient (
+          hoscode,
+          hosname,
+          hn,
+          cid,
+          patient_name,
+          visit_date,
+          visit_time,
+          sex,
+          age,
+          triage,
+          status,
+          cc,
+          source
+        )
+        VALUES (
+          $1,
+          $2,
+          ${patientEncryptedValueSql(3, 14)},
+          ${patientEncryptedValueSql(4, 14)},
+          ${patientEncryptedValueSql(5, 14)},
+          COALESCE($6::date, CURRENT_DATE),
+          COALESCE($7::time, LOCALTIME(0)),
+          $8,
+          $9,
+          $10,
+          $11,
+          $12,
+          $13
+        )
+        RETURNING
+          id,
+          hoscode,
+          hosname,
+          hn,
+          cid,
+          patient_name,
+          visit_date,
+          visit_time,
+          sex,
+          age,
+          house_no,
+          moo,
+          road,
+          tumbon,
+          amphoe,
+          changwat,
+          cc,
+          status,
+          triage,
+          source,
+          pdx,
+          ext_dx
       )
-      VALUES (
-        $1, $2, $3, $4, $5,
-        COALESCE($6::date, CURRENT_DATE),
-        COALESCE($7::time, LOCALTIME(0)),
-        $8, $9, $10, $11, $12, $13
-      )
-      RETURNING
+      SELECT
         id,
         hoscode,
         hosname,
-        hn,
-        cid,
-        patient_name,
-        visit_date,
-        visit_time,
+        ${patientDecryptedColumnSql("hn", 14, "inserted")} AS hn,
+        ${patientDecryptedColumnSql("cid", 14, "inserted")} AS cid,
+        ${patientDecryptedColumnSql("patient_name", 14, "inserted")} AS patient_name,
+        to_char(visit_date, 'YYYY-MM-DD') AS visit_date,
+        to_char(visit_time, 'HH24:MI:SS') AS visit_time,
         sex,
         age,
         house_no,
@@ -262,6 +340,7 @@ export async function POST(request: NextRequest) {
         source,
         pdx,
         ext_dx
+      FROM inserted
     `;
 
     const result = await dbQuery(sql, [
@@ -278,6 +357,7 @@ export async function POST(request: NextRequest) {
       status,
       cc,
       "man",
+      aesSecret,
     ]);
 
     return NextResponse.json({ row: result.rows[0] }, { status: 201 });

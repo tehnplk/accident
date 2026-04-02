@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbQuery, dbTransaction } from "@/lib/db";
+import {
+  getPatientAesSecret,
+  patientApiAuthorized,
+  patientDecryptedColumnSql,
+  patientEncryptedValueSql,
+} from "@/lib/patient-security";
 
 type UpdateBody = {
   hoscode?: string;
@@ -46,6 +52,10 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    if (!patientApiAuthorized(request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const rowId = Number.parseInt(id, 10);
 
@@ -54,14 +64,19 @@ export async function PATCH(
     }
 
     const body = (await request.json()) as UpdateBody;
+    const aesSecret = getPatientAesSecret();
     const updates: string[] = [];
-    const values: unknown[] = [];
+    const values: unknown[] = [aesSecret];
 
     for (const field of ALLOWED_FIELDS) {
       const raw = body[field];
       if (typeof raw === "string") {
         values.push(raw.trim());
-        updates.push(`${field} = $${values.length}`);
+        if (field === "hn" || field === "cid" || field === "patient_name") {
+          updates.push(`${field} = ${patientEncryptedValueSql(values.length, 1)}`);
+        } else {
+          updates.push(`${field} = $${values.length}`);
+        }
       } else if (field === "age" && (typeof raw === "number" || raw === null)) {
         values.push(raw);
         updates.push(`${field} = $${values.length}`);
@@ -74,16 +89,41 @@ export async function PATCH(
 
     values.push(rowId);
     const sql = `
-      UPDATE public.patient
-      SET ${updates.join(", ")}
-      WHERE id = $${values.length}
-      RETURNING
+      WITH updated AS (
+        UPDATE public.patient
+        SET ${updates.join(", ")}
+        WHERE id = $${values.length}
+        RETURNING
+          id,
+          hoscode,
+          hosname,
+          hn,
+          cid,
+          patient_name,
+          to_char(visit_date, 'YYYY-MM-DD') AS visit_date,
+          to_char(visit_time, 'HH24:MI:SS') AS visit_time,
+          sex,
+          age,
+          source,
+          house_no,
+          moo,
+          road,
+          tumbon,
+          amphoe,
+          changwat,
+          cc,
+          status,
+          triage,
+          pdx,
+          ext_dx
+      )
+      SELECT
         id,
         hoscode,
         hosname,
-        hn,
-        cid,
-        patient_name,
+        ${patientDecryptedColumnSql("hn", 1, "updated")} AS hn,
+        ${patientDecryptedColumnSql("cid", 1, "updated")} AS cid,
+        ${patientDecryptedColumnSql("patient_name", 1, "updated")} AS patient_name,
         visit_date,
         visit_time,
         sex,
@@ -100,6 +140,7 @@ export async function PATCH(
         triage,
         pdx,
         ext_dx
+      FROM updated
     `;
 
     const result = await dbQuery(sql, values);
@@ -128,10 +169,14 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    if (!patientApiAuthorized(request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const rowId = Number.parseInt(id, 10);
 

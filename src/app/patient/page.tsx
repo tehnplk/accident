@@ -6,6 +6,11 @@ import {
   type PatientRow,
 } from "@/components/patient-data-grid";
 import { dbQuery } from "@/lib/db";
+import {
+  createPatientApiToken,
+  getPatientAesSecret,
+  patientDecryptedColumnSql,
+} from "@/lib/patient-security";
 import { normalizeShiftName } from "@/lib/shift";
 
 type SearchParamsValue = string | string[] | undefined;
@@ -42,6 +47,8 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
         ? "visit_date_time"
         : pickParam(searchParams.sortBy) === "age"
           ? "age"
+          : pickParam(searchParams.sortBy) === "created_at"
+            ? "created_at"
           : "visit_date_time",
     sortDir: pickParam(searchParams.sortDir) === "asc" ? "asc" : "desc",
     page: parsePage(pickParam(searchParams.page), 1),
@@ -50,40 +57,63 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
 }
 
 function buildPatientQuery(filters: FilterState) {
+  const aesSecret = getPatientAesSecret();
+  const filterValues: unknown[] = [];
   const whereParts: string[] = [];
-  const values: unknown[] = [];
+  const hospitalParam = filters.hospital.trim() ? `%${filters.hospital.trim()}%` : null;
+  const nameParam = filters.name.trim() ? `%${filters.name.trim()}%` : null;
+  const hnParam = filters.hn.trim() ? `%${filters.hn.trim()}%` : null;
+  const areaParam = filters.area.trim() || null;
+  const vehicleParam = filters.vehicle.trim() || null;
+  const alcoholParam = filters.alcohol.trim() || null;
+  const sexParam = filters.sex || null;
 
-  if (filters.hospital.trim()) {
-    values.push(`%${filters.hospital.trim()}%`);
-    whereParts.push(`p.hosname ILIKE $${values.length}`);
+  if (hospitalParam) filterValues.push(hospitalParam);
+  if (nameParam) filterValues.push(nameParam);
+  if (hnParam) filterValues.push(hnParam);
+  if (areaParam) filterValues.push(areaParam);
+  if (vehicleParam) filterValues.push(vehicleParam);
+  if (alcoholParam) filterValues.push(alcoholParam);
+  if (sexParam) filterValues.push(sexParam);
+
+  const dataSecretParamIndex = filterValues.length + 1;
+  const decryptedPatientNameSql = patientDecryptedColumnSql("patient_name", dataSecretParamIndex);
+  const decryptedHnSql = patientDecryptedColumnSql("hn", dataSecretParamIndex);
+  const decryptedCidSql = patientDecryptedColumnSql("cid", dataSecretParamIndex);
+  let paramIndex = 0;
+
+  if (hospitalParam) {
+    paramIndex += 1;
+    whereParts.push(`p.hosname ILIKE $${paramIndex}`);
   }
-  if (filters.name.trim()) {
-    values.push(`%${filters.name.trim()}%`);
-    whereParts.push(`p.patient_name ILIKE $${values.length}`);
+  if (nameParam) {
+    paramIndex += 1;
+    whereParts.push(`${decryptedPatientNameSql} ILIKE $${paramIndex}`);
   }
-  if (filters.hn.trim()) {
-    values.push(`%${filters.hn.trim()}%`);
-    whereParts.push(`p.hn ILIKE $${values.length}`);
+  if (hnParam) {
+    paramIndex += 1;
+    whereParts.push(`${decryptedHnSql} ILIKE $${paramIndex}`);
   }
-  if (filters.area.trim()) {
-    values.push(filters.area.trim());
-    whereParts.push(`loc.area = $${values.length}`);
+  if (areaParam) {
+    paramIndex += 1;
+    whereParts.push(`loc.area = $${paramIndex}`);
   }
-  if (filters.vehicle.trim()) {
-    values.push(filters.vehicle.trim());
-    whereParts.push(`detail.vehicle = $${values.length}`);
+  if (vehicleParam) {
+    paramIndex += 1;
+    whereParts.push(`detail.vehicle = $${paramIndex}`);
   }
-  if (filters.alcohol.trim()) {
-    values.push(filters.alcohol.trim());
-    whereParts.push(`detail.alcohol = $${values.length}`);
+  if (alcoholParam) {
+    paramIndex += 1;
+    whereParts.push(`detail.alcohol = $${paramIndex}`);
   }
-  if (filters.sex) {
-    values.push(filters.sex);
-    whereParts.push(`p.sex = $${values.length}`);
+  if (sexParam) {
+    paramIndex += 1;
+    whereParts.push(`p.sex = $${paramIndex}`);
   }
 
   const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
-  const pageValues = [...values, filters.pageSize, (filters.page - 1) * filters.pageSize];
+  const countValues = nameParam || hnParam ? [...filterValues, aesSecret] : filterValues;
+  const pageValues = [...filterValues, aesSecret, filters.pageSize, (filters.page - 1) * filters.pageSize];
   const baseFrom = `
       FROM public.patient p
       LEFT JOIN LATERAL (
@@ -120,6 +150,8 @@ function buildPatientQuery(filters: FilterState) {
       ? `p.visit_date ${filters.sortDir.toUpperCase()}, p.visit_time ${filters.sortDir.toUpperCase()}, p.id ${filters.sortDir.toUpperCase()}`
       : filters.sortBy === "age"
         ? `p.age ${filters.sortDir.toUpperCase()} NULLS LAST, p.id ${filters.sortDir.toUpperCase()}`
+        : filters.sortBy === "created_at"
+          ? `p.created_at ${filters.sortDir.toUpperCase()} NULLS LAST, p.id ${filters.sortDir.toUpperCase()}`
         : `p.visit_date ${filters.sortDir.toUpperCase()}, p.id ${filters.sortDir.toUpperCase()}`;
 
   return {
@@ -129,11 +161,11 @@ function buildPatientQuery(filters: FilterState) {
         p.id,
         p.hoscode,
         p.hosname,
-        p.hn,
-        p.cid,
-        p.patient_name,
-        p.visit_date,
-        p.visit_time,
+        ${decryptedHnSql} AS hn,
+        ${decryptedCidSql} AS cid,
+        ${decryptedPatientNameSql} AS patient_name,
+        to_char(p.visit_date, 'YYYY-MM-DD') AS visit_date,
+        to_char(p.visit_time, 'HH24:MI:SS') AS visit_time,
         p.sex,
         p.age,
         p.house_no,
@@ -145,25 +177,28 @@ function buildPatientQuery(filters: FilterState) {
         p.cc,
         p.status,
         p.triage,
+        p.source,
         p.pdx,
         p.ext_dx,
         detail.vehicle AS vehicle,
         detail.alcohol AS alcohol,
         shift.shift_name AS shift_name,
-        loc.area AS area
+        loc.area AS area,
+        to_char(p.created_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+        to_char(p.updated_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS updated_at
       ${baseFrom}
       ${whereClause}
       ORDER BY ${orderBy}
       LIMIT $${pageValues.length - 1}
       OFFSET $${pageValues.length}
     `,
-    values,
+    countValues,
     pageValues,
   };
 }
 
 async function loadInitialData(filters: FilterState): Promise<PatientGridInitialData> {
-  const { countQuery, dataQuery, values, pageValues } = buildPatientQuery(filters);
+  const { countQuery, dataQuery, countValues, pageValues } = buildPatientQuery(filters);
   const hospitalQuery = `
     SELECT DISTINCT hoscode, hosname
     FROM public.hos
@@ -199,7 +234,7 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     ORDER BY aa.code ASC, aa.name ASC
   `;
   const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult, alcoholResult] = await Promise.all([
-    dbQuery<{ total: number }>(countQuery, values),
+    dbQuery<{ total: number }>(countQuery, countValues),
     dbQuery<PatientRow>(dataQuery, pageValues),
     dbQuery<HospitalOption>(hospitalQuery),
     dbQuery<{ area: string }>(areaQuery),
@@ -219,6 +254,7 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     rows,
     total: countResult.rows[0]?.total ?? 0,
     filters,
+    authToken: createPatientApiToken(),
     hospitalOptions: uniqueHospitalNames,
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),

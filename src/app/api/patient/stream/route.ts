@@ -1,4 +1,5 @@
 import { Client } from "pg";
+import { patientApiAuthorized } from "@/lib/patient-security";
 
 const SSE_HEADERS = {
   "Content-Type": "text/event-stream",
@@ -13,6 +14,13 @@ const STREAM_RETRY_MS = Number.parseInt(process.env.NEXT_PUBLIC_PATIENT_STREAM_R
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
+  if (!patientApiAuthorized(request)) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (!process.env.DATABASE_URL) {
     return new Response("DATABASE_URL is required", { status: 500 });
   }

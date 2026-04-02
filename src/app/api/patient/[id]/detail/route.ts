@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbQuery } from "@/lib/db";
+import { patientApiAuthorized } from "@/lib/patient-security";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -62,6 +63,10 @@ const COLUMNS = [
 
 export async function GET(_request: NextRequest, context: RouteContext) {
   try {
+    if (!patientApiAuthorized(_request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const patientId = Number.parseInt(id, 10);
 
@@ -113,6 +118,10 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    if (!patientApiAuthorized(request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const patientId = Number.parseInt(id, 10);
 
