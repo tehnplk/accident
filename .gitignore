@@ -22,6 +22,7 @@
 
 # data exports / imports
 /data/
+/docs/
 
 # misc
 .DS_Store
