@@ -42,7 +42,7 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
         ? "visit_date_time"
         : pickParam(searchParams.sortBy) === "age"
           ? "age"
-          : "visit_date",
+          : "visit_date_time",
     sortDir: pickParam(searchParams.sortDir) === "asc" ? "asc" : "desc",
     page: parsePage(pickParam(searchParams.page), 1),
     pageSize,
@@ -211,12 +211,15 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     ...row,
     shift_name: normalizeShiftName(row.visit_time, row.shift_name),
   }));
+  const uniqueHospitalNames = Array.from(
+    new Set(hospitalResult.rows.map((row) => row.hosname).filter((value): value is string => Boolean(value))),
+  );
 
   return {
     rows,
     total: countResult.rows[0]?.total ?? 0,
     filters,
-    hospitalOptions: hospitalResult.rows.map((row) => row.hosname),
+    hospitalOptions: uniqueHospitalNames,
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
     vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),

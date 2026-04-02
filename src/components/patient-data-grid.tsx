@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDownUp, MapPin, Pencil, Plus, Save, X } from "lucide-react";
+import { ArrowDownUp, FileText, MapPin, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 
 export type PatientRow = {
   id: number;
@@ -29,6 +29,7 @@ export type PatientRow = {
   vehicle: string | null;
   alcohol: string | null;
   area: string | null;
+  source: string | null;
   pdx: { code?: string; name?: string } | null;
   ext_dx: { code?: string; name?: string } | null;
 };
@@ -269,7 +270,7 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
         ? "visit_date_time"
         : searchParams.get("sortBy") === "age"
           ? "age"
-          : "visit_date",
+          : "visit_date_time",
     sortDir: searchParams.get("sortDir") === "asc" ? "asc" : "desc",
     page: normalizePage(searchParams.get("page"), 1),
     pageSize,
@@ -310,6 +311,19 @@ function formatTime(input: string | Date | null) {
   const match = rawTime.match(/^(\d{2}):(\d{2})/);
   if (match) return `${match[1]}:${match[2]} น.`;
   return "-";
+}
+
+function toDateInputValue(input: string | null | undefined) {
+  if (!input) return "";
+  const raw = input.split("T")[0] ?? input;
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : "";
+}
+
+function toTimeInputValue(input: string | null | undefined) {
+  if (!input) return "";
+  const match = input.match(/^(\d{2}):(\d{2})/);
+  if (!match) return "";
+  return `${match[1]}:${match[2]}`;
 }
 
 async function fetchThaiAddressOptions(query: string, signal?: AbortSignal) {
@@ -398,6 +412,10 @@ function getShiftTextClass(shiftName: string | null) {
   if (shiftName === "เวรบ่าย") return "text-orange-600";
   if (shiftName === "เวรดึก") return "text-indigo-600";
   return "text-slate-500";
+}
+
+function isManualSource(source: string | null | undefined) {
+  return source === "man";
 }
 
 async function fetchPatientGrid(filters: FilterState, signal?: AbortSignal) {
@@ -499,12 +517,17 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [selectedRow, setSelectedRow] = useState<PatientRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createModalMode, setCreateModalMode] = useState<"create" | "edit">("create");
+  const [editingPatientId, setEditingPatientId] = useState<number | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailRow, setSelectedDetailRow] = useState<PatientRow | null>(null);
+  const [pendingDeleteRow, setPendingDeleteRow] = useState<PatientRow | null>(null);
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
   const [createDraft, setCreateDraft] = useState<PatientCreateDraft>(() => createInitialPatientDraft());
   const [createSaving, setCreateSaving] = useState(false);
   const [createHospitalQuery, setCreateHospitalQuery] = useState("");
+  const [isHospitalSuggestOpen, setIsHospitalSuggestOpen] = useState(false);
   const deferredHospitalQuery = useDeferredValue(createHospitalQuery);
   const [provinceOptions, setProvinceOptions] = useState<ThaiAddressOption[]>([]);
   const [amphoeOptions, setAmphoeOptions] = useState<ThaiAddressOption[]>([]);
@@ -985,7 +1008,33 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     const nextDraft = createInitialPatientDraft();
     setCreateDraft(nextDraft);
     setCreateHospitalQuery("");
+    setIsHospitalSuggestOpen(false);
     setCreateSaving(false);
+    setCreateModalMode("create");
+    setEditingPatientId(null);
+    setIsCreateModalOpen(true);
+  };
+
+  const openUpdatePatientModal = (row: PatientRow) => {
+    setCreateDraft({
+      hoscode: row.hoscode ?? "",
+      hosname: row.hosname ?? "",
+      hn: row.hn ?? "",
+      cid: row.cid ?? "",
+      patient_name: row.patient_name ?? "",
+      visit_date: toDateInputValue(row.visit_date),
+      visit_time: toTimeInputValue(row.visit_time),
+      sex: row.sex ?? "",
+      age: row.age === null || row.age === undefined ? "" : String(row.age),
+      triage: row.triage ?? "",
+      status: row.status ?? "",
+      cc: row.cc ?? "",
+    });
+    setCreateHospitalQuery(row.hosname ?? "");
+    setIsHospitalSuggestOpen(false);
+    setCreateSaving(false);
+    setCreateModalMode("edit");
+    setEditingPatientId(row.id);
     setIsCreateModalOpen(true);
   };
 
@@ -993,7 +1042,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setIsCreateModalOpen(false);
     setCreateDraft(createInitialPatientDraft());
     setCreateHospitalQuery("");
+    setIsHospitalSuggestOpen(false);
     setCreateSaving(false);
+    setCreateModalMode("create");
+    setEditingPatientId(null);
+    setIsDeleteConfirmOpen(false);
+    setPendingDeleteRow(null);
   };
 
   const updateCreateDraft = (patch: Partial<PatientCreateDraft>) => {
@@ -1005,6 +1059,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
   const selectHospitalChoice = (option: HospitalOption) => {
     setCreateHospitalQuery(option.hosname);
+    setIsHospitalSuggestOpen(false);
     updateCreateDraft({
       hoscode: option.hoscode ?? "",
       hosname: option.hosname,
@@ -1015,6 +1070,47 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setSelectedDetailRow(row);
     setDetailDraft(emptyDetailDraft());
     setIsDetailModalOpen(true);
+  };
+
+  const performDeletePatientRow = async (row: PatientRow) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/patient/${row.id}`, {
+        method: "DELETE",
+      });
+      const payload = (await response.json().catch(() => ({}))) as { message?: string };
+      if (!response.ok) {
+        throw new Error(payload.message ?? "Failed to delete patient");
+      }
+
+      await refreshRows();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Delete failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePatientRow = async (row: PatientRow) => {
+    const confirmed = window.confirm(`ต้องการลบ ${row.patient_name ?? "-"} ใช่หรือไม่?`);
+    if (!confirmed) return;
+    await performDeletePatientRow(row);
+  };
+
+  const requestDeleteCurrentPatient = () => {
+    if (!editingPatientId) return;
+    setPendingDeleteRow(rows.find((row) => row.id === editingPatientId) ?? selectedRow ?? null);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteCurrentPatient = async () => {
+    if (!pendingDeleteRow) return;
+
+    setIsDeleteConfirmOpen(false);
+    await performDeletePatientRow(pendingDeleteRow);
+    cancelCreate();
   };
 
   const closeDetailModal = () => {
@@ -1055,6 +1151,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const saveCreate = async () => {
+    setError(null);
+
     if (!createDraft.cid.trim()) {
       setError("กรุณากรอก CID");
       return;
@@ -1065,28 +1163,55 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       return;
     }
 
+    if (!createDraft.sex.trim()) {
+      setError("กรุณาเลือกเพศ");
+      return;
+    }
+
+    const parsedAge = Number.parseInt(createDraft.age, 10);
+    if (!createDraft.age.trim() || !Number.isFinite(parsedAge) || parsedAge < 0) {
+      setError("กรุณากรอกอายุให้ถูกต้อง");
+      return;
+    }
+
+    if (!createDraft.triage.trim()) {
+      setError("กรุณาเลือก Triage");
+      return;
+    }
+
+    if (!createDraft.cc.trim()) {
+      setError("กรุณากรอกอาการสำคัญ");
+      return;
+    }
+
     setCreateSaving(true);
-    setError(null);
 
     try {
-      const response = await fetch("/api/patient", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          hoscode: createDraft.hoscode,
-          hosname: createDraft.hosname,
-          hn: createDraft.hn,
-          cid: createDraft.cid,
-          patient_name: createDraft.patient_name,
-          visit_date: createDraft.visit_date,
-          visit_time: createDraft.visit_time,
-          sex: createDraft.sex,
-          age: createDraft.age,
-          triage: createDraft.triage,
-          status: createDraft.status,
-          cc: createDraft.cc,
-        }),
-      });
+      const body = {
+        hoscode: createDraft.hoscode,
+        hosname: createDraft.hosname,
+        hn: createDraft.hn,
+        cid: createDraft.cid,
+        patient_name: createDraft.patient_name,
+        visit_date: createDraft.visit_date,
+        visit_time: createDraft.visit_time,
+        sex: createDraft.sex,
+        age: createDraft.age,
+        triage: createDraft.triage,
+        status: createDraft.status,
+        cc: createDraft.cc,
+      };
+
+      const response = await fetch(
+        createModalMode === "edit" && editingPatientId
+          ? `/api/patient/${editingPatientId}`
+          : "/api/patient",
+        {
+          method: createModalMode === "edit" && editingPatientId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
 
       const payload = (await response.json().catch(() => ({}))) as CreatePatientResponse;
       if (!response.ok) {
@@ -1168,8 +1293,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             }}
           >
             <option value="">ทุก รพ.</option>
-            {hospitalOptions.map((hospital) => (
-              <option key={hospital} value={hospital}>
+            {hospitalOptions.map((hospital, index) => (
+              <option key={`${hospital}-${index}`} value={hospital}>
                 {formatHospitalName(hospital)}
               </option>
             ))}
@@ -1281,14 +1406,14 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           </div>
         </div>
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex justify-start">
           <button
             type="button"
             className="inline-flex h-10 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white transition hover:bg-sky-700"
             onClick={openCreateModal}
           >
             <Plus size={15} />
-            เพิ่ม Patient
+            เพิ่ม
           </button>
         </div>
 
@@ -1296,7 +1421,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           <table className="w-full table-fixed border-collapse">
             <thead className="bg-sky-50 text-left text-xs uppercase tracking-[0.16em] text-sky-900">
               <tr>
-                <VerticalHeader className="w-[42px] px-2 py-3">ID</VerticalHeader>
+                <VerticalHeader className="w-[42px] px-2 py-3">#</VerticalHeader>
                 <SortableAngledHeader
                   className="w-[80px] px-2 py-3"
                   onClick={toggleVisitDateSort}
@@ -1322,16 +1447,18 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                 <VerticalHeader className="w-[85px] px-2 py-3">สุรา</VerticalHeader>
                 <VerticalHeader className="w-[52px] px-2 py-3">จุดเกิดเหตุ</VerticalHeader>
                 <VerticalHeader className="w-[52px] px-2 py-3">เพิ่มเติม</VerticalHeader>
+                <VerticalHeader className="w-[72px] px-2 py-3">Action</VerticalHeader>
               </tr>
             </thead>
             <tbody className="text-[12px] text-slate-700">
-              {rows.map((row) => {
+              {rows.map((row, index) => {
+                const displayNo = total - ((filters.page - 1) * filters.pageSize) - index;
                 return (
                   <tr
                     key={row.id}
                     className="border-t border-sky-100 align-top odd:bg-white even:bg-sky-50/50"
                   >
-                    <td className="px-2 py-3">{row.id}</td>
+                    <td className="px-2 py-3">{displayNo}</td>
                     <td className="whitespace-nowrap px-2 py-3 text-slate-600">
                       <span className="block">{formatDate(row.visit_date)}</span>
                       <span className="block text-[11px] text-slate-400">{formatTime(row.visit_time)}</span>
@@ -1367,6 +1494,19 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           onClick={() => openDetailModal(row)}
                           title="กรอกข้อมูลเพิ่มเติม"
                         >
+                          <FileText size={16} />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-2 py-3">
+                      <div className="flex items-center justify-end">
+                        <button
+                          type="button"
+                          className="inline-flex h-8 w-8 items-center justify-center border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          onClick={() => openUpdatePatientModal(row)}
+                          title="Update"
+                          aria-label="Update"
+                        >
                           <Pencil size={16} />
                         </button>
                       </div>
@@ -1381,26 +1521,28 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
       {isCreateModalOpen ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-6 backdrop-blur-[2px]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) cancelCreate();
           }}
         >
           <div
-            className="w-full max-w-5xl border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+            className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-4xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="patient-create-title"
           >
-            <div className="border-b border-sky-100 px-6 py-5">
+            <div className="border-b border-sky-100 bg-sky-50/50 px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 id="patient-create-title" className="text-[12px] font-semibold text-slate-900">
-                    เพิ่ม patient
+                  <h2 id="patient-create-title" className="text-[14px] font-semibold text-slate-900">
+                    {createModalMode === "edit" ? "Update patient" : "เพิ่ม patient"}
                   </h2>
-                  <p className="mt-1 text-[12px] text-slate-600">
-                    ค้นหา รพ. ก่อน แล้วกรอกข้อมูลผู้ป่วย โดยบังคับเฉพาะ CID และชื่อผู้ป่วย
+                  <p className="mt-1 text-[12px] leading-5 text-slate-600">
+                    {createModalMode === "edit"
+                      ? "แก้ไขข้อมูลผู้ป่วยหลัก แล้วกดบันทึกเพื่ออัปเดต"
+                      : "ค้นหา รพ. ก่อน แล้วกรอกข้อมูลผู้ป่วย (บังคับ: CID, ชื่อผู้ป่วย, เพศ, อายุ, Triage, อาการสำคัญ)"}
                   </p>
                 </div>
                 <button
@@ -1414,195 +1556,291 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               </div>
             </div>
 
-            <div className="px-6 py-6">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-                <div className="space-y-4">
-                  <div className="border border-sky-100 bg-sky-50/50 p-4">
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>ค้นหา รพ.</span>
-                      <input
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        placeholder="พิมพ์ชื่อโรงพยาบาล หรือรหัส รพ."
-                        value={createHospitalQuery}
-                        onChange={(event) => {
-                          const nextValue = event.target.value;
-                          setCreateHospitalQuery(nextValue);
-                          updateCreateDraft({
-                            hoscode: "",
-                            hosname: nextValue.trim(),
-                          });
-                        }}
-                      />
-                    </label>
-                    <div className="mt-3 border border-sky-100 bg-white">
-                      {filteredHospitalChoices.length > 0 ? (
-                        <div className="max-h-64 overflow-y-auto">
-                          {filteredHospitalChoices.map((option) => (
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+              <div className="space-y-5">
+                <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
+                  <label className="relative grid min-w-0 gap-2 text-[12px] text-slate-700">
+                    <span>รพ.</span>
+                    <input
+                      className={`h-10 w-full min-w-0 border px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
+                        createModalMode === "edit"
+                          ? "border-slate-200 bg-slate-50"
+                          : "border-sky-200 bg-white"
+                      }`}
+                      placeholder="พิมพ์ชื่อโรงพยาบาล หรือรหัส รพ."
+                      value={createHospitalQuery}
+                      readOnly={createModalMode === "edit"}
+                      onFocus={() => {
+                        if (createModalMode === "create") setIsHospitalSuggestOpen(true);
+                      }}
+                      onChange={(event) => {
+                        if (createModalMode === "edit") return;
+                        const nextValue = event.target.value;
+                        setCreateHospitalQuery(nextValue);
+                        setIsHospitalSuggestOpen(true);
+                        updateCreateDraft({
+                          hoscode: "",
+                          hosname: nextValue.trim(),
+                        });
+                      }}
+                      onBlur={() => {
+                        window.setTimeout(() => setIsHospitalSuggestOpen(false), 120);
+                      }}
+                    />
+                    {isHospitalSuggestOpen ? (
+                      <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-56 overflow-y-auto border border-sky-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
+                        {filteredHospitalChoices.length > 0 ? (
+                          filteredHospitalChoices.map((option) => (
                             <button
                               key={`${option.hoscode ?? "unknown"}-${option.hosname}`}
                               type="button"
                               className="flex w-full items-center justify-between gap-3 border-b border-sky-50 px-3 py-2 text-left text-[12px] text-slate-700 transition last:border-b-0 hover:bg-sky-50"
+                              onMouseDown={(event) => event.preventDefault()}
                               onClick={() => selectHospitalChoice(option)}
                             >
-                              <span className="font-medium text-slate-900">{option.hosname}</span>
-                              <span className="text-slate-500">{option.hoscode ?? "-"}</span>
+                              <span className="min-w-0 truncate font-medium text-slate-900">{option.hosname}</span>
+                              <span className="shrink-0 text-slate-500">{option.hoscode ?? "-"}</span>
                             </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="px-3 py-4 text-[12px] text-slate-500">ไม่พบข้อมูล รพ. ที่ตรงคำค้น</div>
-                      )}
-                    </div>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <div className="border border-sky-100 bg-white px-3 py-2 text-[12px]">
-                        <span className="block text-slate-500">รพ. ที่เลือก</span>
-                        <span className="mt-1 block font-medium text-slate-900">{createDraft.hosname || "-"}</span>
+                          ))
+                        ) : (
+                          <div className="px-3 py-3 text-[12px] text-slate-500">ไม่พบข้อมูล รพ.</div>
+                        )}
                       </div>
-                      <div className="border border-sky-100 bg-white px-3 py-2 text-[12px]">
-                        <span className="block text-slate-500">รหัส รพ.</span>
-                        <span className="mt-1 block font-medium text-slate-900">{createDraft.hoscode || "-"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>CID <span className="text-rose-600">*</span></span>
-                      <input
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        inputMode="numeric"
-                        maxLength={13}
-                        placeholder="เลขประจำตัวประชาชน"
-                        value={createDraft.cid}
-                        onChange={(event) => updateCreateDraft({ cid: event.target.value.replace(/\D/g, "").slice(0, 13) })}
-                      />
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>HN</span>
-                      <input
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        placeholder="เลข HN"
-                        value={createDraft.hn}
-                        onChange={(event) => updateCreateDraft({ hn: event.target.value })}
-                      />
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700 sm:col-span-2">
-                      <span>ชื่อผู้ป่วย <span className="text-rose-600">*</span></span>
-                      <input
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        placeholder="ชื่อ-นามสกุล"
-                        value={createDraft.patient_name}
-                        onChange={(event) => updateCreateDraft({ patient_name: event.target.value })}
-                      />
-                    </label>
-                  </div>
+                    ) : null}
+                  </label>
+                  <label className="grid min-w-0 gap-2 self-start text-[12px] text-slate-700">
+                    <span>รหัส รพ.</span>
+                    <input
+                      className="h-10 w-full min-w-0 border border-sky-200 bg-slate-50 px-3 text-[12px] font-medium text-slate-900 outline-none"
+                      value={createDraft.hoscode}
+                      readOnly
+                    />
+                  </label>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>วันที่มา</span>
-                      <input
-                        type="date"
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        value={createDraft.visit_date}
-                        onChange={(event) => updateCreateDraft({ visit_date: event.target.value })}
-                      />
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>เวลามา</span>
-                      <input
-                        type="time"
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        value={createDraft.visit_time}
-                        onChange={(event) => updateCreateDraft({ visit_time: event.target.value })}
-                      />
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>เพศ</span>
-                      <select
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        value={createDraft.sex}
-                        onChange={(event) => updateCreateDraft({ sex: event.target.value })}
-                      >
-                        <option value="">ไม่ระบุ</option>
-                        <option value="ชาย">ชาย</option>
-                        <option value="หญิง">หญิง</option>
-                      </select>
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>อายุ</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="150"
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        placeholder="ปี"
-                        value={createDraft.age}
-                        onChange={(event) => updateCreateDraft({ age: event.target.value })}
-                      />
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>Triage</span>
-                      <select
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        value={createDraft.triage}
-                        onChange={(event) => updateCreateDraft({ triage: event.target.value })}
-                      >
-                        <option value="">ไม่ระบุ</option>
-                        {DEFAULT_TRIAGE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700">
-                      <span>Status</span>
-                      <select
-                        className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        value={createDraft.status}
-                        onChange={(event) => updateCreateDraft({ status: event.target.value })}
-                      >
-                        <option value="">ไม่ระบุ</option>
-                        {DEFAULT_STATUS_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="grid gap-2 text-[12px] text-slate-700 sm:col-span-2">
-                      <span>อาการสำคัญ</span>
-                      <textarea
-                        className="min-h-[120px] border border-sky-200 bg-white px-3 py-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                        placeholder="บันทึกอาการสำคัญหรือหมายเหตุเบื้องต้น"
-                        value={createDraft.cc}
-                        onChange={(event) => updateCreateDraft({ cc: event.target.value })}
-                      />
-                    </label>
+                <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                  <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="mb-4">
+                      <h3 className="text-[12px] font-semibold text-slate-900">ข้อมูลผู้ป่วย</h3>
+                      <p className="mt-1 text-[11px] text-slate-500">กรอกข้อมูลระบุตัวตนของผู้ป่วย</p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>CID <span className="text-rose-600">*</span></span>
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          inputMode="numeric"
+                          maxLength={13}
+                          placeholder="เลขประจำตัวประชาชน"
+                          value={createDraft.cid}
+                          onChange={(event) =>
+                            updateCreateDraft({ cid: event.target.value.replace(/\D/g, "").slice(0, 13) })
+                          }
+                        />
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>HN</span>
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="เลข HN"
+                          value={createDraft.hn}
+                          onChange={(event) => updateCreateDraft({ hn: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2">
+                        <span>ชื่อผู้ป่วย <span className="text-rose-600">*</span></span>
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="ชื่อ-นามสกุล"
+                          value={createDraft.patient_name}
+                          onChange={(event) => updateCreateDraft({ patient_name: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>เพศ <span className="text-rose-600">*</span></span>
+                        <select
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.sex}
+                          onChange={(event) => updateCreateDraft({ sex: event.target.value })}
+                        >
+                          <option value="">ไม่ระบุ</option>
+                          <option value="ชาย">ชาย</option>
+                          <option value="หญิง">หญิง</option>
+                        </select>
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>อายุ <span className="text-rose-600">*</span></span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="150"
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="ปี"
+                          value={createDraft.age}
+                          onChange={(event) => updateCreateDraft({ age: event.target.value })}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="mb-4">
+                      <h3 className="text-[12px] font-semibold text-slate-900">ข้อมูลการมารับบริการ</h3>
+                      <p className="mt-1 text-[11px] text-slate-500">วันเวลา และสถานะเบื้องต้น</p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>วันที่มา</span>
+                        <input
+                          type="date"
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.visit_date}
+                          onChange={(event) => updateCreateDraft({ visit_date: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>เวลามา</span>
+                        <input
+                          type="time"
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.visit_time}
+                          onChange={(event) => updateCreateDraft({ visit_time: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>Triage <span className="text-rose-600">*</span></span>
+                        <select
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.triage}
+                          onChange={(event) => updateCreateDraft({ triage: event.target.value })}
+                        >
+                          <option value="">ไม่ระบุ</option>
+                          {DEFAULT_TRIAGE_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>Status</span>
+                        <select
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.status}
+                          onChange={(event) => updateCreateDraft({ status: event.target.value })}
+                        >
+                          <option value="">ไม่ระบุ</option>
+                          {DEFAULT_STATUS_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2">
+                        <span>อาการสำคัญ <span className="text-rose-600">*</span></span>
+                        <textarea
+                          className="min-h-[128px] w-full min-w-0 border border-sky-200 bg-white px-3 py-3 text-[12px] leading-5 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="บันทึกอาการสำคัญหรือหมายเหตุเบื้องต้น"
+                          value={createDraft.cc}
+                          onChange={(event) => updateCreateDraft({ cc: event.target.value })}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-sky-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-sky-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-[11px] text-slate-500">ช่องที่มี <span className="text-rose-600">*</span> จำเป็นต้องกรอก</p>
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+                {createModalMode === "edit" ? (
+                  <button
+                    type="button"
+                    className="inline-flex h-11 items-center justify-center gap-2 border border-rose-300 bg-rose-50 px-4 text-[12px] font-medium text-rose-700 hover:bg-rose-100"
+                    onClick={requestDeleteCurrentPatient}
+                    disabled={createSaving}
+                  >
+                    <Trash2 size={16} />
+                    ลบผู้ป่วย
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="inline-flex h-11 items-center justify-center border border-sky-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-sky-50"
+                  onClick={cancelCreate}
+                  disabled={createSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex h-11 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700 disabled:opacity-60"
+                  onClick={() => void saveCreate()}
+                  disabled={createSaving}
+                >
+                  <Save size={16} />
+                  {createSaving
+                    ? "Saving..."
+                    : createModalMode === "edit"
+                      ? "Update Patient"
+                      : "บันทึก Patient"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isDeleteConfirmOpen && pendingDeleteRow ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-[2px]"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsDeleteConfirmOpen(false);
+              setPendingDeleteRow(null);
+            }
+          }}
+        >
+          <div
+            className="w-full max-w-md border border-rose-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.25)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-title"
+          >
+            <div className="border-b border-rose-100 bg-rose-50/50 px-5 py-4">
+              <h3 id="delete-confirm-title" className="text-[14px] font-semibold text-slate-900">
+                ลบผู้ป่วย
+              </h3>
+              <p className="mt-1 text-[12px] leading-5 text-slate-600">
+                ต้องการลบ <span className="font-medium text-slate-900">{pendingDeleteRow.patient_name ?? "-"}</span> ใช่หรือไม่?
+              </p>
+            </div>
+            <div className="px-5 py-4 text-[12px] text-slate-600">
+              ข้อมูลที่ลบจะไม่สามารถกู้คืนได้
+            </div>
+            <div className="flex items-center justify-end gap-3 border-t border-rose-100 bg-white px-5 py-4">
               <button
                 type="button"
-                className="inline-flex h-11 items-center justify-center border border-sky-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-sky-50"
-                onClick={cancelCreate}
-                disabled={createSaving}
+                className="inline-flex h-10 items-center justify-center border border-slate-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => {
+                  setIsDeleteConfirmOpen(false);
+                  setPendingDeleteRow(null);
+                }}
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="inline-flex h-11 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700 disabled:opacity-60"
-                onClick={() => void saveCreate()}
-                disabled={createSaving}
+                className="inline-flex h-10 items-center justify-center gap-2 border border-rose-400 bg-rose-600 px-4 text-[12px] font-medium text-white hover:bg-rose-700 disabled:opacity-60"
+                onClick={() => void confirmDeleteCurrentPatient()}
+                disabled={loading}
               >
-                <Save size={16} />
-                {createSaving ? "Saving..." : "บันทึก Patient"}
+                <Trash2 size={16} />
+                ลบจริง
               </button>
             </div>
           </div>

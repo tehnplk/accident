@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         ? "visit_date_time"
         : params.get("sortBy") === "age"
           ? "age"
-          : "visit_date";
+          : "visit_date_time";
     const sortDir = params.get("sortDir") === "asc" ? "asc" : "desc";
 
     const page = parsePage(params.get("page"), 1);
@@ -148,6 +148,7 @@ export async function GET(request: NextRequest) {
         p.cc,
         p.status,
         p.triage,
+        p.source,
         p.pdx,
         p.ext_dx,
         detail.vehicle AS vehicle,
@@ -229,13 +230,14 @@ export async function POST(request: NextRequest) {
         age,
         triage,
         status,
-        cc
+        cc,
+        source
       )
       VALUES (
         $1, $2, $3, $4, $5,
         COALESCE($6::date, CURRENT_DATE),
         COALESCE($7::time, LOCALTIME(0)),
-        $8, $9, $10, $11, $12
+        $8, $9, $10, $11, $12, $13
       )
       RETURNING
         id,
@@ -257,6 +259,7 @@ export async function POST(request: NextRequest) {
         cc,
         status,
         triage,
+        source,
         pdx,
         ext_dx
     `;
@@ -274,6 +277,7 @@ export async function POST(request: NextRequest) {
       triage,
       status,
       cc,
+      "man",
     ]);
 
     return NextResponse.json({ row: result.rows[0] }, { status: 201 });
