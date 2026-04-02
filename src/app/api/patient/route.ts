@@ -4,9 +4,28 @@ import { normalizeShiftName } from "@/lib/shift";
 
 const PAGE_SIZES = new Set([20, 50, 100]);
 
+type CreatePatientBody = {
+  hoscode?: string;
+  hosname?: string;
+  hn?: string;
+  cid?: string;
+  patient_name?: string;
+  visit_date?: string;
+  visit_time?: string;
+  sex?: string;
+  age?: number | string | null;
+  triage?: string;
+  status?: string;
+  cc?: string;
+};
+
 function parsePage(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function normalizeText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export async function GET(request: NextRequest) {
@@ -158,6 +177,118 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         message: "Failed to load patient list",
+        error: error instanceof Error ? error.message : "unknown_error",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = (await request.json()) as CreatePatientBody;
+    const hoscode = normalizeText(body.hoscode) || null;
+    const hosname = normalizeText(body.hosname) || null;
+    const hn = normalizeText(body.hn) || null;
+    const cid = normalizeText(body.cid);
+    const patientName = normalizeText(body.patient_name);
+    const visitDate = normalizeText(body.visit_date) || null;
+    const visitTime = normalizeText(body.visit_time) || null;
+    const sex = normalizeText(body.sex) || null;
+    const triage = normalizeText(body.triage) || null;
+    const status = normalizeText(body.status) || null;
+    const cc = normalizeText(body.cc) || null;
+
+    if (!cid) {
+      return NextResponse.json({ message: "CID is required" }, { status: 400 });
+    }
+
+    if (!patientName) {
+      return NextResponse.json({ message: "Patient name is required" }, { status: 400 });
+    }
+
+    const ageValue =
+      body.age === null || body.age === undefined || body.age === ""
+        ? null
+        : Number.parseInt(String(body.age), 10);
+
+    if (ageValue !== null && (!Number.isFinite(ageValue) || ageValue < 0 || ageValue > 150)) {
+      return NextResponse.json({ message: "Age must be between 0 and 150" }, { status: 400 });
+    }
+
+    const sql = `
+      INSERT INTO public.patient (
+        hoscode,
+        hosname,
+        hn,
+        cid,
+        patient_name,
+        visit_date,
+        visit_time,
+        sex,
+        age,
+        triage,
+        status,
+        cc
+      )
+      VALUES (
+        $1, $2, $3, $4, $5,
+        COALESCE($6::date, CURRENT_DATE),
+        COALESCE($7::time, LOCALTIME(0)),
+        $8, $9, $10, $11, $12
+      )
+      RETURNING
+        id,
+        hoscode,
+        hosname,
+        hn,
+        cid,
+        patient_name,
+        visit_date,
+        visit_time,
+        sex,
+        age,
+        house_no,
+        moo,
+        road,
+        tumbon,
+        amphoe,
+        changwat,
+        cc,
+        status,
+        triage,
+        pdx,
+        ext_dx
+    `;
+
+    const result = await dbQuery(sql, [
+      hoscode,
+      hosname,
+      hn,
+      cid,
+      patientName,
+      visitDate,
+      visitTime,
+      sex,
+      ageValue,
+      triage,
+      status,
+      cc,
+    ]);
+
+    return NextResponse.json({ row: result.rows[0] }, { status: 201 });
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    if (code === "23505") {
+      return NextResponse.json(
+        { message: "Duplicate hoscode + hn + visit_date is not allowed" },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message: "Failed to create patient",
         error: error instanceof Error ? error.message : "unknown_error",
       },
       { status: 500 },

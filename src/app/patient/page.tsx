@@ -1,4 +1,10 @@
-import { PatientDataGrid, type FilterState, type PatientGridInitialData, type PatientRow } from "@/components/patient-data-grid";
+import {
+  PatientDataGrid,
+  type FilterState,
+  type HospitalOption,
+  type PatientGridInitialData,
+  type PatientRow,
+} from "@/components/patient-data-grid";
 import { dbQuery } from "@/lib/db";
 import { normalizeShiftName } from "@/lib/shift";
 
@@ -159,7 +165,7 @@ function buildPatientQuery(filters: FilterState) {
 async function loadInitialData(filters: FilterState): Promise<PatientGridInitialData> {
   const { countQuery, dataQuery, values, pageValues } = buildPatientQuery(filters);
   const hospitalQuery = `
-    SELECT DISTINCT hosname
+    SELECT DISTINCT hoscode, hosname
     FROM public.patient
     WHERE hosname IS NOT NULL AND hosname <> ''
     ORDER BY hosname ASC
@@ -194,7 +200,7 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
   const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult, alcoholResult] = await Promise.all([
     dbQuery<{ total: number }>(countQuery, values),
     dbQuery<PatientRow>(dataQuery, pageValues),
-    dbQuery<{ hosname: string }>(hospitalQuery),
+    dbQuery<HospitalOption>(hospitalQuery),
     dbQuery<{ area: string }>(areaQuery),
     dbQuery<{ vehicle: string }>(vehicleQuery),
     dbQuery<{ alcohol: string }>(alcoholQuery),
@@ -210,6 +216,7 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     total: countResult.rows[0]?.total ?? 0,
     filters,
     hospitalOptions: hospitalResult.rows.map((row) => row.hosname),
+    hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
     vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),
     alcoholOptions: alcoholResult.rows.map((row) => row.alcohol),
