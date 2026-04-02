@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const hn = params.get("hn")?.trim() ?? "";
     const area = params.get("area")?.trim() ?? "";
     const vehicle = params.get("vehicle")?.trim() ?? "";
+    const alcohol = params.get("alcohol")?.trim() ?? "";
     const sex = params.get("sex")?.trim() ?? "";
     const sortBy =
       params.get("sortBy") === "visit_date_time"
@@ -53,6 +54,10 @@ export async function GET(request: NextRequest) {
       values.push(vehicle);
       whereParts.push(`detail.vehicle = $${values.length}`);
     }
+    if (alcohol) {
+      values.push(alcohol);
+      whereParts.push(`detail.alcohol = $${values.length}`);
+    }
     if (sex) {
       values.push(sex);
       whereParts.push(`p.sex = $${values.length}`);
@@ -62,9 +67,12 @@ export async function GET(request: NextRequest) {
     const baseFrom = `
       FROM public.patient p
       LEFT JOIN LATERAL (
-        SELECT COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle
+        SELECT
+          COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle,
+          COALESCE(NULLIF(pd.acd_alcohol_addon, ''), aa.name) AS alcohol
         FROM public.patient_detail pd
         LEFT JOIN public.acd_vihicle av ON av.code = pd.acd_vihicle
+        LEFT JOIN public.acd_alcohol aa ON aa.code = pd.acd_alcohol
         WHERE pd.patient_id = p.id
         LIMIT 1
       ) detail ON TRUE
@@ -113,6 +121,7 @@ export async function GET(request: NextRequest) {
         p.pdx,
         p.ext_dx,
         detail.vehicle AS vehicle,
+        detail.alcohol AS alcohol,
         loc.area AS area
       ${baseFrom}
       ${whereClause}

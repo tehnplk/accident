@@ -28,6 +28,7 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
     hn: pickParam(searchParams.hn),
     area: pickParam(searchParams.area),
     vehicle: pickParam(searchParams.vehicle),
+    alcohol: pickParam(searchParams.alcohol),
     sex: pickParam(searchParams.sex),
     sortBy:
       pickParam(searchParams.sortBy) === "visit_date_time"
@@ -65,6 +66,10 @@ function buildPatientQuery(filters: FilterState) {
     values.push(filters.vehicle.trim());
     whereParts.push(`detail.vehicle = $${values.length}`);
   }
+  if (filters.alcohol.trim()) {
+    values.push(filters.alcohol.trim());
+    whereParts.push(`detail.alcohol = $${values.length}`);
+  }
   if (filters.sex) {
     values.push(filters.sex);
     whereParts.push(`p.sex = $${values.length}`);
@@ -75,9 +80,12 @@ function buildPatientQuery(filters: FilterState) {
   const baseFrom = `
       FROM public.patient p
       LEFT JOIN LATERAL (
-        SELECT COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle
+        SELECT
+          COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle,
+          COALESCE(NULLIF(pd.acd_alcohol_addon, ''), aa.name) AS alcohol
         FROM public.patient_detail pd
         LEFT JOIN public.acd_vihicle av ON av.code = pd.acd_vihicle
+        LEFT JOIN public.acd_alcohol aa ON aa.code = pd.acd_alcohol
         WHERE pd.patient_id = p.id
         LIMIT 1
       ) detail ON TRUE
@@ -123,6 +131,7 @@ function buildPatientQuery(filters: FilterState) {
         p.pdx,
         p.ext_dx,
         detail.vehicle AS vehicle,
+        detail.alcohol AS alcohol,
         loc.area AS area
       ${baseFrom}
       ${whereClause}
@@ -164,12 +173,19 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     ) x
     ORDER BY vehicle ASC
   `;
-  const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult] = await Promise.all([
+  const alcoholQuery = `
+    SELECT aa.name AS alcohol
+    FROM public.acd_alcohol aa
+    WHERE aa.name IS NOT NULL AND aa.name <> ''
+    ORDER BY aa.code ASC, aa.name ASC
+  `;
+  const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult, alcoholResult] = await Promise.all([
     dbQuery<{ total: number }>(countQuery, values),
     dbQuery<PatientRow>(dataQuery, pageValues),
     dbQuery<{ hosname: string }>(hospitalQuery),
     dbQuery<{ area: string }>(areaQuery),
     dbQuery<{ vehicle: string }>(vehicleQuery),
+    dbQuery<{ alcohol: string }>(alcoholQuery),
   ]);
 
   return {
@@ -179,6 +195,7 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     hospitalOptions: hospitalResult.rows.map((row) => row.hosname),
     areaOptions: areaResult.rows.map((row) => row.area),
     vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),
+    alcoholOptions: alcoholResult.rows.map((row) => row.alcohol),
   };
 }
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDownUp, MapPin, Mars, Pencil, Save, Venus, X } from "lucide-react";
+import { ArrowDownUp, MapPin, Pencil, Save, X } from "lucide-react";
 
 export type PatientRow = {
   id: number;
@@ -26,6 +26,7 @@ export type PatientRow = {
   status: string | null;
   triage: string | null;
   vehicle: string | null;
+  alcohol: string | null;
   area: string | null;
   pdx: { code?: string; name?: string } | null;
   ext_dx: { code?: string; name?: string } | null;
@@ -139,6 +140,7 @@ export type FilterState = {
   hn: string;
   area: string;
   vehicle: string;
+  alcohol: string;
   sex: string;
   sortBy: "visit_date" | "visit_date_time" | "age";
   sortDir: "asc" | "desc";
@@ -153,6 +155,7 @@ export type PatientGridInitialData = {
   hospitalOptions: string[];
   areaOptions: string[];
   vehicleOptions: string[];
+  alcoholOptions: string[];
 };
 
 function getRealtimeMode() {
@@ -180,6 +183,7 @@ function buildQueryString(state: FilterState) {
   if (state.hn.trim()) params.set("hn", state.hn.trim());
   if (state.area.trim()) params.set("area", state.area.trim());
   if (state.vehicle.trim()) params.set("vehicle", state.vehicle.trim());
+  if (state.alcohol.trim()) params.set("alcohol", state.alcohol.trim());
   if (state.sex) params.set("sex", state.sex);
   params.set("sortBy", state.sortBy);
   params.set("sortDir", state.sortDir);
@@ -200,6 +204,7 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
     hn: searchParams.get("hn") ?? "",
     area: searchParams.get("area") ?? "",
     vehicle: searchParams.get("vehicle") ?? "",
+    alcohol: searchParams.get("alcohol") ?? "",
     sex: searchParams.get("sex") ?? "",
     sortBy:
       searchParams.get("sortBy") === "visit_date_time"
@@ -324,9 +329,9 @@ function formatHospitalName(value: string | null) {
   return value.replace(/^โรงพยาบาล\s*/u, "รพ.");
 }
 
-function renderSexIcon(sex: string | null) {
-  if (sex === "ชาย") return <Mars size={14} className="inline-block text-emerald-600" aria-label="ชาย" />;
-  if (sex === "หญิง") return <Venus size={14} className="inline-block text-blue-600" aria-label="หญิง" />;
+function renderSexDisplay(sex: string | null) {
+  if (sex === "ชาย") return <span title="ชาย" aria-label="ชาย">ช</span>;
+  if (sex === "หญิง") return <span title="หญิง" aria-label="หญิง">ญ</span>;
   return <span>-</span>;
 }
 
@@ -449,6 +454,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const hospitalOptions = initialData.hospitalOptions;
   const areaOptions = initialData.areaOptions;
   const vehicleOptions = initialData.vehicleOptions;
+  const alcoholOptions = initialData.alcoholOptions;
 
   useEffect(() => {
     setFilters(stateFromSearchParams(searchParams));
@@ -970,7 +976,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           </Link>
         </div>
 
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
           <select
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             value={filters.hospital}
@@ -1014,10 +1020,24 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               updateFilter({ vehicle: event.target.value, page: 1 });
             }}
           >
-            <option value="">ทุก รถ</option>
+            <option value="">ประเภทรถ</option>
             {vehicleOptions.map((vehicle) => (
               <option key={vehicle} value={vehicle}>
                 {vehicle}
+              </option>
+            ))}
+          </select>
+          <select
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            value={filters.alcohol}
+            onChange={(event) => {
+              updateFilter({ alcohol: event.target.value, page: 1 });
+            }}
+          >
+            <option value="">การดื่มสุรา</option>
+            {alcoholOptions.map((alcohol) => (
+              <option key={alcohol} value={alcohol}>
+                {alcohol}
               </option>
             ))}
           </select>
@@ -1101,10 +1121,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   อายุ
                 </SortableAngledHeader>
                 <VerticalHeader className="w-[72px] px-2 py-3">Triage</VerticalHeader>
-                <VerticalHeader className="w-[140px] px-2 py-3">CC</VerticalHeader>
+                <VerticalHeader className="w-[140px] px-2 py-3">อาการสำคัญ</VerticalHeader>
                 <VerticalHeader className="w-[170px] px-2 py-3">PDX</VerticalHeader>
-                <VerticalHeader className="w-[85px] px-2 py-3">รถ</VerticalHeader>
                 <VerticalHeader className="w-[85px] px-2 py-3">พื้นที่</VerticalHeader>
+                <VerticalHeader className="w-[85px] px-2 py-3">รถ</VerticalHeader>
+                <VerticalHeader className="w-[85px] px-2 py-3">สุรา</VerticalHeader>
                 <VerticalHeader className="w-[52px] px-2 py-3">จุดเกิดเหตุ</VerticalHeader>
                 <VerticalHeader className="w-[52px] px-2 py-3">เพิ่มเติม</VerticalHeader>
               </tr>
@@ -1123,13 +1144,14 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     </td>
                     <td className="break-words px-2 py-3">{formatHospitalName(row.hosname)}</td>
                     <td className="break-words px-2 py-3">{row.patient_name ?? "-"}</td>
-                    <td className="px-2 py-3">{renderSexIcon(row.sex)}</td>
+                    <td className="px-2 py-3">{renderSexDisplay(row.sex)}</td>
                     <td className="px-2 py-3">{row.age ?? "-"}</td>
                     <td className="px-2 py-3">{row.triage ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.cc ?? "-"}</td>
                     <td className="break-words px-2 py-3">{formatDx(row.pdx)}</td>
-                    <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
+                    <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
+                    <td className="break-words px-2 py-3">{row.alcohol ?? "-"}</td>
                     <td className="px-2 py-3">
                       <div className="flex items-center justify-end">
                         <button

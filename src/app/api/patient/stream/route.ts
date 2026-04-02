@@ -4,6 +4,7 @@ const SSE_HEADERS = {
   "Content-Type": "text/event-stream",
   "Cache-Control": "no-cache, no-transform",
   Connection: "keep-alive",
+  "X-Accel-Buffering": "no",
 } as const;
 const STREAM_HEARTBEAT_MS = Number.parseInt(process.env.PATIENT_STREAM_HEARTBEAT_MS ?? "20000", 10);
 const STREAM_MAX_DURATION_MS = Number.parseInt(process.env.PATIENT_STREAM_MAX_DURATION_MS ?? "240000", 10);
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
   let heartbeat: NodeJS.Timeout | null = null;
   let shutdownTimer: NodeJS.Timeout | null = null;
   let closed = false;
+  let streamClosed = false;
 
   const closeStream = async () => {
     if (closed) return;
@@ -51,31 +53,72 @@ export async function GET(request: Request) {
     await client.end().catch(() => undefined);
   };
 
+  const closeController = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+    if (streamClosed) return;
+    streamClosed = true;
+
+    try {
+      controller.close();
+    } catch {
+      // ignore already-closed controller
+    }
+  };
+
+  const enqueueEvent = (
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    event: string,
+    data: string,
+  ) => {
+    if (streamClosed) return false;
+
+    try {
+      controller.enqueue(encoder.encode(`event: ${event}\ndata: ${data}\n\n`));
+      return true;
+    } catch {
+      streamClosed = true;
+      return false;
+    }
+  };
+
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      const shutdown = () => {
+        client.off("notification", onNotification);
+        void closeStream().finally(() => closeController(controller));
+      };
+
       const onNotification = (message: { payload?: string | null }) => {
         const payload = message.payload ?? "{}";
-        controller.enqueue(encoder.encode(`event: message\ndata: ${payload}\n\n`));
+        if (!enqueueEvent(controller, "message", payload)) {
+          shutdown();
+        }
       };
 
       client.on("notification", onNotification);
 
-      controller.enqueue(encoder.encode(`retry: ${STREAM_RETRY_MS}\n\n`));
-      controller.enqueue(encoder.encode(`event: ready\ndata: {"ok":true}\n\n`));
+      if (!streamClosed) {
+        try {
+          controller.enqueue(encoder.encode(`retry: ${STREAM_RETRY_MS}\n\n`));
+        } catch {
+          streamClosed = true;
+        }
+      }
+      if (!streamClosed && !enqueueEvent(controller, "ready", '{"ok":true}')) {
+        shutdown();
+        return;
+      }
 
       heartbeat = setInterval(() => {
-        controller.enqueue(encoder.encode(`event: ping\ndata: {}\n\n`));
+        if (!enqueueEvent(controller, "ping", "{}")) {
+          shutdown();
+        }
       }, STREAM_HEARTBEAT_MS);
 
       shutdownTimer = setTimeout(() => {
-        client.off("notification", onNotification);
-        void closeStream().finally(() => controller.close());
+        shutdown();
       }, STREAM_MAX_DURATION_MS);
 
-      request.signal.addEventListener("abort", () => {
-        client.off("notification", onNotification);
-        void closeStream().finally(() => controller.close());
-      });
+      request.signal.addEventListener("abort", shutdown, { once: true });
     },
     cancel() {
       void closeStream();
