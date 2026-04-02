@@ -16,7 +16,7 @@ import { normalizeShiftName } from "@/lib/shift";
 type SearchParamsValue = string | string[] | undefined;
 
 type PatientPageProps = {
-  searchParams?: Record<string, SearchParamsValue> | Promise<Record<string, SearchParamsValue>>;
+  searchParams?: Promise<Record<string, SearchParamsValue>>;
 };
 
 const PAGE_SIZES = new Set([20, 50, 100]);
