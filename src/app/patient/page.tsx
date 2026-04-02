@@ -1,5 +1,6 @@
 import { PatientDataGrid, type FilterState, type PatientGridInitialData, type PatientRow } from "@/components/patient-data-grid";
 import { dbQuery } from "@/lib/db";
+import { normalizeShiftName } from "@/lib/shift";
 
 type SearchParamsValue = string | string[] | undefined;
 
@@ -199,8 +200,13 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     dbQuery<{ alcohol: string }>(alcoholQuery),
   ]);
 
+  const rows = rowsResult.rows.map((row) => ({
+    ...row,
+    shift_name: normalizeShiftName(row.visit_time, row.shift_name),
+  }));
+
   return {
-    rows: rowsResult.rows,
+    rows,
     total: countResult.rows[0]?.total ?? 0,
     filters,
     hospitalOptions: hospitalResult.rows.map((row) => row.hosname),

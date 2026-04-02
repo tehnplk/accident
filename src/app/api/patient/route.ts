@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbQuery } from "@/lib/db";
+import { normalizeShiftName } from "@/lib/shift";
 
 const PAGE_SIZES = new Set([20, 50, 100]);
 
@@ -142,12 +143,16 @@ export async function GET(request: NextRequest) {
     `;
 
     const rowsResult = await dbQuery(dataQuery, pageValues);
+    const rows = rowsResult.rows.map((row) => ({
+      ...row,
+      shift_name: normalizeShiftName(row.visit_time, row.shift_name),
+    }));
 
     return NextResponse.json({
       page,
       pageSize,
       total,
-      rows: rowsResult.rows,
+      rows,
     });
   } catch (error) {
     return NextResponse.json(
