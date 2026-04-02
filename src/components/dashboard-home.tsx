@@ -42,8 +42,8 @@ const alcoholSegments = [
 ];
 
 const injuryOutcomeSegments = [
-  { label: "เจ็บ", value: 96, color: "#475569" },
-  { label: "ตาย", value: 4, color: "#b91c1c" },
+  { label: "บาดเจ็บ", value: 96, color: "#475569" },
+  { label: "เสียชีวิต", value: 4, color: "#b91c1c" },
 ];
 
 const districtRows = [
@@ -329,7 +329,7 @@ export default function DashboardHome() {
                 ภาพรวมผู้บาดเจ็บจากอุบัติเหตุทางถนนเทศกาลสงกรานต์ 10 - 21 เม.ย. 2569
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                สำนักงานสาธารณสุขจังหวัดพิษณุโลก
+                สำนักงานสาธารณสุขจังหวัดพิษณุโลก (ข้อมูลทดสอบระบบ)
               </p>
             </div>
 
@@ -350,7 +350,7 @@ export default function DashboardHome() {
         <section className="grid gap-6 xl:grid-cols-2">
           <ChartPanel
             title="Summary Chart"
-            subtitle="เจ็บ / ตาย"
+            subtitle="บาดเจ็บ / เสียชีวิต"
             segments={injuryOutcomeSegments}
           />
           <ChartPanel
