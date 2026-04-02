@@ -5,7 +5,11 @@ const SUPABASE_JWT_SECRET =
   "super-secret-jwt-token-with-at-least-32-characters-long";
 
 function base64Url(input: string | Buffer) {
-  return Buffer.from(input).toString("base64url");
+  return Buffer.from(input)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 }
 
 export function createLocalSupabaseToken(role: "service_role" | "anon" = "service_role") {
@@ -31,10 +35,16 @@ export function createLocalSupabaseToken(role: "service_role" | "anon" = "servic
   const signature = crypto
     .createHmac("sha256", SUPABASE_JWT_SECRET)
     .update(unsignedToken)
-    .digest("base64url");
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 
   return `${unsignedToken}.${signature}`;
 }
 
 export const localSupabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+
+export const localSupabaseRealtimeUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_REALTIME_URL ?? "ws://127.0.0.1:4001/socket";

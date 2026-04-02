@@ -29,14 +29,27 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Supabase Realtime
+## Patient Realtime
 
-This project is wired to a local Supabase stack for live database notifications.
+`/patient` supports 2 realtime modes controlled by env:
 
-- Realtime feed: `accident.notifications`
-- Local API URL: `http://127.0.0.1:54321`
-- Database sample rows live in `supabase/sql/001-create-accident-notifications.sql`
-- A standalone compose stack is available in `docker-compose.supabase.yml` if you want an isolated setup
+- `NEXT_PUBLIC_PATIENT_REALTIME_MODE=auto`
+  In development uses `sse`, in production uses `poll` for easier deploys on platforms that do not keep long-lived database listeners stable.
+- `NEXT_PUBLIC_PATIENT_REALTIME_MODE=sse`
+  Uses `PostgreSQL LISTEN/NOTIFY` through `/api/patient/stream`.
+- `NEXT_PUBLIC_PATIENT_REALTIME_MODE=poll`
+  Uses timed refresh only.
+
+Recommended production default:
+
+```bash
+NEXT_PUBLIC_PATIENT_REALTIME_MODE=auto
+NEXT_PUBLIC_PATIENT_POLL_INTERVAL_MS=30000
+DB_POOL_MAX=10
+DB_SSL=true
+```
+
+If you deploy to a long-lived Node server and want push updates, keep `sse` enabled and make sure `supabase/initdb/002-patient-grid-realtime.sql` is applied.
 
 ## Deploy on Vercel
 

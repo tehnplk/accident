@@ -1,20 +1,32 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Save, SquarePen, X } from "lucide-react";
+import { ArrowDownUp, MapPin, Mars, Pencil, Save, Venus, X } from "lucide-react";
 
-type PatientRow = {
+export type PatientRow = {
   id: number;
   hoscode: string | null;
   hosname: string | null;
   hn: string | null;
+  cid: string | null;
   patient_name: string | null;
-  dateserv: string | null;
+  visit_date: string | null;
+  visit_time: string | null;
   sex: string | null;
   age: number | null;
+  house_no: string | null;
+  moo: string | null;
+  road: string | null;
+  tumbon: string | null;
+  amphoe: string | null;
+  changwat: string | null;
+  cc: string | null;
   status: string | null;
   triage: string | null;
+  vehicle: string | null;
+  area: string | null;
   pdx: { code?: string; name?: string } | null;
   ext_dx: { code?: string; name?: string } | null;
 };
@@ -26,33 +38,134 @@ type GridResponse = {
   total: number;
 };
 
-type PatientEditDraft = {
-  hosname: string;
-  hn: string;
-  patient_name: string;
-  sex: string;
-  triage: string;
-  status: string;
+export type PatientEditDraft = {
+  changwat: string;
+  amphoe: string;
+  tumbon: string;
+  moo: string;
+  road: string;
+  cc: string;
 };
+
+type ThaiAddressOption = {
+  id: number;
+  code: number;
+  name: string;
+  province_id?: number | null;
+  district_id?: number | null;
+};
+
+type ThaiAddressDefaultSelection = {
+  province_id: number;
+  province_code: number;
+  province_name: string;
+  district_id: number;
+  district_code: number;
+  district_name: string;
+};
+
+type AcdOption = {
+  acd_name: string;
+  code: number;
+  name: string;
+  is_addon: boolean;
+};
+
+type PatientDetailDraftItem = {
+  code: string;
+  addon_value: string;
+};
+
+type PatientDetailRow = {
+  id: number;
+  patient_id: number;
+  acd_type: number | null;
+  acd_type_addon: string | null;
+  acd_vihicle: number | null;
+  acd_vihicle_addon: string | null;
+  acd_road: number | null;
+  acd_road_addon: string | null;
+  acd_measure: number | null;
+  acd_measure_addon: string | null;
+  acd_alcohol: number | null;
+  acd_alcohol_addon: string | null;
+  acd_transfer: number | null;
+  acd_transfer_addon: string | null;
+  acd_result: number | null;
+  acd_result_addon: string | null;
+  acd_refer: number | null;
+  acd_refer_addon: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+const ACD_GROUPS = [
+  { name: "acd_type", label: "ประเภทผู้ประสบเหตุ" },
+  { name: "acd_vihicle", label: "ยานพาหนะ" },
+  { name: "acd_road", label: "ถนน" },
+  { name: "acd_measure", label: "มาตรการ" },
+  { name: "acd_alcohol", label: "สุรา" },
+  { name: "acd_transfer", label: "นำส่ง/EMS" },
+  { name: "acd_result", label: "ผลการรักษา" },
+  { name: "acd_refer", label: "Refer/Admit" },
+] as const;
+
+type AcdGroupName = (typeof ACD_GROUPS)[number]["name"];
 
 const PAGE_OPTIONS = [20, 50, 100];
+const DEFAULT_PROVINCE_CODE = "65";
+const DEFAULT_PROVINCE_NAME = "พิษณุโลก";
+const PATIENT_REALTIME_MODE = process.env.NEXT_PUBLIC_PATIENT_REALTIME_MODE ?? "auto";
+const PATIENT_POLL_INTERVAL_MS = Number.parseInt(
+  process.env.NEXT_PUBLIC_PATIENT_POLL_INTERVAL_MS ?? "30000",
+  10,
+);
+const PATIENT_STREAM_RETRY_MS = Number.parseInt(
+  process.env.NEXT_PUBLIC_PATIENT_STREAM_RETRY_MS ?? "5000",
+  10,
+);
 const EMPTY_DRAFT: PatientEditDraft = {
-  hosname: "",
-  hn: "",
-  patient_name: "",
-  sex: "",
-  triage: "",
-  status: "",
+  changwat: "",
+  amphoe: "",
+  tumbon: "",
+  moo: "",
+  road: "",
+  cc: "",
 };
 
-type FilterState = {
+export type FilterState = {
   hospital: string;
   name: string;
   hn: string;
+  area: string;
+  vehicle: string;
   sex: string;
+  sortBy: "visit_date" | "visit_date_time" | "age";
+  sortDir: "asc" | "desc";
   page: number;
   pageSize: number;
 };
+
+export type PatientGridInitialData = {
+  rows: PatientRow[];
+  total: number;
+  filters: FilterState;
+  hospitalOptions: string[];
+  areaOptions: string[];
+  vehicleOptions: string[];
+};
+
+function getRealtimeMode() {
+  if (PATIENT_REALTIME_MODE === "sse" || PATIENT_REALTIME_MODE === "poll") {
+    return PATIENT_REALTIME_MODE;
+  }
+
+  return process.env.NODE_ENV === "production" ? "poll" : "sse";
+}
+
+function getSafeInterval(value: number, fallback: number) {
+  return Number.isFinite(value) && value >= 1000 ? value : fallback;
+}
 
 function normalizePage(value: string | null, fallback: number) {
   const parsed = Number.parseInt(value ?? "", 10);
@@ -65,7 +178,11 @@ function buildQueryString(state: FilterState) {
   if (state.hospital.trim()) params.set("hospital", state.hospital.trim());
   if (state.name.trim()) params.set("name", state.name.trim());
   if (state.hn.trim()) params.set("hn", state.hn.trim());
+  if (state.area.trim()) params.set("area", state.area.trim());
+  if (state.vehicle.trim()) params.set("vehicle", state.vehicle.trim());
   if (state.sex) params.set("sex", state.sex);
+  params.set("sortBy", state.sortBy);
+  params.set("sortDir", state.sortDir);
 
   params.set("page", String(state.page));
   params.set("pageSize", String(state.pageSize));
@@ -81,38 +198,261 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
     hospital: searchParams.get("hospital") ?? "",
     name: searchParams.get("name") ?? "",
     hn: searchParams.get("hn") ?? "",
+    area: searchParams.get("area") ?? "",
+    vehicle: searchParams.get("vehicle") ?? "",
     sex: searchParams.get("sex") ?? "",
+    sortBy:
+      searchParams.get("sortBy") === "visit_date_time"
+        ? "visit_date_time"
+        : searchParams.get("sortBy") === "age"
+          ? "age"
+          : "visit_date",
+    sortDir: searchParams.get("sortDir") === "asc" ? "asc" : "desc",
     page: normalizePage(searchParams.get("page"), 1),
     pageSize,
   };
 }
 
-function formatDate(input: string | null) {
-  if (!input) return "-";
-  return new Date(input).toLocaleDateString("th-TH");
+function toDateString(input: string | Date | null) {
+  if (!input) return "";
+  if (input instanceof Date) return input.toISOString().split("T")[0] ?? "";
+  return input;
 }
 
-export function PatientDataGrid() {
+function formatDate(input: string | Date | null) {
+  if (!input) return "-";
+
+  const rawDate = toDateString(input);
+  if (!rawDate) return "-";
+
+  const datePart = rawDate.includes("T") ? rawDate.split("T")[0] : rawDate;
+  const match = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return rawDate;
+
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  const monthLabels = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  const monthLabel = monthLabels[month - 1];
+
+  if (!monthLabel || !Number.isFinite(year) || !Number.isFinite(day)) return "-";
+
+  return `${String(day).padStart(2, "0")} ${monthLabel} ${String((year + 543) % 100).padStart(2, "0")}`;
+}
+
+function formatTime(input: string | Date | null) {
+  if (!input) return "-";
+  const rawTime = input instanceof Date ? input.toISOString().split("T")[1] ?? "" : input;
+  if (!rawTime) return "-";
+  const match = rawTime.match(/^(\d{2}):(\d{2})/);
+  if (match) return `${match[1]}:${match[2]} น.`;
+  return "-";
+}
+
+async function fetchThaiAddressOptions(query: string, signal?: AbortSignal) {
+  const response = await fetch(`/api/thai-address?${query}`, { signal });
+  const payload = (await response.json().catch(() => ({}))) as {
+    rows?: ThaiAddressOption[];
+    message?: string;
+  };
+
+  if (!response.ok) {
+    throw new Error(payload.message ?? "Failed to load address options");
+  }
+
+  return payload.rows ?? [];
+}
+
+async function fetchThaiAddressDefaultSelection(signal?: AbortSignal) {
+  const response = await fetch("/api/thai-address/defaults", { signal });
+  const payload = (await response.json().catch(() => ({}))) as {
+    row?: ThaiAddressDefaultSelection | null;
+    message?: string;
+  };
+
+  if (!response.ok) {
+    throw new Error(payload.message ?? "Failed to load default address");
+  }
+
+  return payload.row ?? null;
+}
+
+function normalizeAddressField(value: string | null | undefined) {
+  return value?.trim() ?? "";
+}
+
+function expandSavedLocationCode(
+  value: string | null | undefined,
+  part: "province" | "district" | "subdistrict",
+  provinceCode = "",
+  districtCode = "",
+) {
+  const digits = normalizeAddressField(value).replace(/\D/g, "");
+  if (!digits) return "";
+
+  if (part === "province") {
+    return digits.length >= 2 ? digits.slice(0, 2) : digits;
+  }
+
+  if (part === "district") {
+    if (digits.length >= 4) return digits.slice(0, 4);
+    if (digits.length === 2 && provinceCode) return `${provinceCode}${digits}`;
+    return "";
+  }
+
+  if (digits.length >= 6) return digits.slice(0, 6);
+  if (digits.length === 2 && districtCode) return `${districtCode}${digits}`;
+  return "";
+}
+
+function optionLabel(option: ThaiAddressOption | null) {
+  if (!option) return "-";
+  return option.name || "-";
+}
+
+function formatDx(value: { code?: string; name?: string } | null) {
+  if (!value?.code) return "";
+  return value.name ? `${value.code} - ${value.name}` : value.code;
+}
+
+function formatAcdOptionLabel(option: AcdOption) {
+  return `${option.code}-${option.name}`;
+}
+
+function formatHospitalName(value: string | null) {
+  if (!value) return "-";
+  return value.replace(/^โรงพยาบาล\s*/u, "รพ.");
+}
+
+function renderSexIcon(sex: string | null) {
+  if (sex === "ชาย") return <Mars size={14} className="inline-block text-emerald-600" aria-label="ชาย" />;
+  if (sex === "หญิง") return <Venus size={14} className="inline-block text-blue-600" aria-label="หญิง" />;
+  return <span>-</span>;
+}
+
+async function fetchPatientGrid(filters: FilterState, signal?: AbortSignal) {
+  const response = await fetch(`/api/patient?${buildQueryString(filters)}`, { signal });
+  const payload = (await response.json().catch(() => ({}))) as Partial<GridResponse> & {
+    message?: string;
+  };
+
+  if (!response.ok) {
+    throw new Error(payload.message ?? "Failed to load patient data");
+  }
+
+  return {
+    rows: payload.rows ?? [],
+    total: payload.total ?? 0,
+  };
+}
+
+function VerticalHeader({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <th className={`relative h-20 align-bottom text-center ${className}`}>
+      <div className="pointer-events-none absolute bottom-10 left-1/2 -translate-x-1/2 -rotate-45 whitespace-nowrap text-[9px] leading-none">
+        {children}
+      </div>
+    </th>
+  );
+}
+
+function SortableAngledHeader({
+  children,
+  className = "",
+  onClick,
+  title,
+}: {
+  children: ReactNode;
+  className?: string;
+  onClick: () => void;
+  title: string;
+}) {
+  return (
+    <th className={`relative h-20 align-bottom text-center ${className}`}>
+      <button
+        type="button"
+        className="absolute bottom-10 left-1/2 inline-flex -translate-x-1/2 -rotate-45 cursor-pointer items-center gap-1 whitespace-nowrap text-[9px] leading-none text-sky-900"
+        onClick={onClick}
+        title={title}
+      >
+        {children}
+        <ArrowDownUp size={10} className="shrink-0" />
+      </button>
+    </th>
+  );
+}
+
+function getAcdOption(options: AcdOption[], code: string) {
+  return options.find((option) => String(option.code) === code) ?? null;
+}
+
+function emptyDetailDraft() {
+  return Object.fromEntries(
+    ACD_GROUPS.map((group) => [group.name, { code: "", addon_value: "" }]),
+  ) as Record<AcdGroupName, PatientDetailDraftItem>;
+}
+
+function emptyAcdOptions() {
+  const result = {} as Record<AcdGroupName, AcdOption[]>;
+  for (const group of ACD_GROUPS) {
+    result[group.name] = [];
+  }
+  return result;
+}
+
+type PatientDataGridProps = {
+  initialData: PatientGridInitialData;
+};
+
+export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamsString = searchParams.toString();
+  const realtimeMode = useMemo(() => getRealtimeMode(), []);
+  const pollIntervalMs = useMemo(() => getSafeInterval(PATIENT_POLL_INTERVAL_MS, 30000), []);
+  const streamRetryMs = useMemo(() => getSafeInterval(PATIENT_STREAM_RETRY_MS, 5000), []);
 
-  const initial = useMemo(() => stateFromSearchParams(searchParams), [searchParams]);
-
-  const [rows, setRows] = useState<PatientRow[]>([]);
-  const [total, setTotal] = useState(0);
+  const [rows, setRows] = useState<PatientRow[]>(() => initialData.rows);
+  const [total, setTotal] = useState(() => initialData.total);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [filters, setFilters] = useState<FilterState>(initial);
+  const [filters, setFilters] = useState<FilterState>(() => initialData.filters);
   const [selectedRow, setSelectedRow] = useState<PatientRow | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedDetailRow, setSelectedDetailRow] = useState<PatientRow | null>(null);
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
+  const [provinceOptions, setProvinceOptions] = useState<ThaiAddressOption[]>([]);
+  const [amphoeOptions, setAmphoeOptions] = useState<ThaiAddressOption[]>([]);
+  const [tambonOptions, setTambonOptions] = useState<ThaiAddressOption[]>([]);
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState(DEFAULT_PROVINCE_CODE);
+  const [selectedAmphoeCode, setSelectedAmphoeCode] = useState("");
+  const [selectedTambonCode, setSelectedTambonCode] = useState("");
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [detailDraft, setDetailDraft] = useState<Record<AcdGroupName, PatientDetailDraftItem>>(
+    () => emptyDetailDraft(),
+  );
+  const [acdOptions, setAcdOptions] = useState<Record<AcdGroupName, AcdOption[]>>(() => emptyAcdOptions());
+  const [acdOptionsLoaded, setAcdOptionsLoaded] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailSaving, setDetailSaving] = useState(false);
+  const addonInputRefs = useRef<Partial<Record<AcdGroupName, HTMLInputElement | null>>>({});
+  const hospitalOptions = initialData.hospitalOptions;
+  const areaOptions = initialData.areaOptions;
+  const vehicleOptions = initialData.vehicleOptions;
 
   useEffect(() => {
     setFilters(stateFromSearchParams(searchParams));
-  }, [searchParams]);
+  }, [searchParamsString]);
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -135,28 +475,235 @@ export function PatientDataGrid() {
   }, [isModalOpen]);
 
   useEffect(() => {
+    if (!isDetailModalOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDetailModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isDetailModalOpen]);
+
+  useEffect(() => {
+    if (acdOptionsLoaded) return;
+
+    const controller = new AbortController();
+
+    fetch("/api/acd-options", { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load acd options");
+        }
+
+        return response.json() as Promise<{ rows?: AcdOption[] }>;
+      })
+      .then((payload) => {
+        const grouped = emptyAcdOptions();
+
+        for (const row of payload.rows ?? []) {
+          const list = grouped[row.acd_name as AcdGroupName];
+          if (list) list.push(row);
+        }
+
+        setAcdOptions(grouped);
+        setAcdOptionsLoaded(true);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load acd options failed");
+      });
+
+    return () => controller.abort();
+  }, [acdOptionsLoaded]);
+
+  useEffect(() => {
+    if (!isModalOpen || !selectedRow) return;
+
+    const controller = new AbortController();
+
+    fetch(`/api/patient/${selectedRow.id}/location`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load location");
+        }
+        return response.json() as Promise<{
+          row: {
+            prov_code?: string | null;
+            amp_code?: string | null;
+            tmb_code?: string | null;
+            moo?: string | null;
+            road?: string | null;
+            detail?: string | null;
+          } | null;
+        }>;
+      })
+      .then((payload) => {
+        const locationRow = payload.row;
+        if (!locationRow) {
+          return fetchThaiAddressDefaultSelection(controller.signal).then((defaultRow) => {
+            if (!defaultRow) return;
+
+            setSelectedProvinceCode(String(defaultRow.province_code));
+            setSelectedAmphoeCode(String(defaultRow.district_code));
+            setSelectedTambonCode("");
+          });
+        }
+
+        const provinceCode = expandSavedLocationCode(locationRow.prov_code, "province");
+        const amphoeCode = expandSavedLocationCode(locationRow.amp_code, "district", provinceCode);
+        const tambonCode = expandSavedLocationCode(
+          locationRow.tmb_code,
+          "subdistrict",
+          provinceCode,
+          amphoeCode,
+        );
+
+        setSelectedProvinceCode(provinceCode || DEFAULT_PROVINCE_CODE);
+        setSelectedAmphoeCode(amphoeCode);
+        setSelectedTambonCode(tambonCode);
+        setDraft((current) => ({
+          ...current,
+          moo: "",
+          road: locationRow.road ?? "",
+          cc: locationRow.detail ?? "",
+        }));
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load location failed");
+      });
+
+    return () => controller.abort();
+  }, [isModalOpen, selectedRow]);
+
+  useEffect(() => {
+    if (!isDetailModalOpen || !selectedDetailRow) return;
+
+    const controller = new AbortController();
+    setDetailLoading(true);
+
+    fetch(`/api/patient/${selectedDetailRow.id}/detail`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load patient detail");
+        }
+
+        return response.json() as Promise<{ row?: PatientDetailRow | null }>;
+      })
+      .then((payload) => {
+        const row = payload.row;
+        const nextDraft = emptyDetailDraft();
+
+        for (const group of ACD_GROUPS) {
+          const code = row?.[group.name as keyof PatientDetailRow];
+          const addonKey = `${group.name}_addon` as keyof PatientDetailRow;
+          const addonValue = row?.[addonKey];
+
+          nextDraft[group.name] = {
+            code: code === null || code === undefined ? "" : String(code),
+            addon_value: typeof addonValue === "string" ? addonValue : "",
+          };
+        }
+
+        setDetailDraft(nextDraft);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load patient detail failed");
+      })
+      .finally(() => setDetailLoading(false));
+
+    return () => controller.abort();
+  }, [isDetailModalOpen, selectedDetailRow]);
+
+  useEffect(() => {
+    if (provinceOptions.length > 0) return;
+
+    const controller = new AbortController();
+    setAddressLoading(true);
+
+    fetchThaiAddressOptions("level=province", controller.signal)
+      .then((rows) => {
+        setProvinceOptions(rows);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load address failed");
+      })
+      .finally(() => setAddressLoading(false));
+
+    return () => controller.abort();
+  }, [provinceOptions.length]);
+
+  useEffect(() => {
+    if (!isModalOpen || !selectedProvinceCode || provinceOptions.length === 0) {
+      setAmphoeOptions([]);
+      return;
+    }
+
+    const selectedProvince = provinceOptions.find((option) => String(option.code) === selectedProvinceCode);
+    if (!selectedProvince) return;
+
+    const controller = new AbortController();
+    setAddressLoading(true);
+
+    fetchThaiAddressOptions(`level=district&province_id=${selectedProvince.id}`, controller.signal)
+      .then((rows) => {
+        setAmphoeOptions(rows);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load address failed");
+      })
+      .finally(() => setAddressLoading(false));
+
+    return () => controller.abort();
+  }, [isModalOpen, provinceOptions, selectedProvinceCode]);
+
+  useEffect(() => {
+    if (!isModalOpen || !selectedProvinceCode || !selectedAmphoeCode || amphoeOptions.length === 0) {
+      setTambonOptions([]);
+      return;
+    }
+
+    const selectedAmphoe = amphoeOptions.find((option) => String(option.code) === selectedAmphoeCode);
+    if (!selectedAmphoe) return;
+
+    const controller = new AbortController();
+    setAddressLoading(true);
+
+    fetchThaiAddressOptions(`level=subdistrict&district_id=${selectedAmphoe.id}`, controller.signal)
+      .then((rows) => {
+        setTambonOptions(rows);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load address failed");
+      })
+      .finally(() => setAddressLoading(false));
+
+    return () => controller.abort();
+  }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode]);
+
+  useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams({
-      page: String(filters.page),
-      pageSize: String(filters.pageSize),
-    });
-
-    if (filters.hospital.trim()) params.set("hospital", filters.hospital.trim());
-    if (filters.name.trim()) params.set("name", filters.name.trim());
-    if (filters.hn.trim()) params.set("hn", filters.hn.trim());
-    if (filters.sex) params.set("sex", filters.sex);
-
-    fetch(`/api/patient?${params.toString()}`, { signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.message ?? "Failed to load patient data");
-        }
-        return response.json() as Promise<GridResponse>;
-      })
+    fetchPatientGrid(filters, controller.signal)
       .then((payload) => {
         setRows(payload.rows);
         setTotal(payload.total);
@@ -173,12 +720,104 @@ export function PatientDataGrid() {
     }
 
     return () => controller.abort();
-  }, [filters, pathname, router, searchParams]);
+  }, [filters, pathname, router, searchParamsString]);
 
   const totalPages = useMemo(
     () => (total > 0 ? Math.max(1, Math.ceil(total / filters.pageSize)) : 1),
     [filters.pageSize, total],
   );
+
+  const refreshRows = async () => {
+    try {
+      const payload = await fetchPatientGrid(filters);
+      setRows(payload.rows);
+      setTotal(payload.total);
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : "Refresh failed");
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+    let eventSource: EventSource | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    const refreshForRealtime = async () => {
+      try {
+        const payload = await fetchPatientGrid(filters);
+        if (!active) return;
+        setRows(payload.rows);
+        setTotal(payload.total);
+      } catch (fetchError) {
+        if (!active) return;
+        setError(fetchError instanceof Error ? fetchError.message : "Realtime refresh failed");
+      }
+    };
+
+    const startPolling = () => {
+      if (pollTimer) return;
+      pollTimer = setInterval(() => {
+        void refreshForRealtime();
+      }, pollIntervalMs);
+    };
+
+    const stopPolling = () => {
+      if (!pollTimer) return;
+      clearInterval(pollTimer);
+      pollTimer = null;
+    };
+
+    const scheduleReconnect = () => {
+      if (reconnectTimer || !active) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        startStreaming();
+      }, streamRetryMs);
+    };
+
+    const startStreaming = () => {
+      if (!active) return;
+
+      if (realtimeMode !== "sse") {
+        startPolling();
+        return;
+      }
+
+      stopPolling();
+      eventSource?.close();
+      eventSource = new EventSource(`/api/patient/stream?${buildQueryString(filters)}`);
+
+      eventSource.addEventListener("message", () => {
+        void refreshForRealtime();
+      });
+
+      eventSource.addEventListener("ready", () => {
+        stopPolling();
+      });
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        eventSource = null;
+        startPolling();
+        scheduleReconnect();
+      };
+    };
+
+    startStreaming();
+
+    return () => {
+      active = false;
+      eventSource?.close();
+      stopPolling();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+    };
+  }, [filters, pollIntervalMs, realtimeMode, streamRetryMs]);
+
+  const provinceLabel = useMemo(() => {
+    const selectedProvince = provinceOptions.find((option) => String(option.code) === selectedProvinceCode);
+    return selectedProvince?.name ?? DEFAULT_PROVINCE_NAME;
+  }, [provinceOptions, selectedProvinceCode]);
 
   const updateFilter = (patch: Partial<FilterState>) => {
     setFilters((current) => ({
@@ -187,16 +826,37 @@ export function PatientDataGrid() {
     }));
   };
 
+  const toggleVisitDateSort = () => {
+    updateFilter({
+      sortBy: "visit_date",
+      sortDir: filters.sortDir === "asc" ? "desc" : "asc",
+      page: 1,
+    });
+  };
+
+  const toggleAgeSort = () => {
+    updateFilter({
+      sortBy: "age",
+      sortDir: filters.sortDir === "asc" ? "desc" : "asc",
+      page: 1,
+    });
+  };
+
   const startEdit = (row: PatientRow) => {
     setSelectedRow(row);
     setDraft({
-      hosname: row.hosname ?? "",
-      hn: row.hn ?? "",
-      patient_name: row.patient_name ?? "",
-      sex: row.sex ?? "",
-      triage: row.triage ?? "",
-      status: row.status ?? "",
+      changwat: DEFAULT_PROVINCE_NAME,
+      amphoe: row.amphoe ?? "",
+      tumbon: row.tumbon ?? "",
+      moo: "",
+      road: row.road ?? "",
+      cc: row.cc ?? "",
     });
+    setSelectedProvinceCode(DEFAULT_PROVINCE_CODE);
+    setSelectedAmphoeCode("");
+    setSelectedTambonCode("");
+    setAmphoeOptions([]);
+    setTambonOptions([]);
     setIsModalOpen(true);
   };
 
@@ -204,6 +864,25 @@ export function PatientDataGrid() {
     setIsModalOpen(false);
     setSelectedRow(null);
     setDraft(EMPTY_DRAFT);
+    setSelectedProvinceCode(DEFAULT_PROVINCE_CODE);
+    setSelectedAmphoeCode("");
+    setSelectedTambonCode("");
+    setAmphoeOptions([]);
+    setTambonOptions([]);
+  };
+
+  const openDetailModal = (row: PatientRow) => {
+    setSelectedDetailRow(row);
+    setDetailDraft(emptyDetailDraft());
+    setIsDetailModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedDetailRow(null);
+    setDetailDraft(emptyDetailDraft());
+    setDetailLoading(false);
+    setDetailSaving(false);
   };
 
   const saveEdit = async () => {
@@ -212,43 +891,100 @@ export function PatientDataGrid() {
     setSaving(true);
     setError(null);
     try {
-      const response = await fetch(`/api/patient/${selectedRow.id}`, {
-        method: "PATCH",
+      const response = await fetch(`/api/patient/${selectedRow.id}/location`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify({
+          prov_code: selectedProvinceCode,
+          amp_code: selectedAmphoeCode,
+          tmb_code: selectedTambonCode,
+          moo: draft.moo,
+          road: draft.road,
+          detail: draft.cc,
+        }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message ?? "Failed to update");
-      setRows((current) =>
-        current.map((row) => (row.id === selectedRow.id ? (payload.row as PatientRow) : row)),
-      );
+      if (!response.ok) throw new Error(payload.message ?? "Failed to save location");
       cancelEdit();
+      void refreshRows();
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "Update failed");
+      setError(updateError instanceof Error ? updateError.message : "Save failed");
     } finally {
       setSaving(false);
     }
   };
 
+  const updateDetailDraft = (group: AcdGroupName, patch: Partial<PatientDetailDraftItem>) => {
+    setDetailDraft((current) => ({
+      ...current,
+      [group]: {
+        ...current[group],
+        ...patch,
+      },
+    }));
+  };
+
+  const saveDetail = async () => {
+    if (!selectedDetailRow) return;
+
+    setDetailSaving(true);
+    setError(null);
+
+    try {
+      const body = Object.fromEntries(
+        ACD_GROUPS.flatMap((group) => [
+          [group.name, detailDraft[group.name].code],
+          [`${group.name}_addon`, detailDraft[group.name].addon_value],
+        ]),
+      );
+
+      const response = await fetch(`/api/patient/${selectedDetailRow.id}/detail`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.message ?? "Failed to save patient detail");
+      closeDetailModal();
+      void refreshRows();
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Save detail failed");
+    } finally {
+      setDetailSaving(false);
+    }
+  };
+
   return (
-    <section className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-8">
+    <section className="mx-auto w-full max-w-[1800px] px-4 py-6 sm:px-8 lg:px-10">
       <div className="border border-sky-200 bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-sm">
-        <div className="flex flex-col gap-2 border-b border-sky-100 pb-4">
-          <h1 className="text-[12px] font-semibold text-slate-900">Patient Data Grid</h1>
-          <p className="text-[12px] text-slate-600">
-            กรองข้อมูลตามโรงพยาบาล, ชื่อ-นามสกุล, HN และเพศ พร้อมแก้ไขข้อมูลได้ในตาราง
-          </p>
+        <div className="flex items-start justify-between gap-4 border-b border-sky-100 pb-4">
+          <h1 className="whitespace-nowrap text-[1.5rem] font-semibold text-slate-900">
+            แบบรายงานชื่อผู้ได้รับบาดเจ็บและเสียชีวิตจากอุบัติเหตุทางถนน
+          </h1>
+          <Link
+            href="/"
+            className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-[12px] font-medium text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-900"
+          >
+            กลับ Dashboard
+          </Link>
         </div>
 
         <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-          <input
+          <select
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-            placeholder="กรอง รพ."
             value={filters.hospital}
             onChange={(event) => {
               updateFilter({ hospital: event.target.value, page: 1 });
             }}
-          />
+          >
+            <option value="">ทุก รพ.</option>
+            {hospitalOptions.map((hospital) => (
+              <option key={hospital} value={hospital}>
+                {formatHospitalName(hospital)}
+              </option>
+            ))}
+          </select>
           <input
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             placeholder="กรอง ชื่อ-นามสกุล"
@@ -257,14 +993,34 @@ export function PatientDataGrid() {
               updateFilter({ name: event.target.value, page: 1 });
             }}
           />
-          <input
+          <select
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-            placeholder="กรอง HN"
-            value={filters.hn}
+            value={filters.area}
             onChange={(event) => {
-              updateFilter({ hn: event.target.value, page: 1 });
+              updateFilter({ area: event.target.value, page: 1 });
             }}
-          />
+          >
+            <option value="">ทุกพื้นที่</option>
+            {areaOptions.map((area) => (
+              <option key={area} value={area}>
+                {area}
+              </option>
+            ))}
+          </select>
+          <select
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            value={filters.vehicle}
+            onChange={(event) => {
+              updateFilter({ vehicle: event.target.value, page: 1 });
+            }}
+          >
+            <option value="">ทุก รถ</option>
+            {vehicleOptions.map((vehicle) => (
+              <option key={vehicle} value={vehicle}>
+                {vehicle}
+              </option>
+            ))}
+          </select>
           <select
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             value={filters.sex}
@@ -276,22 +1032,6 @@ export function PatientDataGrid() {
             <option value="ชาย">ชาย</option>
             <option value="หญิง">หญิง</option>
           </select>
-          <button
-            type="button"
-            className="h-9 border border-sky-200 bg-sky-50 px-3 text-[12px] font-medium text-sky-800 transition hover:bg-sky-100"
-            onClick={() => {
-              setFilters((current) => ({
-                ...current,
-                hospital: "",
-                name: "",
-                hn: "",
-                sex: "",
-                page: 1,
-              }));
-            }}
-          >
-            ล้างตัวกรอง
-          </button>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-600">
@@ -338,22 +1078,35 @@ export function PatientDataGrid() {
           </div>
         </div>
 
-        <div className="mt-5 overflow-x-auto border border-sky-200">
-          <table className="w-full min-w-[1250px] border-collapse">
+        <div className="mt-5 border border-sky-200">
+          <table className="w-full table-fixed border-collapse">
             <thead className="bg-sky-50 text-left text-xs uppercase tracking-[0.16em] text-sky-900">
               <tr>
-                <th className="px-3 py-3">ID</th>
-                <th className="px-3 py-3">วันที่</th>
-                <th className="px-3 py-3">รพ.</th>
-                <th className="px-3 py-3">HN</th>
-                <th className="px-3 py-3">ชื่อ-นามสกุล</th>
-                <th className="px-3 py-3">เพศ</th>
-                <th className="px-3 py-3">อายุ</th>
-                <th className="px-3 py-3">Triage</th>
-                <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3">PDX</th>
-                <th className="px-3 py-3">EXT-DX</th>
-                <th className="px-3 py-3 text-right">Action</th>
+                <VerticalHeader className="w-[42px] px-2 py-3">ID</VerticalHeader>
+                <SortableAngledHeader
+                  className="w-[80px] px-2 py-3"
+                  onClick={toggleVisitDateSort}
+                  title={`Sort วันที่มา ${filters.sortDir === "asc" ? "descending" : "ascending"}`}
+                >
+                  วันที่มา
+                </SortableAngledHeader>
+                <VerticalHeader className="w-[140px] px-2 py-3">รพ.</VerticalHeader>
+                <VerticalHeader className="w-[150px] px-2 py-3">ชื่อ-นามสกุล</VerticalHeader>
+                <VerticalHeader className="w-[48px] px-2 py-3">เพศ</VerticalHeader>
+                <SortableAngledHeader
+                  className="w-[48px] px-2 py-3"
+                  onClick={toggleAgeSort}
+                  title={`Sort อายุ ${filters.sortDir === "asc" ? "descending" : "ascending"}`}
+                >
+                  อายุ
+                </SortableAngledHeader>
+                <VerticalHeader className="w-[72px] px-2 py-3">Triage</VerticalHeader>
+                <VerticalHeader className="w-[140px] px-2 py-3">CC</VerticalHeader>
+                <VerticalHeader className="w-[170px] px-2 py-3">PDX</VerticalHeader>
+                <VerticalHeader className="w-[85px] px-2 py-3">รถ</VerticalHeader>
+                <VerticalHeader className="w-[85px] px-2 py-3">พื้นที่</VerticalHeader>
+                <VerticalHeader className="w-[52px] px-2 py-3">จุดเกิดเหตุ</VerticalHeader>
+                <VerticalHeader className="w-[52px] px-2 py-3">เพิ่มเติม</VerticalHeader>
               </tr>
             </thead>
             <tbody className="text-[12px] text-slate-700">
@@ -363,30 +1116,41 @@ export function PatientDataGrid() {
                     key={row.id}
                     className="border-t border-sky-100 align-top odd:bg-white even:bg-sky-50/50"
                   >
-                    <td className="px-3 py-3">{row.id}</td>
-                    <td className="px-3 py-3 text-slate-600">{formatDate(row.dateserv)}</td>
-                    <td className="px-3 py-3">{row.hosname ?? "-"}</td>
-                    <td className="px-3 py-3">{row.hn ?? "-"}</td>
-                    <td className="px-3 py-3">{row.patient_name ?? "-"}</td>
-                    <td className="px-3 py-3">{row.sex ?? "-"}</td>
-                    <td className="px-3 py-3">{row.age ?? "-"}</td>
-                    <td className="px-3 py-3">{row.triage ?? "-"}</td>
-                    <td className="px-3 py-3">{row.status ?? "-"}</td>
-                    <td className="px-3 py-3">
-                      {row.pdx?.code ? `${row.pdx.code} - ${row.pdx.name ?? ""}` : "-"}
+                    <td className="px-2 py-3">{row.id}</td>
+                    <td className="whitespace-nowrap px-2 py-3 text-slate-600">
+                      <span className="block">{formatDate(row.visit_date)}</span>
+                      <span className="block text-[11px] text-slate-400">{formatTime(row.visit_time)}</span>
                     </td>
-                    <td className="px-3 py-3">
-                      {row.ext_dx?.code ? `${row.ext_dx.code} - ${row.ext_dx.name ?? ""}` : "-"}
-                    </td>
-                    <td className="px-3 py-3">
+                    <td className="break-words px-2 py-3">{formatHospitalName(row.hosname)}</td>
+                    <td className="break-words px-2 py-3">{row.patient_name ?? "-"}</td>
+                    <td className="px-2 py-3">{renderSexIcon(row.sex)}</td>
+                    <td className="px-2 py-3">{row.age ?? "-"}</td>
+                    <td className="px-2 py-3">{row.triage ?? "-"}</td>
+                    <td className="break-words px-2 py-3">{row.cc ?? "-"}</td>
+                    <td className="break-words px-2 py-3">{formatDx(row.pdx)}</td>
+                    <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
+                    <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
+                    <td className="px-2 py-3">
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
                           className="inline-flex h-8 w-8 items-center justify-center border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100"
                           onClick={() => startEdit(row)}
-                          title="Edit"
+                          title="บันทึกจุดเกิดเหตุ"
                         >
-                          <SquarePen size={16} />
+                          <MapPin size={16} />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-2 py-3">
+                      <div className="flex items-center justify-end">
+                        <button
+                          type="button"
+                          className="inline-flex h-8 w-8 items-center justify-center border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                          onClick={() => openDetailModal(row)}
+                          title="กรอกข้อมูลเพิ่มเติม"
+                        >
+                          <Pencil size={16} />
                         </button>
                       </div>
                     </td>
@@ -416,10 +1180,10 @@ export function PatientDataGrid() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 id="patient-edit-title" className="text-[12px] font-semibold text-slate-900">
-                    Update Record
+                    บันทึกสถานที่เกิดเหตุ
                   </h2>
                   <p className="mt-1 text-[12px] text-slate-600">
-                    แก้ไขข้อมูลผู้ป่วยเฉพาะฟิลด์ที่ต้องใช้ในงานประจำวัน
+                    กรอกจังหวัด อำเภอ ตำบล หมู่ที่ ถนน และรายละเอียดจุดเกิดเหตุ
                   </p>
                 </div>
                 <button
@@ -431,121 +1195,137 @@ export function PatientDataGrid() {
                   <X size={16} />
                 </button>
               </div>
-
-              <div className="mt-4 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-4 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <span className="block text-slate-500">ID</span>
-                  <span className="font-medium text-slate-900">{selectedRow.id}</span>
+                  <span className="block text-slate-500">วันที่มา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">{formatDate(selectedRow.visit_date)}</span>
                 </div>
                 <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <span className="block text-slate-500">วันที่</span>
-                  <span className="font-medium text-slate-900">{formatDate(selectedRow.dateserv)}</span>
+                  <span className="block text-slate-500">เวลามา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">{formatTime(selectedRow.visit_time)}</span>
                 </div>
                 <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
-                  <span className="block text-slate-500">HN</span>
-                  <span className="font-medium text-slate-900">{selectedRow.hn ?? "-"}</span>
+                  <span className="block text-slate-500">เลขบัตร</span>
+                  <span className="block font-medium text-slate-900">{selectedRow.cid ?? "-"}</span>
+                </div>
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                  <span className="block text-slate-500">ชื่อ-นามสกุล</span>
+                  <span className="block font-medium text-slate-900">{selectedRow.patient_name ?? "-"}</span>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
+            <div className="px-6 py-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-[12px] text-slate-700">
-                  <span>Hospital name</span>
+                  <span>จังหวัด</span>
                   <input
-                    className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                    value={draft.hosname}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, hosname: event.target.value }))
-                    }
+                    className="h-9 border border-sky-200 bg-slate-50 px-3 text-[12px] text-slate-900 outline-none"
+                    value={provinceLabel}
+                    readOnly
                   />
                 </label>
                 <label className="grid gap-2 text-[12px] text-slate-700">
-                  <span>HN</span>
-                  <input
-                    className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                    value={draft.hn}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, hn: event.target.value }))
-                    }
-                  />
+                  <span>อำเภอ</span>
+                  <select
+                    className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                    value={selectedAmphoeCode}
+                    onChange={(event) => {
+                      const nextAmphoeCode = event.target.value;
+                      const matchedAmphoe =
+                        amphoeOptions.find((option) => String(option.code) === nextAmphoeCode) ?? null;
+
+                      setSelectedAmphoeCode(nextAmphoeCode);
+                      setSelectedTambonCode("");
+                      setTambonOptions([]);
+                      setDraft((current) => ({
+                        ...current,
+                        amphoe: matchedAmphoe?.name ?? "",
+                        tumbon: "",
+                      }));
+                    }}
+                    disabled={!selectedProvinceCode || (addressLoading && amphoeOptions.length === 0)}
+                  >
+                    <option value="">
+                      {!selectedProvinceCode
+                        ? "เลือกจังหวัดก่อน"
+                        : addressLoading && amphoeOptions.length === 0
+                          ? "Loading..."
+                          : "เลือกอำเภอ"}
+                    </option>
+                    {amphoeOptions.map((option) => (
+                      <option key={option.id} value={String(option.code)}>
+                        {optionLabel(option)}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label className="grid gap-2 text-[12px] text-slate-700 sm:col-span-2">
-                  <span>Patient name</span>
-                  <input
-                    className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                    value={draft.patient_name}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, patient_name: event.target.value }))
-                    }
-                  />
-                </label>
-                <label className="grid gap-2 text-[12px] text-slate-700">
-                  <span>Sex</span>
+                  <span>ตำบล</span>
                   <select
-                    className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                    value={draft.sex}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, sex: event.target.value }))
-                    }
+                    className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 disabled:bg-slate-50"
+                    value={selectedTambonCode}
+                    onChange={(event) => {
+                      const nextTambonCode = event.target.value;
+                      const matchedTambon =
+                        tambonOptions.find((option) => String(option.code) === nextTambonCode) ?? null;
+
+                      setSelectedTambonCode(nextTambonCode);
+                      setDraft((current) => ({
+                        ...current,
+                        tumbon: matchedTambon?.name ?? "",
+                      }));
+                    }}
+                    disabled={!selectedAmphoeCode || (addressLoading && tambonOptions.length === 0)}
                   >
-                    <option value="">-</option>
-                    <option value="ชาย">ชาย</option>
-                    <option value="หญิง">หญิง</option>
+                    <option value="">
+                      {!selectedAmphoeCode
+                        ? "เลือกอำเภอก่อน"
+                        : addressLoading && tambonOptions.length === 0
+                          ? "Loading..."
+                          : "เลือกตำบล"}
+                    </option>
+                    {tambonOptions.map((option) => (
+                      <option key={option.id} value={String(option.code)}>
+                        {optionLabel(option)}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <label className="grid gap-2 text-[12px] text-slate-700">
-                  <span>Triage</span>
+                  <span>หมู่ที่</span>
                   <input
-                    className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                    value={draft.triage}
+                    className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                    inputMode="numeric"
+                    placeholder="เช่น 5"
+                    value={draft.moo}
                     onChange={(event) =>
-                      setDraft((current) => ({ ...current, triage: event.target.value }))
+                      setDraft((current) => ({ ...current, moo: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="grid gap-2 text-[12px] text-slate-700">
+                  <span>ถนน</span>
+                  <input
+                    className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                    placeholder="กรอกชื่อถนน"
+                    value={draft.road}
+                    onChange={(event) =>
+                      setDraft((current) => ({ ...current, road: event.target.value }))
                     }
                   />
                 </label>
                 <label className="grid gap-2 text-[12px] text-slate-700 sm:col-span-2">
-                  <span>Status</span>
+                  <span>จุดเกิดเหตุ</span>
                   <input
-                    className="h-11 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                    value={draft.status}
+                    className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                    placeholder="กรอกจุดเกิดเหตุ"
+                    value={draft.cc}
                     onChange={(event) =>
-                      setDraft((current) => ({ ...current, status: event.target.value }))
+                      setDraft((current) => ({ ...current, cc: event.target.value }))
                     }
                   />
                 </label>
-              </div>
-
-              <div className="space-y-4 border border-sky-100 bg-sky-50/40 p-4">
-                <div>
-                  <div className="text-[12px] font-medium text-slate-900">Read only</div>
-                  <div className="mt-1 text-[12px] text-slate-600">
-                    ดูข้อมูลประกอบสำหรับตรวจสอบก่อนบันทึก
-                  </div>
-                </div>
-
-                <div className="grid gap-3 text-[12px] text-slate-700">
-                  <div className="flex items-start justify-between gap-4 border-b border-sky-100 pb-3">
-                    <span className="text-slate-500">Hospital code</span>
-                    <span className="text-right font-medium text-slate-900">{selectedRow.hoscode ?? "-"}</span>
-                  </div>
-                  <div className="flex items-start justify-between gap-4 border-b border-sky-100 pb-3">
-                    <span className="text-slate-500">Age</span>
-                    <span className="text-right font-medium text-slate-900">{selectedRow.age ?? "-"}</span>
-                  </div>
-                  <div className="flex items-start justify-between gap-4 border-b border-sky-100 pb-3">
-                    <span className="text-slate-500">PDX</span>
-                    <span className="max-w-[220px] text-right font-medium text-slate-900">
-                      {selectedRow.pdx?.code ? `${selectedRow.pdx.code} - ${selectedRow.pdx.name ?? ""}` : "-"}
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="text-slate-500">EXT-DX</span>
-                    <span className="max-w-[220px] text-right font-medium text-slate-900">
-                      {selectedRow.ext_dx?.code ? `${selectedRow.ext_dx.code} - ${selectedRow.ext_dx.name ?? ""}` : "-"}
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -565,7 +1345,146 @@ export function PatientDataGrid() {
                 disabled={saving}
               >
                 <Save size={16} />
-                {saving ? "Saving..." : "Save changes"}
+                {saving ? "Saving..." : "บันทึกสถานที่"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isDetailModalOpen && selectedDetailRow ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-6 backdrop-blur-[2px]"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeDetailModal();
+          }}
+        >
+          <div
+            className="w-full max-w-6xl border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="patient-detail-title"
+          >
+            <div className="border-b border-sky-100 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="patient-detail-title" className="text-[12px] font-semibold text-slate-900">
+                    เพิ่มเติม
+                  </h2>
+                  <p className="mt-1 text-[12px] text-slate-600">
+                    กรอกข้อมูลตามตัวเลือกในตาราง acd_*
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                  onClick={closeDetailModal}
+                  aria-label="Close additional modal"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="mt-4 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                  <span className="block text-slate-500">เลขบัตร</span>
+                  <span className="block font-medium text-slate-900">{selectedDetailRow.cid ?? "-"}</span>
+                </div>
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                  <span className="block text-slate-500">ชื่อ-นามสกุล</span>
+                  <span className="block font-medium text-slate-900">{selectedDetailRow.patient_name ?? "-"}</span>
+                </div>
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                  <span className="block text-slate-500">วันที่มา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">{formatDate(selectedDetailRow.visit_date)}</span>
+                </div>
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                  <span className="block text-slate-500">เวลามา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">{formatTime(selectedDetailRow.visit_time)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {ACD_GROUPS.map((group) => {
+                  const current = detailDraft[group.name];
+                  const options = acdOptions[group.name] ?? [];
+                  const selectedOption = getAcdOption(options, current.code);
+
+                  return (
+                    <div key={group.name} className="grid gap-2 border border-sky-100 bg-sky-50/40 p-3">
+                      <label className="grid gap-2 text-[12px] text-slate-700">
+                        <span>{group.label}</span>
+                        <div className="flex flex-nowrap items-center gap-2">
+                          <select
+                            className={`h-9 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
+                              selectedOption?.is_addon ? "w-1/2" : "flex-1"
+                            }`}
+                            value={current.code}
+                            onChange={(event) => {
+                              const nextCode = event.target.value;
+                              const nextOption = getAcdOption(options, nextCode);
+
+                            updateDetailDraft(group.name, {
+                              code: nextCode,
+                              addon_value: nextOption?.is_addon ? current.addon_value : "",
+                            });
+
+                            if (nextOption?.is_addon) {
+                              requestAnimationFrame(() => {
+                                addonInputRefs.current[group.name]?.focus();
+                              });
+                            }
+                          }}
+                          disabled={detailLoading || detailSaving}
+                        >
+                            <option value="">-</option>
+                            {options.map((option) => (
+                              <option key={`${group.name}-${option.code}`} value={String(option.code)}>
+                                {formatAcdOptionLabel(option)}
+                              </option>
+                            ))}
+                          </select>
+                          {selectedOption?.is_addon ? (
+                            <input
+                              ref={(element) => {
+                                addonInputRefs.current[group.name] = element;
+                              }}
+                              className="h-9 w-1/2 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                              placeholder="ระบุ"
+                              value={current.addon_value}
+                              onChange={(event) =>
+                                updateDetailDraft(group.name, { addon_value: event.target.value })
+                              }
+                              disabled={detailLoading || detailSaving}
+                            />
+                          ) : null}
+                        </div>
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-sky-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center border border-sky-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-sky-50"
+                onClick={closeDetailModal}
+                disabled={detailSaving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700 disabled:opacity-60"
+                onClick={() => void saveDetail()}
+                disabled={detailLoading || detailSaving}
+              >
+                <Pencil size={16} />
+                {detailSaving ? "Saving..." : "บันทึกเพิ่มเติม"}
               </button>
             </div>
           </div>

@@ -6,6 +6,12 @@ type UpdateBody = {
   hn?: string;
   patient_name?: string;
   sex?: string;
+  changwat?: string;
+  amphoe?: string;
+  tumbon?: string;
+  moo?: string;
+  road?: string;
+  cc?: string;
   triage?: string;
   status?: string;
 };
@@ -15,6 +21,12 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "hn",
   "patient_name",
   "sex",
+  "changwat",
+  "amphoe",
+  "tumbon",
+  "moo",
+  "road",
+  "cc",
   "triage",
   "status",
 ];
@@ -57,10 +69,19 @@ export async function PATCH(
         hoscode,
         hosname,
         hn,
+        cid,
         patient_name,
-        dateserv,
+        visit_date,
+        visit_time,
         sex,
         age,
+        house_no,
+        moo,
+        road,
+        tumbon,
+        amphoe,
+        changwat,
+        cc,
         status,
         triage,
         pdx,
@@ -77,7 +98,7 @@ export async function PATCH(
     const code = (error as { code?: string })?.code;
     if (code === "23505") {
       return NextResponse.json(
-        { message: "Duplicate hoscode + hn + dateserv is not allowed" },
+        { message: "Duplicate hoscode + hn + visit_date is not allowed" },
         { status: 409 },
       );
     }
