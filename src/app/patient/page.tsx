@@ -166,8 +166,9 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
   const { countQuery, dataQuery, values, pageValues } = buildPatientQuery(filters);
   const hospitalQuery = `
     SELECT DISTINCT hoscode, hosname
-    FROM public.patient
+    FROM public.hos
     WHERE hosname IS NOT NULL AND hosname <> ''
+      AND hoscode IS NOT NULL AND hoscode <> ''
     ORDER BY hosname ASC
   `;
   const areaQuery = `
