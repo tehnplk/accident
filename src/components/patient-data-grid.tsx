@@ -607,6 +607,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [acdOptionsLoaded, setAcdOptionsLoaded] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailSaving, setDetailSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const addonInputRefs = useRef<Partial<Record<AcdGroupName, HTMLInputElement | null>>>({});
   const counterpartVehicleAddonInputRef = useRef<HTMLInputElement | null>(null);
   const hospitalSuggestRef = useRef<HTMLLabelElement | null>(null);
@@ -1092,6 +1093,40 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     }));
   };
 
+  const exportXlsx = async () => {
+    setExporting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/patient/export?${buildQueryString(filters)}`, {
+        headers: createPatientApiHeaders(authToken),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as { message?: string };
+        throw new Error(payload.message ?? "Export patient xlsx failed");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const contentDisposition = response.headers.get("Content-Disposition") ?? "";
+      const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+      const filename = filenameMatch?.[1] ?? "patient-export.xlsx";
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(downloadUrl);
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : "Export patient xlsx failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const toggleVisitDateSort = () => {
     updateFilter({
       sortBy: "visit_date",
@@ -1517,14 +1552,25 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-600">
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white transition hover:bg-sky-700"
-            onClick={openCreateModal}
-          >
-            <Plus size={15} />
-            เพิ่ม
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex h-10 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white transition hover:bg-sky-700"
+              onClick={openCreateModal}
+            >
+              <Plus size={15} />
+              เพิ่ม
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-10 items-center justify-center gap-2 border border-emerald-300 bg-emerald-50 px-4 text-[12px] font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+              onClick={() => void exportXlsx()}
+              disabled={exporting}
+            >
+              <Save size={15} />
+              {exporting ? "กำลังส่งออก..." : "Export XLSX"}
+            </button>
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <div>
               {loading ? "Loading..." : `Total ${total.toLocaleString()} rows`}
