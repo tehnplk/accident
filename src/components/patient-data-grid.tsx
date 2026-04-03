@@ -879,7 +879,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setDistrictLoading(false));
 
     return () => controller.abort();
-  }, [isModalOpen, provinceOptions, selectedProvinceCode]);
+  }, [isModalOpen, provinceOptions, selectedProvinceCode, selectedAmphoeCode]);
 
   useEffect(() => {
     if (!isModalOpen || !selectedProvinceCode || !selectedAmphoeCode || amphoeOptions.length === 0) {
@@ -913,7 +913,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setSubdistrictLoading(false));
 
     return () => controller.abort();
-  }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode]);
+  }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode, selectedTambonCode]);
 
   useEffect(() => {
     const controller = new AbortController();
