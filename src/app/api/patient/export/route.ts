@@ -29,7 +29,6 @@ type ExportRow = {
   ext_dx: unknown;
   location_road: string | null;
   location_detail: string | null;
-  acd_type_export_label: string | null;
   acd_vihicle_label: string | null;
   acd_vihicle_export_label: string | null;
   acd_vihicle_counterpart_label: string | null;
@@ -218,13 +217,6 @@ export async function GET(request: NextRequest) {
           COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS acd_vihicle_label,
           COALESCE(NULLIF(pd.acd_alcohol_addon, ''), aa.name) AS acd_alcohol_label,
           CASE
-            WHEN pd.acd_type IS NOT NULL AND at.name IS NOT NULL AND NULLIF(pd.acd_type_addon, '') IS NOT NULL
-              THEN CONCAT(pd.acd_type::text, '-', at.name, ' (', pd.acd_type_addon, ')')
-            WHEN pd.acd_type IS NOT NULL AND at.name IS NOT NULL
-              THEN CONCAT(pd.acd_type::text, '-', at.name)
-            ELSE NULL
-          END AS acd_type_export_label,
-          CASE
             WHEN pd.acd_vihicle IS NOT NULL AND av.name IS NOT NULL AND NULLIF(pd.acd_vihicle_addon, '') IS NOT NULL
               THEN CONCAT(pd.acd_vihicle::text, '-', av.name, ' (', pd.acd_vihicle_addon, ')')
             WHEN pd.acd_vihicle IS NOT NULL AND av.name IS NOT NULL
@@ -323,7 +315,6 @@ export async function GET(request: NextRequest) {
         loc.location_road,
         loc.location_detail,
         detail.acd_vihicle_label,
-        detail.acd_type_export_label,
         detail.acd_vihicle_export_label,
         detail.acd_vihicle_counterpart_label,
         detail.acd_alcohol_label,
@@ -350,7 +341,7 @@ export async function GET(request: NextRequest) {
       "ถนนที่เกิดเหตุ": formatLocationRoad(row.location_road, row.location_detail),
       อายุ: row.age ?? "-",
       เพศ: row.sex ?? "-",
-      "1 สถานะ (status)": row.acd_type_export_label ?? "-",
+      "1 สถานะ (status)": row.status ?? "-",
       "2.1 ยานพาหนะ ผู้บาดเจ็บ": row.acd_vihicle_export_label ?? "-",
       "2.2 ยานพาหนะ คู่กรณี": row.acd_vihicle_counterpart_label ?? "-",
       "3 ถนน": row.acd_road_export_label ?? "-",
