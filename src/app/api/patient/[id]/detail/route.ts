@@ -12,6 +12,8 @@ type DetailPayload = {
   acd_type_addon?: unknown;
   acd_vihicle?: unknown;
   acd_vihicle_addon?: unknown;
+  acd_vihicle_counterpart?: unknown;
+  acd_vihicle_counterpart_addon?: unknown;
   acd_road?: unknown;
   acd_road_addon?: unknown;
   acd_measure?: unknown;
@@ -83,6 +85,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
           acd_type_addon,
           acd_vihicle,
           acd_vihicle_addon,
+          acd_vihicle_counterpart,
+          acd_vihicle_counterpart_addon,
           acd_road,
           acd_road_addon,
           acd_measure,
@@ -154,9 +158,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       acd_refer_addon: toNullableText(source.acd_refer_addon),
     };
 
+    const textFields = {
+      acd_vihicle_counterpart: toNullableText(source.acd_vihicle_counterpart),
+      acd_vihicle_counterpart_addon: toNullableText(source.acd_vihicle_counterpart_addon),
+    };
+
     const hasAnyValue =
       Object.values(codes).some((value) => value !== null) ||
-      Object.values(addons).some((value) => !isBlank(value));
+      Object.values(addons).some((value) => !isBlank(value)) ||
+      Object.values(textFields).some((value) => !isBlank(value));
 
     if (!hasAnyValue) {
       await dbQuery("DELETE FROM public.patient_detail WHERE patient_id = $1", [patientId]);
@@ -169,6 +179,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       addons.acd_type_addon,
       codes.acd_vihicle,
       addons.acd_vihicle_addon,
+      textFields.acd_vihicle_counterpart,
+      textFields.acd_vihicle_counterpart_addon,
       codes.acd_road,
       addons.acd_road_addon,
       codes.acd_measure,
@@ -191,6 +203,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           acd_type_addon,
           acd_vihicle,
           acd_vihicle_addon,
+          acd_vihicle_counterpart,
+          acd_vihicle_counterpart_addon,
           acd_road,
           acd_road_addon,
           acd_measure,
@@ -205,13 +219,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           acd_refer_addon,
           updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, now()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, now()
         )
         ON CONFLICT (patient_id) DO UPDATE SET
           acd_type = EXCLUDED.acd_type,
           acd_type_addon = EXCLUDED.acd_type_addon,
           acd_vihicle = EXCLUDED.acd_vihicle,
           acd_vihicle_addon = EXCLUDED.acd_vihicle_addon,
+          acd_vihicle_counterpart = EXCLUDED.acd_vihicle_counterpart,
+          acd_vihicle_counterpart_addon = EXCLUDED.acd_vihicle_counterpart_addon,
           acd_road = EXCLUDED.acd_road,
           acd_road_addon = EXCLUDED.acd_road_addon,
           acd_measure = EXCLUDED.acd_measure,

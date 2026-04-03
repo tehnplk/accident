@@ -86,6 +86,11 @@ type PatientDetailDraftItem = {
   addon_value: string;
 };
 
+type PatientVehicleDraftItem = {
+  code: string;
+  addon_value: string;
+};
+
 type PatientDetailRow = {
   id: number;
   patient_id: number;
@@ -93,6 +98,8 @@ type PatientDetailRow = {
   acd_type_addon: string | null;
   acd_vihicle: number | null;
   acd_vihicle_addon: string | null;
+  acd_vihicle_counterpart: string | null;
+  acd_vihicle_counterpart_addon: string | null;
   acd_road: number | null;
   acd_road_addon: string | null;
   acd_measure: number | null;
@@ -131,7 +138,7 @@ type PatientCreateDraft = {
 
 const ACD_GROUPS = [
   { name: "acd_type", label: "ประเภทผู้ประสบเหตุ" },
-  { name: "acd_vihicle", label: "ยานพาหนะ" },
+  { name: "acd_vihicle", label: "ยานพาหนะของผู้ป่วย" },
   { name: "acd_road", label: "ถนน" },
   { name: "acd_measure", label: "มาตรการ" },
   { name: "acd_alcohol", label: "สุรา" },
@@ -530,6 +537,13 @@ function emptyDetailDraft() {
   ) as Record<AcdGroupName, PatientDetailDraftItem>;
 }
 
+function emptyVehicleDraft(): PatientVehicleDraftItem {
+  return {
+    code: "",
+    addon_value: "",
+  };
+}
+
 function emptyAcdOptions() {
   const result = {} as Record<AcdGroupName, AcdOption[]>;
   for (const group of ACD_GROUPS) {
@@ -586,11 +600,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [detailDraft, setDetailDraft] = useState<Record<AcdGroupName, PatientDetailDraftItem>>(
     () => emptyDetailDraft(),
   );
+  const [counterpartVehicleDraft, setCounterpartVehicleDraft] = useState<PatientVehicleDraftItem>(() =>
+    emptyVehicleDraft(),
+  );
   const [acdOptions, setAcdOptions] = useState<Record<AcdGroupName, AcdOption[]>>(() => emptyAcdOptions());
   const [acdOptionsLoaded, setAcdOptionsLoaded] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailSaving, setDetailSaving] = useState(false);
   const addonInputRefs = useRef<Partial<Record<AcdGroupName, HTMLInputElement | null>>>({});
+  const counterpartVehicleAddonInputRef = useRef<HTMLInputElement | null>(null);
   const hospitalSuggestRef = useRef<HTMLLabelElement | null>(null);
 
   useEffect(() => {
@@ -825,6 +843,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         }
 
         setDetailDraft(nextDraft);
+        setCounterpartVehicleDraft({
+          code: row?.acd_vihicle_counterpart === null || row?.acd_vihicle_counterpart === undefined ? "" : String(row.acd_vihicle_counterpart),
+          addon_value:
+            typeof row?.acd_vihicle_counterpart_addon === "string" ? row.acd_vihicle_counterpart_addon : "",
+        });
       })
       .catch((fetchError: unknown) => {
         if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
@@ -1244,6 +1267,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setIsDetailModalOpen(false);
     setSelectedDetailRow(null);
     setDetailDraft(emptyDetailDraft());
+    setCounterpartVehicleDraft(emptyVehicleDraft());
     setDetailLoading(false);
     setDetailSaving(false);
   };
@@ -1372,12 +1396,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setError(null);
 
     try {
-      const body = Object.fromEntries(
+      const body: Record<string, unknown> = Object.fromEntries(
         ACD_GROUPS.flatMap((group) => [
           [group.name, detailDraft[group.name].code],
           [`${group.name}_addon`, detailDraft[group.name].addon_value],
         ]),
       );
+
+      body.acd_vihicle_counterpart = counterpartVehicleDraft.code;
+      body.acd_vihicle_counterpart_addon = counterpartVehicleDraft.addon_value;
 
       const response = await fetch(`/api/patient/${selectedDetailRow.id}/detail`, {
         method: "PUT",
@@ -1949,7 +1976,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           >
             <div className="border-b border-rose-100 bg-rose-50/50 px-5 py-4">
               <h3 id="delete-confirm-title" className="text-[14px] font-semibold text-slate-900">
-                ลบผู้ป่วย
+                {pendingDeleteRow ? `ลบผู้ป่วย (${pendingDeleteRow.id})` : "ลบผู้ป่วย"}
               </h3>
               <p className="mt-1 text-[12px] leading-5 text-slate-600">
                 ต้องการลบ <span className="font-medium text-slate-900">{pendingDeleteRow.patient_name ?? "-"}</span> ใช่หรือไม่?
@@ -2002,7 +2029,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 id="patient-edit-title" className="text-[12px] font-semibold text-slate-900">
-                    บันทึกสถานที่เกิดเหตุ
+                    {`บันทึกสถานที่เกิดเหตุ (${selectedRow.id})`}
                   </h2>
                   <p className="mt-1 text-[12px] text-slate-600">
                     กรอกจังหวัด อำเภอ ตำบล หมู่ที่ ถนน และรายละเอียดจุดเกิดเหตุ
@@ -2176,27 +2203,24 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
       {isDetailModalOpen && selectedDetailRow ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-6 backdrop-blur-[2px]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeDetailModal();
           }}
         >
           <div
-            className="w-full max-w-6xl border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+            className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-5xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="patient-detail-title"
           >
-            <div className="border-b border-sky-100 px-6 py-5">
+            <div className="border-b border-sky-100 bg-sky-50/50 px-4 py-4 sm:px-5 sm:py-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 id="patient-detail-title" className="text-[12px] font-semibold text-slate-900">
-                    เพิ่มเติม
+                  <h2 id="patient-detail-title" className="text-[14px] font-semibold text-slate-900">
+                    {`เพิ่มเติม (${selectedDetailRow.id})`}
                   </h2>
-                  <p className="mt-1 text-[12px] text-slate-600">
-                    กรอกข้อมูลตามตัวเลือกในตาราง acd_*
-                  </p>
                 </div>
                 <button
                   type="button"
@@ -2207,35 +2231,37 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   <X size={16} />
                 </button>
               </div>
-              <div className="mt-4 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+              <div className="mt-3 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2">
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-2.5 py-2">
                   <span className="block text-slate-500">เลขบัตร</span>
                   <span className="block font-medium text-slate-900">{selectedDetailRow.cid ?? "-"}</span>
                 </div>
-                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-2.5 py-2">
                   <span className="block text-slate-500">ชื่อ-นามสกุล</span>
                   <span className="block font-medium text-slate-900">{selectedDetailRow.patient_name ?? "-"}</span>
                 </div>
-                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-2.5 py-2">
                   <span className="block text-slate-500">วันที่มา</span>
                   <span className="block whitespace-nowrap font-medium text-slate-900">{formatDate(selectedDetailRow.visit_date)}</span>
                 </div>
-                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-3 py-2">
+                <div className="rounded-none border border-sky-100 bg-sky-50/60 px-2.5 py-2">
                   <span className="block text-slate-500">เวลามา</span>
                   <span className="block whitespace-nowrap font-medium text-slate-900">{formatTime(selectedDetailRow.visit_time)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {ACD_GROUPS.map((group) => {
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(() => {
+                  const group = ACD_GROUPS.find((item) => item.name === "acd_type");
+                  if (!group) return null;
                   const current = detailDraft[group.name];
                   const options = acdOptions[group.name] ?? [];
                   const selectedOption = getAcdOption(options, current.code);
 
                   return (
-                    <div key={group.name} className="grid gap-2 border border-sky-100 bg-sky-50/40 p-3">
+                    <div className="grid gap-2 border border-sky-100 bg-sky-50/40 p-2.5">
                       <label className="grid gap-2 text-[12px] text-slate-700">
                         <span>{group.label}</span>
                         <div className="flex flex-nowrap items-center gap-2">
@@ -2248,19 +2274,249 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                               const nextCode = event.target.value;
                               const nextOption = getAcdOption(options, nextCode);
 
-                            updateDetailDraft(group.name, {
+                              updateDetailDraft(group.name, {
+                                code: nextCode,
+                                addon_value: nextOption?.is_addon ? current.addon_value : "",
+                              });
+
+                              if (nextOption?.is_addon) {
+                                requestAnimationFrame(() => {
+                                  addonInputRefs.current[group.name]?.focus();
+                                });
+                              }
+                            }}
+                            disabled={detailLoading || detailSaving}
+                          >
+                            <option value="">-</option>
+                            {options.map((option) => (
+                              <option key={`${group.name}-${option.code}`} value={String(option.code)}>
+                                {formatAcdOptionLabel(option)}
+                              </option>
+                            ))}
+                          </select>
+                          {selectedOption?.is_addon ? (
+                            <input
+                              ref={(element) => {
+                                addonInputRefs.current[group.name] = element;
+                              }}
+                              className="h-9 w-1/2 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                              placeholder="ระบุ"
+                              value={current.addon_value}
+                              onChange={(event) =>
+                                updateDetailDraft(group.name, { addon_value: event.target.value })
+                              }
+                              disabled={detailLoading || detailSaving}
+                            />
+                          ) : null}
+                        </div>
+                      </label>
+                    </div>
+                  );
+                })()}
+
+                {(() => {
+                  const group = ACD_GROUPS.find((item) => item.name === "acd_road");
+                  if (!group) return null;
+                  const current = detailDraft[group.name];
+                  const options = acdOptions[group.name] ?? [];
+                  const selectedOption = getAcdOption(options, current.code);
+
+                  return (
+                    <div className="grid gap-2 border border-sky-100 bg-sky-50/40 p-2.5">
+                      <label className="grid gap-2 text-[12px] text-slate-700">
+                        <span>{group.label}</span>
+                        <div className="flex flex-nowrap items-center gap-2">
+                          <select
+                            className={`h-9 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
+                              selectedOption?.is_addon ? "w-1/2" : "flex-1"
+                            }`}
+                            value={current.code}
+                            onChange={(event) => {
+                              const nextCode = event.target.value;
+                              const nextOption = getAcdOption(options, nextCode);
+
+                              updateDetailDraft(group.name, {
+                                code: nextCode,
+                                addon_value: nextOption?.is_addon ? current.addon_value : "",
+                              });
+
+                              if (nextOption?.is_addon) {
+                                requestAnimationFrame(() => {
+                                  addonInputRefs.current[group.name]?.focus();
+                                });
+                              }
+                            }}
+                            disabled={detailLoading || detailSaving}
+                          >
+                            <option value="">-</option>
+                            {options.map((option) => (
+                              <option key={`${group.name}-${option.code}`} value={String(option.code)}>
+                                {formatAcdOptionLabel(option)}
+                              </option>
+                            ))}
+                          </select>
+                          {selectedOption?.is_addon ? (
+                            <input
+                              ref={(element) => {
+                                addonInputRefs.current[group.name] = element;
+                              }}
+                              className="h-9 w-1/2 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                              placeholder="ระบุ"
+                              value={current.addon_value}
+                              onChange={(event) =>
+                                updateDetailDraft(group.name, { addon_value: event.target.value })
+                              }
+                              disabled={detailLoading || detailSaving}
+                            />
+                          ) : null}
+                        </div>
+                      </label>
+                    </div>
+                  );
+                })()}
+
+                <div className="sm:col-span-2 grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-2 border border-sky-100 bg-sky-50/40 p-2.5">
+                    <label className="grid gap-2 text-[12px] text-slate-700">
+                      <span>ยานพาหนะของผู้ป่วย</span>
+                      <div className="flex flex-nowrap items-center gap-2">
+                        <select
+                          className={`h-9 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
+                            getAcdOption(acdOptions.acd_vihicle ?? [], detailDraft.acd_vihicle.code)?.is_addon
+                              ? "w-1/2"
+                              : "flex-1"
+                          }`}
+                          value={detailDraft.acd_vihicle.code}
+                          onChange={(event) => {
+                            const nextCode = event.target.value;
+                            const nextOption = getAcdOption(acdOptions.acd_vihicle ?? [], nextCode);
+
+                            updateDetailDraft("acd_vihicle", {
                               code: nextCode,
-                              addon_value: nextOption?.is_addon ? current.addon_value : "",
+                              addon_value: nextOption?.is_addon ? detailDraft.acd_vihicle.addon_value : "",
                             });
 
                             if (nextOption?.is_addon) {
                               requestAnimationFrame(() => {
-                                addonInputRefs.current[group.name]?.focus();
+                                addonInputRefs.current.acd_vihicle?.focus();
                               });
                             }
                           }}
                           disabled={detailLoading || detailSaving}
                         >
+                          <option value="">-</option>
+                          {(acdOptions.acd_vihicle ?? []).map((option) => (
+                            <option key={`acd_vihicle-${option.code}`} value={String(option.code)}>
+                              {formatAcdOptionLabel(option)}
+                            </option>
+                          ))}
+                        </select>
+                        {getAcdOption(acdOptions.acd_vihicle ?? [], detailDraft.acd_vihicle.code)?.is_addon ? (
+                          <input
+                            ref={(element) => {
+                              addonInputRefs.current.acd_vihicle = element;
+                            }}
+                            className="h-9 w-1/2 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                            placeholder="ระบุ"
+                            value={detailDraft.acd_vihicle.addon_value}
+                            onChange={(event) =>
+                              updateDetailDraft("acd_vihicle", { addon_value: event.target.value })
+                            }
+                            disabled={detailLoading || detailSaving}
+                          />
+                        ) : null}
+                      </div>
+                    </label>
+                  </div>
+                  <div className="grid gap-2 border border-sky-100 bg-sky-50/40 p-2.5">
+                    <label className="grid gap-2 text-[12px] text-slate-700">
+                      <span>ยานพาหนะคู่กรณี</span>
+                      <div className="flex flex-nowrap items-center gap-2">
+                        <select
+                          className={`h-9 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
+                            getAcdOption(acdOptions.acd_vihicle ?? [], counterpartVehicleDraft.code)?.is_addon
+                              ? "w-1/2"
+                              : "flex-1"
+                          }`}
+                          value={counterpartVehicleDraft.code}
+                          onChange={(event) => {
+                            const nextCode = event.target.value;
+                            const nextOption = getAcdOption(acdOptions.acd_vihicle ?? [], nextCode);
+
+                            setCounterpartVehicleDraft((current) => ({
+                              code: nextCode,
+                              addon_value: nextOption?.is_addon ? current.addon_value : "",
+                            }));
+
+                            if (nextOption?.is_addon) {
+                              requestAnimationFrame(() => {
+                                counterpartVehicleAddonInputRef.current?.focus();
+                              });
+                            }
+                          }}
+                          disabled={detailLoading || detailSaving}
+                        >
+                          <option value="">-</option>
+                          {(acdOptions.acd_vihicle ?? []).map((option) => (
+                            <option key={`acd_vihicle_counterpart-${option.code}`} value={String(option.code)}>
+                              {formatAcdOptionLabel(option)}
+                            </option>
+                          ))}
+                        </select>
+                        {getAcdOption(acdOptions.acd_vihicle ?? [], counterpartVehicleDraft.code)?.is_addon ? (
+                          <input
+                            ref={counterpartVehicleAddonInputRef}
+                            className="h-9 w-1/2 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                            placeholder="ระบุ"
+                            value={counterpartVehicleDraft.addon_value}
+                            onChange={(event) =>
+                              setCounterpartVehicleDraft((current) => ({
+                                ...current,
+                                addon_value: event.target.value,
+                              }))
+                            }
+                            disabled={detailLoading || detailSaving}
+                          />
+                        ) : null}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {ACD_GROUPS.filter(
+                  (group) => group.name !== "acd_type" && group.name !== "acd_vihicle" && group.name !== "acd_road",
+                ).map((group) => {
+                  const current = detailDraft[group.name];
+                  const options = acdOptions[group.name] ?? [];
+                  const selectedOption = getAcdOption(options, current.code);
+
+                  return (
+                    <div key={group.name} className="grid gap-2 border border-sky-100 bg-sky-50/40 p-2.5">
+                      <label className="grid gap-2 text-[12px] text-slate-700">
+                        <span>{group.label}</span>
+                        <div className="flex flex-nowrap items-center gap-2">
+                          <select
+                            className={`h-9 min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
+                              selectedOption?.is_addon ? "w-1/2" : "flex-1"
+                            }`}
+                            value={current.code}
+                            onChange={(event) => {
+                              const nextCode = event.target.value;
+                              const nextOption = getAcdOption(options, nextCode);
+
+                              updateDetailDraft(group.name, {
+                                code: nextCode,
+                                addon_value: nextOption?.is_addon ? current.addon_value : "",
+                              });
+
+                              if (nextOption?.is_addon) {
+                                requestAnimationFrame(() => {
+                                  addonInputRefs.current[group.name]?.focus();
+                                });
+                              }
+                            }}
+                            disabled={detailLoading || detailSaving}
+                          >
                             <option value="">-</option>
                             {options.map((option) => (
                               <option key={`${group.name}-${option.code}`} value={String(option.code)}>
@@ -2290,7 +2546,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-sky-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-sky-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:px-5">
               <button
                 type="button"
                 className="inline-flex h-11 items-center justify-center border border-sky-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-sky-50"
