@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Accident Realtime",
+  title: "พิษณุโลก-อุบัติเหตุ-สงกรานต์",
   description: "Supabase realtime feed for accident notifications.",
 };
 
