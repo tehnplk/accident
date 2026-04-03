@@ -1569,7 +1569,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                 <VerticalHeader className="w-[72px] px-2 py-3">Triage</VerticalHeader>
                 <VerticalHeader className="w-[140px] px-2 py-3">อาการสำคัญ</VerticalHeader>
                 <VerticalHeader className="w-[170px] px-2 py-3">PDX</VerticalHeader>
-                <VerticalHeader className="w-[85px] px-2 py-3">พื้นที่</VerticalHeader>
+                <VerticalHeader className="w-[85px] px-2 py-3">พื้นที่เกิดเหตุ</VerticalHeader>
                 <VerticalHeader className="w-[85px] px-2 py-3">รถ</VerticalHeader>
                 <VerticalHeader className="w-[85px] px-2 py-3">สุรา</VerticalHeader>
                 <SortableAngledHeader
