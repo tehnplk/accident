@@ -1489,12 +1489,20 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           </select>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-600">
-          <div>
-            {loading ? "Loading..." : `Total ${total.toLocaleString()} rows`}
-            {error ? <span className="ml-3 text-rose-600">{error}</span> : null}
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-600">
+          <button
+            type="button"
+            className="inline-flex h-10 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white transition hover:bg-sky-700"
+            onClick={openCreateModal}
+          >
+            <Plus size={15} />
+            เพิ่ม
+          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div>
+              {loading ? "Loading..." : `Total ${total.toLocaleString()} rows`}
+              {error ? <span className="ml-3 text-rose-600">{error}</span> : null}
+            </div>
             <label className="flex items-center gap-2">
               <span>Rows:</span>
               <select
@@ -1531,17 +1539,6 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               Next
             </button>
           </div>
-        </div>
-
-        <div className="mt-3 flex justify-start">
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white transition hover:bg-sky-700"
-            onClick={openCreateModal}
-          >
-            <Plus size={15} />
-            เพิ่ม
-          </button>
         </div>
 
         <div className="mt-5 border border-sky-200">
