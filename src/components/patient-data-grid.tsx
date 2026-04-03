@@ -579,6 +579,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [selectedProvinceCode, setSelectedProvinceCode] = useState(DEFAULT_PROVINCE_CODE);
   const [selectedAmphoeCode, setSelectedAmphoeCode] = useState("");
   const [selectedTambonCode, setSelectedTambonCode] = useState("");
+  const selectedAmphoeCodeRef = useRef("");
+  const selectedTambonCodeRef = useRef("");
   const [districtLoading, setDistrictLoading] = useState(false);
   const [subdistrictLoading, setSubdistrictLoading] = useState(false);
   const [detailDraft, setDetailDraft] = useState<Record<AcdGroupName, PatientDetailDraftItem>>(
@@ -590,6 +592,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [detailSaving, setDetailSaving] = useState(false);
   const addonInputRefs = useRef<Partial<Record<AcdGroupName, HTMLInputElement | null>>>({});
   const hospitalSuggestRef = useRef<HTMLLabelElement | null>(null);
+
+  useEffect(() => {
+    selectedAmphoeCodeRef.current = selectedAmphoeCode;
+  }, [selectedAmphoeCode]);
+
+  useEffect(() => {
+    selectedTambonCodeRef.current = selectedTambonCode;
+  }, [selectedTambonCode]);
+
   const hospitalOptions = initialData.hospitalOptions;
   const hospitalChoices = initialData.hospitalChoices;
   const areaOptions = initialData.areaOptions;
@@ -860,7 +871,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .then((rows) => {
         const sortedRows = [...rows].sort((a, b) => a.name.localeCompare(b.name, "th"));
         setAmphoeOptions(sortedRows);
-        const hasSelectedAmphoe = sortedRows.some((option) => String(option.code) === selectedAmphoeCode);
+        const hasSelectedAmphoe = sortedRows.some((option) => String(option.code) === selectedAmphoeCodeRef.current);
         if (!hasSelectedAmphoe) {
           setSelectedAmphoeCode("");
           setSelectedTambonCode("");
@@ -879,7 +890,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setDistrictLoading(false));
 
     return () => controller.abort();
-  }, [isModalOpen, provinceOptions, selectedProvinceCode, selectedAmphoeCode]);
+  }, [isModalOpen, provinceOptions, selectedProvinceCode]);
 
   useEffect(() => {
     if (!isModalOpen || !selectedProvinceCode || !selectedAmphoeCode || amphoeOptions.length === 0) {
@@ -897,7 +908,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .then((rows) => {
         const sortedRows = [...rows].sort((a, b) => a.name.localeCompare(b.name, "th"));
         setTambonOptions(sortedRows);
-        const hasSelectedTambon = sortedRows.some((option) => String(option.code) === selectedTambonCode);
+        const hasSelectedTambon = sortedRows.some((option) => String(option.code) === selectedTambonCodeRef.current);
         if (!hasSelectedTambon) {
           setSelectedTambonCode("");
           setDraft((current) => ({
@@ -913,7 +924,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setSubdistrictLoading(false));
 
     return () => controller.abort();
-  }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode, selectedTambonCode]);
+  }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode]);
 
   useEffect(() => {
     const controller = new AbortController();
