@@ -12,6 +12,8 @@ import {
   patientDecryptedColumnSql,
 } from "@/lib/patient-security";
 import { normalizeShiftName } from "@/lib/shift";
+import { auth } from "@/authConfig";
+import { logActivity, parseProfileFromSession } from "@/lib/activity-log";
 
 type SearchParamsValue = string | string[] | undefined;
 
@@ -266,6 +268,37 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
 export default async function PatientPage(props: PatientPageProps) {
   const resolvedSearchParams = await Promise.resolve(props.searchParams ?? {});
   const initialFilters = parseInitialFilters(resolvedSearchParams);
+
+  const session = await auth();
+  const profile = parseProfileFromSession(session);
+  if (profile) {
+    const fullName =
+      [profile.title_th, profile.firstname_th, profile.lastname_th].filter(Boolean).join("") ||
+      profile.name_th ||
+      null;
+
+    let department: string | null = null;
+    const orgRaw = profile.organization;
+    if (Array.isArray(orgRaw) && orgRaw.length > 0) {
+      department = orgRaw
+        .map((item: unknown) => {
+          const pos = typeof item === "string" ? JSON.parse(item) : item;
+          return pos?.hname_th ?? null;
+        })
+        .filter(Boolean)
+        .join(" | ") || null;
+    } else if (typeof orgRaw === "string") {
+      department = orgRaw;
+    }
+
+    await logActivity({
+      providerId: profile.provider_id ?? profile.account_id ?? "unknown",
+      fullName: fullName || null,
+      department,
+      route: "/patient",
+    });
+  }
+
   const initialData = await loadInitialData(initialFilters);
 
   return <PatientDataGrid initialData={initialData} />;

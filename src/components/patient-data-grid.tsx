@@ -1,9 +1,176 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDownUp, FileText, MapPin, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowDownUp, Briefcase, Building2, ChevronDown, FileText, LogOut, MapPin, Pencil, Plus, Save, Trash2, User, X } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+
+function parseOrganization(raw: unknown): { hcode: string; hname_th: string; position: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    const obj = typeof item === "string" ? JSON.parse(item) : item;
+    return {
+      hcode: obj?.hcode ?? "",
+      hname_th: obj?.hname_th ?? "",
+      position: obj?.position ?? obj?.affiliation ?? "",
+    };
+  }).filter((o) => o.hname_th);
+}
+
+function ProfileModal({ profile, displayName, onClose }: {
+  profile: Record<string, unknown> | null;
+  displayName: string;
+  onClose: () => void;
+}) {
+  const orgs = parseOrganization(profile?.organization);
+  const providerId = profile?.provider_id;
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const modal = (
+    <div
+      className="fixed left-0 top-0 z-[9999] flex h-screen w-screen items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative mx-4 w-full max-w-sm rounded-2xl border border-slate-200 bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex flex-col items-center gap-2 rounded-t-2xl bg-gradient-to-b from-sky-50 to-white px-6 pt-8 pb-4">
+          <button onClick={onClose} className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+            <X size={16} />
+          </button>
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-600 ring-4 ring-white shadow">
+            <User size={30} />
+          </div>
+          <p className="text-center text-[1rem] font-semibold text-slate-800">{displayName}</p>
+          {Boolean(providerId) && (
+            <p className="text-[11px] text-slate-400">Provider ID: {String(providerId)}</p>
+          )}
+        </div>
+
+        {/* Body */}
+        <div className="divide-y divide-slate-100 border-t border-slate-100 px-6 pb-6">
+          {orgs.map((org, i) => (
+            <div key={i} className="py-4 space-y-3">
+              {/* ตำแหน่ง */}
+              {org.position && (
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
+                    <Briefcase size={13} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">ตำแหน่ง</p>
+                    <p className="text-[13px] font-medium text-slate-700">{org.position}</p>
+                  </div>
+                </div>
+              )}
+              {/* ที่ทำงาน */}
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-500">
+                  <Building2 size={13} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">ที่ทำงาน</p>
+                  <p className="text-[13px] font-medium text-slate-700">
+                    {org.hcode ? `${org.hcode}-${org.hname_th}` : org.hname_th}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(modal, document.body);
+}
+
+function UserMenu() {
+  const { data: session } = useSession();
+  const [open, setOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const profile = (() => {
+    try {
+      const raw = (session?.user as { profile?: string } | null)?.profile;
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const displayName =
+    [profile?.title_th, profile?.firstname_th, profile?.lastname_th].filter(Boolean).join("") ||
+    profile?.name_th ||
+    session?.user?.name ||
+    "ผู้ใช้งาน";
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (!session) return null;
+
+  return (
+    <>
+      <div ref={ref} className="relative">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-[12px] font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+        >
+          <User size={13} />
+          <span className="max-w-[160px] truncate">{displayName}</span>
+          <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+
+        {open && (
+          <div className="absolute right-0 z-50 mt-1 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+            <div className="border-b border-slate-100 px-4 py-2">
+              <p className="truncate text-[11px] font-semibold text-slate-800">{displayName}</p>
+              {Boolean(profile?.provider_id) && (
+                <p className="truncate text-[10px] text-slate-400">{String(profile.provider_id)}</p>
+              )}
+            </div>
+            <button
+              onClick={() => { setOpen(false); setShowProfile(true); }}
+              className="flex w-full items-center gap-2 px-4 py-2 text-[12px] text-slate-600 hover:bg-slate-50"
+            >
+              <User size={13} />
+              โปรไฟล์
+            </button>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="flex w-full items-center gap-2 px-4 py-2 text-[12px] text-red-600 hover:bg-red-50"
+            >
+              <LogOut size={13} />
+              ออกจากระบบ
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showProfile && (
+        <ProfileModal
+          profile={profile}
+          displayName={displayName}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
+    </>
+  );
+}
 
 export type PatientRow = {
   id: number;
@@ -1465,12 +1632,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           <h1 className="whitespace-nowrap text-[1.5rem] font-semibold text-slate-900">
             แบบรายงานชื่อผู้ได้รับบาดเจ็บและเสียชีวิตจากอุบัติเหตุทางถนน
           </h1>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-[12px] font-medium text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-900"
-          >
-            กลับ Dashboard
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-[12px] font-medium text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-900"
+            >
+              กลับ Dashboard
+            </Link>
+            <UserMenu />
+          </div>
         </div>
 
         <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
