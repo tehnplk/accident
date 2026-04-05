@@ -31,13 +31,12 @@ type ExportRow = {
   ext_dx: unknown;
   location_road: string | null;
   location_detail: string | null;
+  alcohol: number | null;
   acd_vihicle_label: string | null;
   acd_vihicle_export_label: string | null;
   acd_vihicle_counterpart_label: string | null;
   acd_road_export_label: string | null;
-  acd_alcohol_label: string | null;
   acd_measure_export_label: string | null;
-  acd_alcohol_export_label: string | null;
   acd_transfer_export_label: string | null;
   acd_result_export_label: string | null;
   acd_refer_export_label: string | null;
@@ -189,7 +188,7 @@ export async function GET(request: NextRequest) {
     }
     if (alcoholParam) {
       paramIndex += 1;
-      whereParts.push(`detail.acd_alcohol_label = $${paramIndex}`);
+      whereParts.push(`p.alcohol = $${paramIndex}::smallint`);
     }
     if (sexParam) {
       paramIndex += 1;
@@ -226,7 +225,6 @@ export async function GET(request: NextRequest) {
       LEFT JOIN LATERAL (
         SELECT
           COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS acd_vihicle_label,
-          COALESCE(NULLIF(pd.acd_alcohol_addon, ''), aa.name) AS acd_alcohol_label,
           CASE
             WHEN pd.acd_vihicle IS NOT NULL AND av.name IS NOT NULL AND NULLIF(pd.acd_vihicle_addon, '') IS NOT NULL
               THEN CONCAT(pd.acd_vihicle::text, '-', av.name, ' (', pd.acd_vihicle_addon, ')')
@@ -258,13 +256,6 @@ export async function GET(request: NextRequest) {
             ELSE NULL
           END AS acd_measure_export_label,
           CASE
-            WHEN pd.acd_alcohol IS NOT NULL AND aa.name IS NOT NULL AND NULLIF(pd.acd_alcohol_addon, '') IS NOT NULL
-              THEN CONCAT(pd.acd_alcohol::text, '-', aa.name, ' (', pd.acd_alcohol_addon, ')')
-            WHEN pd.acd_alcohol IS NOT NULL AND aa.name IS NOT NULL
-              THEN CONCAT(pd.acd_alcohol::text, '-', aa.name)
-            ELSE NULL
-          END AS acd_alcohol_export_label,
-          CASE
             WHEN pd.acd_transfer IS NOT NULL AND atr.name IS NOT NULL AND NULLIF(pd.acd_transfer_addon, '') IS NOT NULL
               THEN CONCAT(pd.acd_transfer::text, '-', atr.name, ' (', pd.acd_transfer_addon, ')')
             WHEN pd.acd_transfer IS NOT NULL AND atr.name IS NOT NULL
@@ -295,7 +286,6 @@ export async function GET(request: NextRequest) {
           END
         LEFT JOIN public.acd_road ar ON ar.code = pd.acd_road
         LEFT JOIN public.acd_measure am ON am.code = pd.acd_measure
-        LEFT JOIN public.acd_alcohol aa ON aa.code = pd.acd_alcohol
         LEFT JOIN public.acd_transfer atr ON atr.code = pd.acd_transfer
         LEFT JOIN public.acd_result ars ON ars.code = pd.acd_result
         LEFT JOIN public.acd_refer arf ON arf.code = pd.acd_refer
@@ -325,13 +315,12 @@ export async function GET(request: NextRequest) {
         p.ext_dx,
         loc.location_road,
         loc.location_detail,
+        p.alcohol,
         detail.acd_vihicle_label,
         detail.acd_vihicle_export_label,
         detail.acd_vihicle_counterpart_label,
-        detail.acd_alcohol_label,
         detail.acd_road_export_label,
         detail.acd_measure_export_label,
-        detail.acd_alcohol_export_label,
         detail.acd_transfer_export_label,
         detail.acd_result_export_label,
         detail.acd_refer_export_label
@@ -357,7 +346,7 @@ export async function GET(request: NextRequest) {
       "2.2 ยานพาหนะ คู่กรณี": row.acd_vihicle_counterpart_label ?? "-",
       "3 ถนน": row.acd_road_export_label ?? "-",
       "4 มาตรการ": row.acd_measure_export_label ?? "-",
-      "5 สุรา": row.acd_alcohol_export_label ?? "-",
+      "5 สุรา": row.alcohol === 1 ? "ดื่ม" : row.alcohol === 0 ? "ไม่ดื่ม" : "-",
       "6 นำส่ง/EMS": row.acd_transfer_export_label ?? "-",
       "7 ผลการรักษา": row.acd_result_export_label ?? "-",
       "8 ส่งต่อไปยัง": row.acd_refer_export_label ?? "-",

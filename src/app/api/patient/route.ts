@@ -16,6 +16,7 @@ type CreatePatientBody = {
   hn?: string;
   cid?: string;
   patient_name?: string;
+  vn?: string;
   visit_date?: string;
   visit_time?: string;
   sex?: string;
@@ -23,6 +24,11 @@ type CreatePatientBody = {
   triage?: string;
   status?: string;
   cc?: string;
+  pdx?: unknown;
+  ext_dx?: unknown;
+  dx_list?: unknown;
+  alcohol?: number | string | null;
+  source?: string;
 };
 
 function parsePage(value: string | null, fallback: number) {
@@ -110,7 +116,7 @@ export async function GET(request: NextRequest) {
     }
     if (alcoholParam) {
       paramIndex += 1;
-      whereParts.push(`detail.alcohol = $${paramIndex}`);
+      whereParts.push(`p.alcohol = $${paramIndex}::smallint`);
     }
     if (sexParam) {
       paramIndex += 1;
@@ -122,11 +128,9 @@ export async function GET(request: NextRequest) {
       FROM public.patient p
       LEFT JOIN LATERAL (
         SELECT
-          COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle,
-          COALESCE(NULLIF(pd.acd_alcohol_addon, ''), aa.name) AS alcohol
+          COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle
         FROM public.patient_detail pd
         LEFT JOIN public.acd_vihicle av ON av.code = pd.acd_vihicle
-        LEFT JOIN public.acd_alcohol aa ON aa.code = pd.acd_alcohol
         WHERE pd.patient_id = p.id
         LIMIT 1
       ) detail ON TRUE
@@ -188,8 +192,8 @@ export async function GET(request: NextRequest) {
         p.source,
         p.pdx,
         p.ext_dx,
+        p.alcohol,
         detail.vehicle AS vehicle,
-        detail.alcohol AS alcohol,
         shift.shift_name AS shift_name,
         loc.area AS area,
         to_char(p.created_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
@@ -236,12 +240,27 @@ export async function POST(request: NextRequest) {
     const hn = normalizeText(body.hn) || null;
     const cid = normalizeText(body.cid);
     const patientName = normalizeText(body.patient_name);
+    const vn = normalizeText(body.vn) || null;
     const visitDate = normalizeText(body.visit_date) || null;
     const visitTime = normalizeText(body.visit_time) || null;
     const sex = normalizeText(body.sex) || null;
     const triage = normalizeText(body.triage) || null;
     const status = normalizeText(body.status) || null;
     const cc = normalizeText(body.cc) || null;
+    const source = normalizeText(body.source) || "man";
+    const pdxValue = body.pdx != null ? JSON.stringify(body.pdx) : null;
+    const extDxValue = body.ext_dx != null ? JSON.stringify(body.ext_dx) : null;
+    const dxListValue = body.dx_list != null ? JSON.stringify(body.dx_list) : null;
+    const alcoholValue =
+      body.alcohol === null || body.alcohol === undefined || body.alcohol === ""
+        ? 0
+        : Number.parseInt(String(body.alcohol), 10) === 1
+          ? 1
+          : 0;
+
+    if (!hoscode) {
+      return NextResponse.json({ message: "Hospital code (hoscode) is required" }, { status: 400 });
+    }
 
     if (!cid) {
       return NextResponse.json({ message: "CID is required" }, { status: 400 });
@@ -261,6 +280,31 @@ export async function POST(request: NextRequest) {
     }
 
     const aesSecret = getPatientAesSecret();
+
+    // external client (source='auto') ใช้ ON CONFLICT (hoscode, vn) DO UPDATE
+    // เพื่อรองรับการ push ซ้ำจาก HIS
+    // form (source='man') ใช้ INSERT ธรรมดา ชนแล้วคืน 409
+    const isAutoSource = source === "auto";
+    const upsertClause = isAutoSource && vn
+      ? `ON CONFLICT (hoscode, vn) DO UPDATE SET
+          hosname          = EXCLUDED.hosname,
+          hn               = EXCLUDED.hn,
+          cid              = EXCLUDED.cid,
+          cid_hash         = EXCLUDED.cid_hash,
+          patient_name     = EXCLUDED.patient_name,
+          visit_date       = EXCLUDED.visit_date,
+          visit_time       = EXCLUDED.visit_time,
+          sex              = EXCLUDED.sex,
+          age              = EXCLUDED.age,
+          triage           = EXCLUDED.triage,
+          status           = EXCLUDED.status,
+          cc               = EXCLUDED.cc,
+          alcohol          = EXCLUDED.alcohol,
+          pdx              = EXCLUDED.pdx,
+          ext_dx           = EXCLUDED.ext_dx,
+          dx_list          = EXCLUDED.dx_list`
+      : "";
+
     const sql = `
       WITH inserted AS (
         INSERT INTO public.patient (
@@ -268,7 +312,9 @@ export async function POST(request: NextRequest) {
           hosname,
           hn,
           cid,
+          cid_hash,
           patient_name,
+          vn,
           visit_date,
           visit_time,
           sex,
@@ -276,14 +322,20 @@ export async function POST(request: NextRequest) {
           triage,
           status,
           cc,
-          source
+          source,
+          alcohol,
+          pdx,
+          ext_dx,
+          dx_list
         )
         VALUES (
           $1,
           $2,
           ${patientEncryptedValueSql(3, 14)},
           ${patientEncryptedValueSql(4, 14)},
+          encode(digest($4::bytea, 'sha256'), 'hex'),
           ${patientEncryptedValueSql(5, 14)},
+          $16,
           COALESCE($6::date, CURRENT_DATE),
           COALESCE($7::time, LOCALTIME(0)),
           $8,
@@ -291,8 +343,13 @@ export async function POST(request: NextRequest) {
           $10,
           $11,
           $12,
-          $13
+          $13,
+          $15,
+          $17::jsonb,
+          $18::jsonb,
+          $19::jsonb
         )
+        ${upsertClause}
         RETURNING
           id,
           hoscode,
@@ -300,6 +357,7 @@ export async function POST(request: NextRequest) {
           hn,
           cid,
           patient_name,
+          vn,
           visit_date,
           visit_time,
           sex,
@@ -315,7 +373,9 @@ export async function POST(request: NextRequest) {
           triage,
           source,
           pdx,
-          ext_dx
+          ext_dx,
+          dx_list,
+          alcohol
       )
       SELECT
         id,
@@ -324,6 +384,7 @@ export async function POST(request: NextRequest) {
         ${patientDecryptedColumnSql("hn", 14, "inserted")} AS hn,
         ${patientDecryptedColumnSql("cid", 14, "inserted")} AS cid,
         ${patientDecryptedColumnSql("patient_name", 14, "inserted")} AS patient_name,
+        vn,
         to_char(visit_date, 'YYYY-MM-DD') AS visit_date,
         to_char(visit_time, 'HH24:MI:SS') AS visit_time,
         sex,
@@ -339,25 +400,32 @@ export async function POST(request: NextRequest) {
         triage,
         source,
         pdx,
-        ext_dx
+        ext_dx,
+        dx_list,
+        alcohol
       FROM inserted
     `;
 
     const result = await dbQuery(sql, [
-      hoscode,
-      hosname,
-      hn,
-      cid,
-      patientName,
-      visitDate,
-      visitTime,
-      sex,
-      ageValue,
-      triage,
-      status,
-      cc,
-      "man",
-      aesSecret,
+      hoscode,       // $1
+      hosname,       // $2
+      hn,            // $3 (encrypted)
+      cid,           // $4 (encrypted)
+      patientName,   // $5 (encrypted)
+      visitDate,     // $6
+      visitTime,     // $7
+      sex,           // $8
+      ageValue,      // $9
+      triage,        // $10
+      status,        // $11
+      cc,            // $12
+      source,        // $13
+      aesSecret,     // $14
+      alcoholValue,  // $15
+      vn,            // $16
+      pdxValue,      // $17
+      extDxValue,    // $18
+      dxListValue,   // $19
     ]);
 
     return NextResponse.json({ row: result.rows[0] }, { status: 201 });
@@ -365,7 +433,7 @@ export async function POST(request: NextRequest) {
     const code = (error as { code?: string })?.code;
     if (code === "23505") {
       return NextResponse.json(
-        { message: "Duplicate hoscode + hn + visit_date is not allowed" },
+        { message: "ข้อมูลซ้ำ: hoscode + CID + visit_date นี้มีอยู่แล้วในระบบ" },
         { status: 409 },
       );
     }

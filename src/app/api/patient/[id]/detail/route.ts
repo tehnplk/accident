@@ -18,8 +18,6 @@ type DetailPayload = {
   acd_road_addon?: unknown;
   acd_measure?: unknown;
   acd_measure_addon?: unknown;
-  acd_alcohol?: unknown;
-  acd_alcohol_addon?: unknown;
   acd_transfer?: unknown;
   acd_transfer_addon?: unknown;
   acd_result?: unknown;
@@ -53,8 +51,6 @@ const COLUMNS = [
   "acd_road_addon",
   "acd_measure",
   "acd_measure_addon",
-  "acd_alcohol",
-  "acd_alcohol_addon",
   "acd_transfer",
   "acd_transfer_addon",
   "acd_result",
@@ -91,8 +87,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
           acd_road_addon,
           acd_measure,
           acd_measure_addon,
-          acd_alcohol,
-          acd_alcohol_addon,
           acd_transfer,
           acd_transfer_addon,
           acd_result,
@@ -141,7 +135,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       acd_vihicle: toNullableSmallInt(source.acd_vihicle),
       acd_road: toNullableSmallInt(source.acd_road),
       acd_measure: toNullableSmallInt(source.acd_measure),
-      acd_alcohol: toNullableSmallInt(source.acd_alcohol),
       acd_transfer: toNullableSmallInt(source.acd_transfer),
       acd_result: toNullableSmallInt(source.acd_result),
       acd_refer: toNullableSmallInt(source.acd_refer),
@@ -152,7 +145,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       acd_vihicle_addon: toNullableText(source.acd_vihicle_addon),
       acd_road_addon: toNullableText(source.acd_road_addon),
       acd_measure_addon: toNullableText(source.acd_measure_addon),
-      acd_alcohol_addon: toNullableText(source.acd_alcohol_addon),
       acd_transfer_addon: toNullableText(source.acd_transfer_addon),
       acd_result_addon: toNullableText(source.acd_result_addon),
       acd_refer_addon: toNullableText(source.acd_refer_addon),
@@ -185,8 +177,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       addons.acd_road_addon,
       codes.acd_measure,
       addons.acd_measure_addon,
-      codes.acd_alcohol,
-      addons.acd_alcohol_addon,
       codes.acd_transfer,
       addons.acd_transfer_addon,
       codes.acd_result,
@@ -209,8 +199,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           acd_road_addon,
           acd_measure,
           acd_measure_addon,
-          acd_alcohol,
-          acd_alcohol_addon,
           acd_transfer,
           acd_transfer_addon,
           acd_result,
@@ -219,7 +207,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           acd_refer_addon,
           updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, now()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, now()
         )
         ON CONFLICT (patient_id) DO UPDATE SET
           acd_type = EXCLUDED.acd_type,
@@ -232,8 +220,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           acd_road_addon = EXCLUDED.acd_road_addon,
           acd_measure = EXCLUDED.acd_measure,
           acd_measure_addon = EXCLUDED.acd_measure_addon,
-          acd_alcohol = EXCLUDED.acd_alcohol,
-          acd_alcohol_addon = EXCLUDED.acd_alcohol_addon,
           acd_transfer = EXCLUDED.acd_transfer,
           acd_transfer_addon = EXCLUDED.acd_transfer_addon,
           acd_result = EXCLUDED.acd_result,
@@ -257,3 +243,6 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     );
   }
 }
+
+// COLUMNS is kept for reference but not currently used in GET/PUT directly
+void COLUMNS;

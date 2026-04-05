@@ -13,6 +13,7 @@ type UpdateBody = {
   hn?: string;
   cid?: string;
   patient_name?: string;
+  vn?: string;
   sex?: string;
   visit_date?: string;
   visit_time?: string;
@@ -25,6 +26,11 @@ type UpdateBody = {
   cc?: string;
   triage?: string;
   status?: string;
+  alcohol?: number | string | null;
+  pdx?: unknown;
+  ext_dx?: unknown;
+  dx_list?: unknown;
+  source?: string;
 };
 
 const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
@@ -33,6 +39,7 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "hn",
   "cid",
   "patient_name",
+  "vn",
   "sex",
   "visit_date",
   "visit_time",
@@ -45,6 +52,11 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "cc",
   "triage",
   "status",
+  "alcohol",
+  "pdx",
+  "ext_dx",
+  "dx_list",
+  "source",
 ];
 
 export async function PATCH(
@@ -74,12 +86,22 @@ export async function PATCH(
         values.push(raw.trim());
         if (field === "hn" || field === "cid" || field === "patient_name") {
           updates.push(`${field} = ${patientEncryptedValueSql(values.length, 1)}`);
+          if (field === "cid") {
+            updates.push(`cid_hash = encode(digest($${values.length}::bytea, 'sha256'), 'hex')`);
+          }
         } else {
           updates.push(`${field} = $${values.length}`);
         }
       } else if (field === "age" && (typeof raw === "number" || raw === null)) {
         values.push(raw);
         updates.push(`${field} = $${values.length}`);
+      } else if (field === "alcohol" && (typeof raw === "number" || typeof raw === "string")) {
+        const alcoholInt = Number.parseInt(String(raw), 10) === 1 ? 1 : 0;
+        values.push(alcoholInt);
+        updates.push(`${field} = $${values.length}`);
+      } else if ((field === "pdx" || field === "ext_dx" || field === "dx_list") && raw != null) {
+        values.push(JSON.stringify(raw));
+        updates.push(`${field} = $${values.length}::jsonb`);
       }
     }
 
@@ -100,6 +122,7 @@ export async function PATCH(
           hn,
           cid,
           patient_name,
+          vn,
           to_char(visit_date, 'YYYY-MM-DD') AS visit_date,
           to_char(visit_time, 'HH24:MI:SS') AS visit_time,
           sex,
@@ -115,7 +138,9 @@ export async function PATCH(
           status,
           triage,
           pdx,
-          ext_dx
+          ext_dx,
+          dx_list,
+          alcohol
       )
       SELECT
         id,
@@ -124,6 +149,7 @@ export async function PATCH(
         ${patientDecryptedColumnSql("hn", 1, "updated")} AS hn,
         ${patientDecryptedColumnSql("cid", 1, "updated")} AS cid,
         ${patientDecryptedColumnSql("patient_name", 1, "updated")} AS patient_name,
+        vn,
         visit_date,
         visit_time,
         sex,
@@ -139,7 +165,9 @@ export async function PATCH(
         status,
         triage,
         pdx,
-        ext_dx
+        ext_dx,
+        dx_list,
+        alcohol
       FROM updated
     `;
 

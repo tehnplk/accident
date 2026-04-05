@@ -194,7 +194,7 @@ export type PatientRow = {
   status: string | null;
   triage: string | null;
   vehicle: string | null;
-  alcohol: string | null;
+  alcohol: number | null;
   area: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -271,8 +271,6 @@ type PatientDetailRow = {
   acd_road_addon: string | null;
   acd_measure: number | null;
   acd_measure_addon: string | null;
-  acd_alcohol: number | null;
-  acd_alcohol_addon: string | null;
   acd_transfer: number | null;
   acd_transfer_addon: string | null;
   acd_result: number | null;
@@ -301,6 +299,7 @@ type PatientCreateDraft = {
   triage: string;
   status: string;
   cc: string;
+  alcohol: string;
 };
 
 const ACD_GROUPS = [
@@ -308,7 +307,6 @@ const ACD_GROUPS = [
   { name: "acd_vihicle", label: "ยานพาหนะของผู้ป่วย" },
   { name: "acd_road", label: "ถนน" },
   { name: "acd_measure", label: "มาตรการ" },
-  { name: "acd_alcohol", label: "สุรา" },
   { name: "acd_transfer", label: "นำส่ง/EMS" },
   { name: "acd_result", label: "ผลการรักษา" },
   { name: "acd_refer", label: "Refer/Admit" },
@@ -370,7 +368,6 @@ export type PatientGridInitialData = {
   hospitalChoices: HospitalOption[];
   areaOptions: string[];
   vehicleOptions: string[];
-  alcoholOptions: string[];
 };
 
 function getRealtimeMode() {
@@ -431,6 +428,7 @@ function createInitialPatientDraft(): PatientCreateDraft {
     triage: "",
     status: "",
     cc: "",
+    alcohol: "",
   };
 }
 
@@ -752,6 +750,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
   const [createDraft, setCreateDraft] = useState<PatientCreateDraft>(() => createInitialPatientDraft());
   const [createSaving, setCreateSaving] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [createHospitalQuery, setCreateHospitalQuery] = useState("");
   const [isHospitalSuggestOpen, setIsHospitalSuggestOpen] = useState(false);
   const deferredHospitalQuery = useDeferredValue(createHospitalQuery);
@@ -792,7 +791,6 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const hospitalChoices = initialData.hospitalChoices;
   const areaOptions = initialData.areaOptions;
   const vehicleOptions = initialData.vehicleOptions;
-  const alcoholOptions = initialData.alcoholOptions;
   const authToken = initialData.authToken;
   const canExportXlsx = initialData.canExportXlsx;
 
@@ -1355,6 +1353,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const openCreateModal = () => {
     const nextDraft = createInitialPatientDraft();
     setError(null);
+    setCreateError(null);
     setCreateDraft(nextDraft);
     setCreateHospitalQuery("");
     setIsHospitalSuggestOpen(false);
@@ -1366,6 +1365,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
   const openUpdatePatientModal = (row: PatientRow) => {
     setError(null);
+    setCreateError(null);
     setCreateDraft({
       hoscode: row.hoscode ?? "",
       hosname: row.hosname ?? "",
@@ -1379,6 +1379,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       triage: row.triage ?? "",
       status: row.status ?? "",
       cc: row.cc ?? "",
+      alcohol: row.alcohol === 1 ? "1" : row.alcohol === 0 ? "0" : "",
     });
     setCreateHospitalQuery(row.hosname ?? "");
     setIsHospitalSuggestOpen(false);
@@ -1390,6 +1391,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
   const cancelCreate = () => {
     setError(null);
+    setCreateError(null);
     setIsCreateModalOpen(false);
     setCreateDraft(createInitialPatientDraft());
     setCreateHospitalQuery("");
@@ -1506,36 +1508,46 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const saveCreate = async () => {
-    setError(null);
+    setCreateError(null);
+
+    if (!createDraft.hoscode.trim()) {
+      setCreateError("กรุณาเลือกโรงพยาบาล (รพ.)");
+      return;
+    }
 
     if (!createDraft.cid.trim()) {
-      setError("กรุณากรอก CID");
+      setCreateError("กรุณากรอก CID");
       return;
     }
 
     if (!createDraft.patient_name.trim()) {
-      setError("กรุณากรอกชื่อผู้ป่วย");
+      setCreateError("กรุณากรอกชื่อผู้ป่วย");
       return;
     }
 
     if (!createDraft.sex.trim()) {
-      setError("กรุณาเลือกเพศ");
+      setCreateError("กรุณาเลือกเพศ");
       return;
     }
 
     const parsedAge = Number.parseInt(createDraft.age, 10);
     if (!createDraft.age.trim() || !Number.isFinite(parsedAge) || parsedAge < 0) {
-      setError("กรุณากรอกอายุให้ถูกต้อง");
+      setCreateError("กรุณากรอกอายุให้ถูกต้อง");
+      return;
+    }
+
+    if (!createDraft.visit_date.trim()) {
+      setCreateError("กรุณากรอกวันที่มา");
       return;
     }
 
     if (!createDraft.triage.trim()) {
-      setError("กรุณาเลือก Triage");
+      setCreateError("กรุณาเลือก Triage");
       return;
     }
 
     if (!createDraft.cc.trim()) {
-      setError("กรุณากรอกอาการสำคัญ");
+      setCreateError("กรุณากรอกอาการสำคัญ");
       return;
     }
 
@@ -1555,6 +1567,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         triage: createDraft.triage,
         status: createDraft.status,
         cc: createDraft.cc.trim(),
+        alcohol: createDraft.alcohol === "1" ? 1 : 0,
       };
 
       const response = await fetch(
@@ -1576,8 +1589,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       cancelCreate();
       updateFilter({ page: 1 });
       void refreshRows();
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Create patient failed");
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : "Create patient failed");
     } finally {
       setCreateSaving(false);
     }
@@ -1704,11 +1717,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             }}
           >
             <option value="">การดื่มสุรา</option>
-            {alcoholOptions.map((alcohol) => (
-              <option key={alcohol} value={alcohol}>
-                {alcohol}
-              </option>
-            ))}
+            <option value="1">ดื่ม</option>
+            <option value="0">ไม่ดื่ม</option>
           </select>
           <select
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
@@ -1851,7 +1861,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="break-words px-2 py-3 text-[10px]">{formatDx(row.pdx)}</td>
                     <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
-                    <td className="break-words px-2 py-3">{row.alcohol ?? "-"}</td>
+                    <td className="break-words px-2 py-3">{row.alcohol === 1 ? "ดื่ม" : row.alcohol === 0 ? "ไม่ดื่ม" : "-"}</td>
                     <td className="whitespace-nowrap px-2 py-3 text-[10px] text-slate-600">{formatSentAt(row.created_at)}</td>
                     <td className="px-2 py-3">
                       <div className="flex items-center justify-end">
@@ -1922,7 +1932,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   <p className="mt-1 text-[12px] leading-5 text-slate-600">
                     {createModalMode === "edit"
                       ? "แก้ไขข้อมูลผู้ป่วยหลัก แล้วกดบันทึกเพื่ออัปเดต"
-                      : "ค้นหา รพ. ก่อน แล้วกรอกข้อมูลผู้ป่วย (บังคับ: CID, ชื่อผู้ป่วย, เพศ, อายุ, Triage, อาการสำคัญ)"}
+                      : "กรอกข้อมูลผู้ป่วย (บังคับ: รพ., CID, ชื่อผู้ป่วย, เพศ, อายุ, Triage, อาการสำคัญ)"}
                   </p>
                 </div>
                 <button
@@ -1940,7 +1950,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               <div className="space-y-5">
                 <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
                   <label ref={hospitalSuggestRef} className="relative grid min-w-0 gap-2 text-[12px] text-slate-700">
-                    <span>รพ.</span>
+                    <span>รพ. <span className="text-rose-600">*</span></span>
                     <input
                       className={`h-10 w-full min-w-0 border px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
                         createModalMode === "edit"
@@ -2073,7 +2083,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>วันที่มา</span>
+                        <span>วันที่มา <span className="text-rose-600">*</span></span>
                         <input
                           type="date"
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
@@ -2120,6 +2130,18 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           ))}
                         </select>
                       </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>สุรา</span>
+                        <select
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.alcohol}
+                          onChange={(event) => updateCreateDraft({ alcohol: event.target.value })}
+                        >
+                          <option value="">ไม่ระบุ</option>
+                          <option value="1">ดื่ม</option>
+                          <option value="0">ไม่ดื่ม</option>
+                        </select>
+                      </label>
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2">
                         <span>อาการสำคัญ <span className="text-rose-600">*</span></span>
                         <textarea
@@ -2135,6 +2157,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                 </div>
               </div>
             </div>
+
+            {createError ? (
+              <div className="border-t border-rose-200 bg-rose-50 px-5 py-3 text-[12px] font-medium text-rose-700">
+                {createError}
+              </div>
+            ) : null}
 
             <div className="flex flex-col-reverse gap-3 border-t border-sky-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[11px] text-slate-500">ช่องที่มี <span className="text-rose-600">*</span> จำเป็นต้องกรอก</p>

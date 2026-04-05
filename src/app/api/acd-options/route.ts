@@ -6,7 +6,6 @@ const ACD_TABLES = [
   "acd_vihicle",
   "acd_road",
   "acd_measure",
-  "acd_alcohol",
   "acd_transfer",
   "acd_result",
   "acd_refer",

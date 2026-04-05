@@ -106,7 +106,7 @@ function buildPatientQuery(filters: FilterState) {
   }
   if (alcoholParam) {
     paramIndex += 1;
-    whereParts.push(`detail.alcohol = $${paramIndex}`);
+    whereParts.push(`p.alcohol = $${paramIndex}::smallint`);
   }
   if (sexParam) {
     paramIndex += 1;
@@ -120,11 +120,9 @@ function buildPatientQuery(filters: FilterState) {
       FROM public.patient p
       LEFT JOIN LATERAL (
         SELECT
-          COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle,
-          COALESCE(NULLIF(pd.acd_alcohol_addon, ''), aa.name) AS alcohol
+          COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle
         FROM public.patient_detail pd
         LEFT JOIN public.acd_vihicle av ON av.code = pd.acd_vihicle
-        LEFT JOIN public.acd_alcohol aa ON aa.code = pd.acd_alcohol
         WHERE pd.patient_id = p.id
         LIMIT 1
       ) detail ON TRUE
@@ -182,8 +180,8 @@ function buildPatientQuery(filters: FilterState) {
         p.source,
         p.pdx,
         p.ext_dx,
+        p.alcohol,
         detail.vehicle AS vehicle,
-        detail.alcohol AS alcohol,
         shift.shift_name AS shift_name,
         loc.area AS area,
         to_char(p.created_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
@@ -229,19 +227,12 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     ) x
     ORDER BY vehicle ASC
   `;
-  const alcoholQuery = `
-    SELECT aa.name AS alcohol
-    FROM public.acd_alcohol aa
-    WHERE aa.name IS NOT NULL AND aa.name <> ''
-    ORDER BY aa.code ASC, aa.name ASC
-  `;
-  const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult, alcoholResult] = await Promise.all([
+  const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult] = await Promise.all([
     dbQuery<{ total: number }>(countQuery, countValues),
     dbQuery<PatientRow>(dataQuery, pageValues),
     dbQuery<HospitalOption>(hospitalQuery),
     dbQuery<{ area: string }>(areaQuery),
     dbQuery<{ vehicle: string }>(vehicleQuery),
-    dbQuery<{ alcohol: string }>(alcoholQuery),
   ]);
 
   const rows = rowsResult.rows.map((row) => ({
@@ -262,7 +253,6 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
     vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),
-    alcoholOptions: alcoholResult.rows.map((row) => row.alcohol),
   };
 }
 

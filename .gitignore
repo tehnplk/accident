@@ -54,3 +54,4 @@ test-results/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+his_query_guide/
