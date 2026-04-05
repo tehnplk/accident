@@ -1,6 +1,7 @@
 import NextAuth, { type Session, type NextAuthConfig } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { profileHasActiveHoscode } from "@/lib/hospital-access";
 
 const authOptions: NextAuthConfig = {
   trustHost: true,
@@ -15,10 +16,21 @@ const authOptions: NextAuthConfig = {
     CredentialsProvider({
       async authorize(credentials) {
         if (credentials["cred-way"] === "health-id") {
-          return {
-            name: (credentials.username as string) || "health-id",
-            profile: credentials.profile!,
-          };
+          try {
+            const rawProfile = credentials.profile;
+            const profile = typeof rawProfile === "string" ? JSON.parse(rawProfile) : rawProfile;
+
+            if (!(await profileHasActiveHoscode(profile))) {
+              return null;
+            }
+
+            return {
+              name: (credentials.username as string) || "health-id",
+              profile: rawProfile!,
+            };
+          } catch {
+            return null;
+          }
         }
         return null;
       },
