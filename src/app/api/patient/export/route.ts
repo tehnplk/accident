@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
+import { auth } from "@/authConfig";
 import { dbQuery } from "@/lib/db";
+import { parseProfileFromSession, sessionHasExportAccess } from "@/lib/activity-log";
 import {
   getPatientAesSecret,
   patientApiAuthorized,
@@ -128,6 +130,15 @@ export async function GET(request: NextRequest) {
   try {
     if (!patientApiAuthorized(request)) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const session = await auth();
+    const profile = parseProfileFromSession(session);
+    if (!sessionHasExportAccess(profile)) {
+      return NextResponse.json(
+        { message: "Forbidden: export XLSX is allowed only for hcode 00051" },
+        { status: 403 },
+      );
     }
 
     const filters = parseExportFilters(request.nextUrl.searchParams);

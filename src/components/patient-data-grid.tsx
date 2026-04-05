@@ -365,6 +365,7 @@ export type PatientGridInitialData = {
   total: number;
   filters: FilterState;
   authToken: string;
+  canExportXlsx: boolean;
   hospitalOptions: string[];
   hospitalChoices: HospitalOption[];
   areaOptions: string[];
@@ -793,6 +794,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const vehicleOptions = initialData.vehicleOptions;
   const alcoholOptions = initialData.alcoholOptions;
   const authToken = initialData.authToken;
+  const canExportXlsx = initialData.canExportXlsx;
 
   useEffect(() => {
     setFilters(stateFromSearchParams(searchParams));
@@ -1731,15 +1733,17 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               <Plus size={15} />
               เพิ่ม
             </button>
-            <button
-              type="button"
-              className="inline-flex h-10 items-center justify-center gap-2 border border-emerald-300 bg-emerald-50 px-4 text-[12px] font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
-              onClick={() => void exportXlsx()}
-              disabled={exporting}
-            >
-              <Save size={15} />
-              {exporting ? "กำลังส่งออก..." : "Export XLSX"}
-            </button>
+            {canExportXlsx ? (
+              <button
+                type="button"
+                className="inline-flex h-10 items-center justify-center gap-2 border border-emerald-300 bg-emerald-50 px-4 text-[12px] font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-50"
+                onClick={() => void exportXlsx()}
+                disabled={exporting}
+              >
+                <Save size={15} />
+                {exporting ? "กำลังส่งออก..." : "Export XLSX"}
+              </button>
+            ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div>

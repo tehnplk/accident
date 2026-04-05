@@ -13,7 +13,7 @@ import {
 } from "@/lib/patient-security";
 import { normalizeShiftName } from "@/lib/shift";
 import { auth } from "@/authConfig";
-import { logActivity, parseProfileFromSession } from "@/lib/activity-log";
+import { logActivity, parseProfileFromSession, sessionHasExportAccess } from "@/lib/activity-log";
 
 type SearchParamsValue = string | string[] | undefined;
 
@@ -257,6 +257,7 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     total: countResult.rows[0]?.total ?? 0,
     filters,
     authToken: createPatientApiToken(),
+    canExportXlsx: false,
     hospitalOptions: uniqueHospitalNames,
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
@@ -271,6 +272,7 @@ export default async function PatientPage(props: PatientPageProps) {
 
   const session = await auth();
   const profile = parseProfileFromSession(session);
+  const canExportXlsx = sessionHasExportAccess(profile);
   if (profile) {
     const fullName =
       [profile.title_th, profile.firstname_th, profile.lastname_th].filter(Boolean).join("") ||
@@ -300,6 +302,7 @@ export default async function PatientPage(props: PatientPageProps) {
   }
 
   const initialData = await loadInitialData(initialFilters);
+  initialData.canExportXlsx = canExportXlsx;
 
   return <PatientDataGrid initialData={initialData} />;
 }
