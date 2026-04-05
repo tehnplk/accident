@@ -3,6 +3,56 @@ import { cookies } from "next/headers";
 import { signIn } from "@/authConfig";
 import { profileHasActiveHoscode } from "@/lib/hospital-access";
 
+function toDisplayName(profile: unknown) {
+  if (!profile || typeof profile !== "object") return "";
+
+  const record = profile as {
+    title_th?: unknown;
+    firstname_th?: unknown;
+    lastname_th?: unknown;
+    name_th?: unknown;
+  };
+
+  const fullName =
+    [record.title_th, record.firstname_th, record.lastname_th]
+      .filter((value): value is string => typeof value === "string" && value.trim() !== "")
+      .join("") || (typeof record.name_th === "string" ? record.name_th : "");
+
+  return fullName.trim();
+}
+
+function toDisplayOrganization(profile: unknown) {
+  if (!profile || typeof profile !== "object") return { hcode: "", hname: "" };
+
+  const record = profile as {
+    hcode?: unknown;
+    organizations?: unknown;
+    organization?: unknown;
+  };
+
+  const directHcode = typeof record.hcode === "string" ? record.hcode.trim() : "";
+  const rawOrganizations = Array.isArray(record.organizations)
+    ? record.organizations
+    : Array.isArray(record.organization)
+      ? record.organization
+      : [];
+
+  for (const item of rawOrganizations) {
+    try {
+      const org = typeof item === "string" ? JSON.parse(item) : item;
+      const hcode = typeof org?.hcode === "string" ? org.hcode.trim() : "";
+      const hname = typeof org?.hname_th === "string" ? org.hname_th.trim() : "";
+      if (hcode || hname) {
+        return { hcode, hname };
+      }
+    } catch {
+      // Ignore malformed organization entries.
+    }
+  }
+
+  return { hcode: directHcode, hname: "" };
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const code = searchParams.get("code");
@@ -73,6 +123,11 @@ export async function GET(request: NextRequest) {
   if (!(await profileHasActiveHoscode(profileData.data))) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("error", "unauthorized_hcode");
+    loginUrl.searchParams.set("displayName", toDisplayName(profileData.data));
+    loginUrl.searchParams.set("providerId", String(profileData.data?.provider_id ?? profileData.data?.account_id ?? ""));
+    const org = toDisplayOrganization(profileData.data);
+    loginUrl.searchParams.set("hcode", org.hcode);
+    loginUrl.searchParams.set("hname", org.hname);
     return NextResponse.redirect(loginUrl);
   }
 

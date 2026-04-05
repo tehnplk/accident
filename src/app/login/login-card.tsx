@@ -11,6 +11,10 @@ export function LoginCard() {
   const searchParams = useSearchParams();
   const { status } = useSession();
   const error = searchParams.get("error");
+  const displayName = searchParams.get("displayName")?.trim() ?? "";
+  const providerId = searchParams.get("providerId")?.trim() ?? "";
+  const hcode = searchParams.get("hcode")?.trim() ?? "";
+  const hname = searchParams.get("hname")?.trim() ?? "";
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -20,7 +24,7 @@ export function LoginCard() {
 
   const errorMessage =
     error === "unauthorized_hcode"
-      ? "บัญชีนี้ไม่ได้อยู่ในหน่วยบริการที่อนุญาตให้เข้าใช้งาน"
+      ? `${displayName || "ไม่ระบุชื่อ"} (${providerId || "-"})\n${hcode || "-"}-${hname || "-"}\nไม่อนุญาตให้หน่วยบริการนี้เข้าถึงข้อมูล`
       : error
         ? "ไม่สามารถเข้าสู่ระบบได้ กรุณาลองใหม่อีกครั้ง"
         : "";
@@ -33,9 +37,9 @@ export function LoginCard() {
           กรุณาเข้าสู่ระบบด้วย Provider ID เพื่อเข้าถึงข้อมูลผู้ป่วย
         </p>
         {errorMessage ? (
-          <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-800">
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-800 whitespace-pre-line">
             {errorMessage}
-          </p>
+          </div>
         ) : null}
 
         <form action={signInWithHealthId}>
