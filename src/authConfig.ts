@@ -32,6 +32,48 @@ const authOptions: NextAuthConfig = {
             return null;
           }
         }
+
+        if (credentials["cred-way"] === "user-pass") {
+          try {
+            const username = (credentials.username as string)?.trim();
+            const password = credentials.password as string;
+            if (!username || !password) return null;
+
+            // Lazy import to avoid pg in edge runtime
+            const { verifyUserPassword } = await import("@/lib/user-auth");
+            const user = await verifyUserPassword(username, password);
+            if (!user) return null;
+
+            // Build profile matching OAuth structure
+            const profile = JSON.stringify({
+              provider_id: "",
+              account_id: "",
+              title_th: "",
+              firstname_th: "",
+              lastname_th: "",
+              name_th: user.username,
+              hcode: user.hcode,
+              login_type: "user-pass",
+              username: user.username,
+              organization: [
+                JSON.stringify({
+                  hcode: user.hcode,
+                  hname_th: user.hname,
+                  position: "",
+                  affiliation: "",
+                }),
+              ],
+            });
+
+            return {
+              name: user.username,
+              profile,
+            };
+          } catch {
+            return null;
+          }
+        }
+
         return null;
       },
     }),

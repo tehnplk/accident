@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { auth } from "@/authConfig";
 import { dbQuery } from "@/lib/db";
-import { parseProfileFromSession, sessionHasExportAccess } from "@/lib/activity-log";
+import { parseProfileFromSession } from "@/lib/activity-log";
+import { extractProfileOrganizationHcodes } from "@/lib/hospital-access";
 import {
   getPatientAesSecret,
   patientApiAuthorized,
@@ -133,9 +134,11 @@ export async function GET(request: NextRequest) {
 
     const session = await auth();
     const profile = parseProfileFromSession(session);
-    if (!sessionHasExportAccess(profile)) {
+    const userHoscodes = extractProfileOrganizationHcodes(profile);
+    const hasFullHoscodeAccess = userHoscodes.includes("00051");
+    if (!hasFullHoscodeAccess && userHoscodes.length === 0) {
       return NextResponse.json(
-        { message: "Forbidden: export XLSX is allowed only for hcode 00051" },
+        { message: "Forbidden: no hospital code is assigned for export scope" },
         { status: 403 },
       );
     }
@@ -144,6 +147,7 @@ export async function GET(request: NextRequest) {
     const aesSecret = getPatientAesSecret();
     const filterValues: unknown[] = [];
     const whereParts: string[] = [];
+    const scopedHoscodes = hasFullHoscodeAccess ? null : userHoscodes;
     const hospitalParam = filters.hospital ? `%${filters.hospital}%` : null;
     const nameParam = filters.name ? `%${filters.name}%` : null;
     const hnParam = filters.hn ? `%${filters.hn}%` : null;
@@ -152,6 +156,7 @@ export async function GET(request: NextRequest) {
     const alcoholParam = filters.alcohol || null;
     const sexParam = filters.sex || null;
 
+    if (scopedHoscodes) filterValues.push(scopedHoscodes);
     if (hospitalParam) filterValues.push(hospitalParam);
     if (nameParam) filterValues.push(nameParam);
     if (hnParam) filterValues.push(hnParam);
@@ -166,6 +171,10 @@ export async function GET(request: NextRequest) {
     const decryptedCidSql = patientDecryptedColumnSql("cid", dataSecretParamIndex);
     let paramIndex = 0;
 
+    if (scopedHoscodes) {
+      paramIndex += 1;
+      whereParts.push(`p.hoscode = ANY($${paramIndex}::text[])`);
+    }
     if (hospitalParam) {
       paramIndex += 1;
       whereParts.push(`p.hosname ILIKE $${paramIndex}`);

@@ -26,6 +26,7 @@ function ProfileModal({ profile, displayName, onClose }: {
 }) {
   const orgs = parseOrganization(profile?.organization);
   const providerId = profile?.provider_id;
+  const isUserPass = profile?.login_type === "user-pass";
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
@@ -51,16 +52,17 @@ function ProfileModal({ profile, displayName, onClose }: {
             <User size={30} />
           </div>
           <p className="text-center text-[1rem] font-semibold text-slate-800">{displayName}</p>
-          {Boolean(providerId) && (
+          {Boolean(providerId) ? (
             <p className="text-[11px] text-slate-400">Provider ID: {String(providerId)}</p>
-          )}
+          ) : isUserPass ? (
+            <p className="text-[11px] text-slate-400">User/Pass</p>
+          ) : null}
         </div>
 
         {/* Body */}
         <div className="divide-y divide-slate-100 border-t border-slate-100 px-6 pb-6">
           {orgs.map((org, i) => (
             <div key={i} className="py-4 space-y-3">
-              {/* ตำแหน่ง */}
               {org.position && (
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-500">
@@ -72,7 +74,6 @@ function ProfileModal({ profile, displayName, onClose }: {
                   </div>
                 </div>
               )}
-              {/* ที่ทำงาน */}
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-500">
                   <Building2 size={13} />
@@ -94,23 +95,15 @@ function ProfileModal({ profile, displayName, onClose }: {
   return createPortal(modal, document.body);
 }
 
-function UserMenu() {
-  const { data: session } = useSession();
+function UserMenu({ profile, userName }: { profile: Record<string, unknown> | null; userName: string | null }) {
   const [open, setOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const profile = (() => {
-    try {
-      const raw = (session?.user as { profile?: string } | null)?.profile;
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  })();
-
   const displayName =
     [profile?.title_th, profile?.firstname_th, profile?.lastname_th].filter(Boolean).join("") ||
     profile?.name_th ||
-    session?.user?.name ||
+    userName ||
     "ผู้ใช้งาน";
 
   useEffect(() => {
@@ -121,7 +114,7 @@ function UserMenu() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  if (!session) return null;
+  if (!profile && !userName) return null;
 
   return (
     <>
@@ -139,9 +132,11 @@ function UserMenu() {
           <div className="absolute right-0 z-50 mt-1 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
             <div className="border-b border-slate-100 px-4 py-2">
               <p className="truncate text-[11px] font-semibold text-slate-800">{displayName}</p>
-              {Boolean(profile?.provider_id) && (
+              {Boolean(profile?.provider_id) ? (
                 <p className="truncate text-[10px] text-slate-400">{String(profile.provider_id)}</p>
-              )}
+              ) : profile?.login_type === "user-pass" ? (
+                <p className="truncate text-[10px] text-slate-400">User/Pass</p>
+              ) : null}
             </div>
             <button
               onClick={() => { setOpen(false); setShowProfile(true); }}
@@ -368,6 +363,8 @@ export type PatientGridInitialData = {
   hospitalChoices: HospitalOption[];
   areaOptions: string[];
   vehicleOptions: string[];
+  userProfile: Record<string, unknown> | null;
+  userName: string | null;
 };
 
 function getRealtimeMode() {
@@ -730,6 +727,43 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const realtimeMode = useMemo(() => getRealtimeMode(), []);
   const pollIntervalMs = useMemo(() => getSafeInterval(PATIENT_POLL_INTERVAL_MS, 30000), []);
   const streamRetryMs = useMemo(() => getSafeInterval(PATIENT_STREAM_RETRY_MS, 5000), []);
+
+  const userProfile = initialData.userProfile;
+  const userName = initialData.userName;
+
+  const userHcodes = useMemo(() => {
+    try {
+      if (!userProfile) return new Set<string>();
+
+      const codes = new Set<string>();
+      // user-pass: direct hcode
+      if (typeof userProfile.hcode === "string" && (userProfile.hcode as string).trim()) {
+        codes.add((userProfile.hcode as string).trim());
+      }
+      // Provider ID: organizations array
+      const orgs = Array.isArray(userProfile.organizations)
+        ? userProfile.organizations
+        : Array.isArray(userProfile.organization)
+          ? userProfile.organization
+          : [];
+      for (const item of orgs) {
+        const org = typeof item === "string" ? JSON.parse(item) : item;
+        if (typeof org?.hcode === "string" && org.hcode.trim()) {
+          codes.add(org.hcode.trim());
+        }
+      }
+      return codes;
+    } catch {
+      return new Set<string>();
+    }
+  }, [userProfile]);
+
+  const isSuperUser = userHcodes.has("00051");
+
+  const canEditRow = (row: PatientRow) => {
+    if (isSuperUser) return true;
+    return Boolean(row.hoscode && userHcodes.has(row.hoscode));
+  };
 
   const [rows, setRows] = useState<PatientRow[]>(() => initialData.rows);
   const [total, setTotal] = useState(() => initialData.total);
@@ -1654,7 +1688,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             >
               กลับ Dashboard
             </Link>
-            <UserMenu />
+            <UserMenu profile={userProfile} userName={userName} />
           </div>
         </div>
 
@@ -1867,9 +1901,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
-                          className="inline-flex h-8 w-8 items-center justify-center border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 cursor-pointer" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
                           onClick={() => startEdit(row)}
                           title="บันทึกจุดเกิดเหตุ"
+                          disabled={!canEditRow(row)}
                         >
                           <MapPin size={16} />
                         </button>
@@ -1879,9 +1914,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
-                          className="inline-flex h-8 w-8 items-center justify-center border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100"
+                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 cursor-pointer" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
                           onClick={() => openDetailModal(row)}
                           title="กรอกข้อมูลเพิ่มเติม"
+                          disabled={!canEditRow(row)}
                         >
                           <FileText size={16} />
                         </button>
@@ -1891,10 +1927,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
-                          className="inline-flex h-8 w-8 items-center justify-center border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 cursor-pointer" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
                           onClick={() => openUpdatePatientModal(row)}
                           title="Update"
                           aria-label="Update"
+                          disabled={!canEditRow(row)}
                         >
                           <Pencil size={16} />
                         </button>
@@ -2170,9 +2207,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                 {createModalMode === "edit" ? (
                   <button
                     type="button"
-                    className="inline-flex h-11 items-center justify-center gap-2 border border-rose-300 bg-rose-50 px-4 text-[12px] font-medium text-rose-700 hover:bg-rose-100"
+                    className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow) ? "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
                     onClick={requestDeleteCurrentPatient}
-                    disabled={createSaving}
+                    disabled={createSaving || !canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow)}
                   >
                     <Trash2 size={16} />
                     ลบผู้ป่วย

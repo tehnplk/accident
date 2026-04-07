@@ -13,7 +13,8 @@ import {
 } from "@/lib/patient-security";
 import { normalizeShiftName } from "@/lib/shift";
 import { auth } from "@/authConfig";
-import { logActivity, parseProfileFromSession, sessionHasExportAccess } from "@/lib/activity-log";
+import { logActivity, parseProfileFromSession } from "@/lib/activity-log";
+import { extractProfileOrganizationHcodes } from "@/lib/hospital-access";
 
 type SearchParamsValue = string | string[] | undefined;
 
@@ -253,6 +254,8 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
     vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),
+    userProfile: null,
+    userName: null,
   };
 }
 
@@ -262,7 +265,7 @@ export default async function PatientPage(props: PatientPageProps) {
 
   const session = await auth();
   const profile = parseProfileFromSession(session);
-  const canExportXlsx = sessionHasExportAccess(profile);
+  const canExportXlsx = extractProfileOrganizationHcodes(profile).length > 0;
   if (profile) {
     const fullName =
       [profile.title_th, profile.firstname_th, profile.lastname_th].filter(Boolean).join("") ||
@@ -284,15 +287,17 @@ export default async function PatientPage(props: PatientPageProps) {
     }
 
     await logActivity({
-      providerId: profile.provider_id ?? profile.account_id ?? "unknown",
-      fullName: fullName || null,
-      department,
+      providerId: profile.provider_id ?? profile.account_id ?? profile.username ?? "unknown",
+      fullName: fullName || profile.username || null,
+      department: department || profile.hname_th || null,
       route: "/patient",
     });
   }
 
   const initialData = await loadInitialData(initialFilters);
   initialData.canExportXlsx = canExportXlsx;
+  initialData.userProfile = profile ?? null;
+  initialData.userName = session?.user?.name ?? null;
 
   return <PatientDataGrid initialData={initialData} />;
 }

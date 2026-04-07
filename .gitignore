@@ -36,6 +36,7 @@ yarn-error.log*
 .dev-server*.log
 .playwright/
 .playwright-cli/
+/test/
 .claude/
 tmp/
 py-example/
