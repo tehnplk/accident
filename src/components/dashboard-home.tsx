@@ -319,7 +319,7 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
                 Accident Dashboard
               </p>
               <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                ภาพรวมข้อมูลอุบัติเหตุทางถนนจากฐานจริง
+                ภาพรวมข้อมูลอุบัติเหตุทางถนนในช่วงเทศกาลสงกรานต์ ปี 2569 จังหวัดพิษณุโลก
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                 แสดงผลจากข้อมูลผู้ป่วยจริงในฐานข้อมูล พร้อมช่วงวันที่จาก
