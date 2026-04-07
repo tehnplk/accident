@@ -378,7 +378,7 @@ function getRealtimeMode() {
     return PATIENT_REALTIME_MODE;
   }
 
-  return process.env.NODE_ENV === "production" ? "poll" : "sse";
+  return "sse";
 }
 
 function getSafeInterval(value: number, fallback: number) {
