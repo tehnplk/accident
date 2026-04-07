@@ -25,6 +25,7 @@ const authOptions: NextAuthConfig = {
             }
 
             return {
+              id: (credentials.username as string) || "health-id",
               name: (credentials.username as string) || "health-id",
               profile: rawProfile!,
             };
@@ -66,6 +67,7 @@ const authOptions: NextAuthConfig = {
             });
 
             return {
+              id: String(user.id),
               name: user.username,
               profile,
             };
