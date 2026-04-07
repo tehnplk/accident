@@ -59,6 +59,24 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "source",
 ];
 
+function serializeDiagnosisValue(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  return null;
+}
+
+function parseDiagnosisValue<T>(value: unknown): T | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return (trimmed || null) as T | null;
+  }
+  return String(value) as T;
+}
+
 export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
@@ -99,9 +117,9 @@ export async function PATCH(
         const alcoholInt = Number.parseInt(String(raw), 10) === 1 ? 1 : 0;
         values.push(alcoholInt);
         updates.push(`${field} = $${values.length}`);
-      } else if ((field === "pdx" || field === "ext_dx" || field === "dx_list") && raw != null) {
-        values.push(JSON.stringify(raw));
-        updates.push(`${field} = $${values.length}::jsonb`);
+      } else if (field === "pdx" || field === "ext_dx" || field === "dx_list") {
+        values.push(serializeDiagnosisValue(raw));
+        updates.push(`${field} = $${values.length}`);
       }
     }
 
@@ -176,7 +194,16 @@ export async function PATCH(
       return NextResponse.json({ message: "Patient not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ row: result.rows[0] });
+    const row = result.rows[0]
+      ? {
+          ...result.rows[0],
+          pdx: parseDiagnosisValue(result.rows[0].pdx),
+          ext_dx: parseDiagnosisValue(result.rows[0].ext_dx),
+          dx_list: parseDiagnosisValue(result.rows[0].dx_list),
+        }
+      : null;
+
+    return NextResponse.json({ row });
   } catch (error) {
     const code = (error as { code?: string })?.code;
     if (code === "23505") {

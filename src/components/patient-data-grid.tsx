@@ -200,8 +200,8 @@ export type PatientRow = {
   created_at: string | null;
   updated_at: string | null;
   source: string | null;
-  pdx: { code?: string; name?: string } | null;
-  ext_dx: { code?: string; name?: string } | null;
+  pdx: unknown;
+  ext_dx: unknown;
 };
 
 type GridResponse = {
@@ -240,6 +240,11 @@ type ThaiAddressDefaultSelection = {
   district_id: number;
   district_code: number;
   district_name: string;
+};
+
+type IcdOption = {
+  code: string;
+  name: string | null;
 };
 
 type AcdOption = {
@@ -293,6 +298,8 @@ type PatientCreateDraft = {
   hn: string;
   cid: string;
   patient_name: string;
+  pdx: string;
+  ext_dx: string;
   visit_date: string;
   visit_time: string;
   sex: string;
@@ -424,6 +431,8 @@ function createInitialPatientDraft(): PatientCreateDraft {
     hn: "",
     cid: "",
     patient_name: "",
+    pdx: "",
+    ext_dx: "",
     visit_date: now.toISOString().split("T")[0] ?? "",
     visit_time: `${padTimePart(now.getHours())}:${padTimePart(now.getMinutes())}`,
     sex: "",
@@ -588,9 +597,38 @@ function optionLabel(option: ThaiAddressOption | null) {
   return option.name || "-";
 }
 
-function formatDx(value: { code?: string; name?: string } | null) {
-  if (!value?.code) return "";
-  return value.name ? `${value.code} - ${value.name}` : value.code;
+function formatDx(value: unknown) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function formatDxInputValue(value: unknown) {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value !== "object") return "";
+
+  const row = value as { code?: unknown; name?: unknown };
+  const code = typeof row.code === "string" ? row.code.trim() : "";
+  const name = typeof row.name === "string" ? row.name.trim() : "";
+
+  if (code && name) return `${code}-${name}`;
+  return code || name;
+}
+
+function parseDxInputValue(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed;
+}
+
+function formatIcdLabel(option: IcdOption) {
+  return `${option.code}-${option.name ?? ""}`.trim();
 }
 
 function formatAcdOptionLabel(option: AcdOption) {
@@ -789,6 +827,16 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [pendingDeleteRow, setPendingDeleteRow] = useState<PatientRow | null>(null);
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
   const [createDraft, setCreateDraft] = useState<PatientCreateDraft>(() => createInitialPatientDraft());
+  const [pdxOptions, setPdxOptions] = useState<IcdOption[]>([]);
+  const [extDxOptions, setExtDxOptions] = useState<IcdOption[]>([]);
+  const [isPdxSuggestOpen, setIsPdxSuggestOpen] = useState(false);
+  const [isExtDxSuggestOpen, setIsExtDxSuggestOpen] = useState(false);
+  const [pdxActiveIndex, setPdxActiveIndex] = useState(-1);
+  const [extDxActiveIndex, setExtDxActiveIndex] = useState(-1);
+  const pdxSuggestRef = useRef<HTMLLabelElement | null>(null);
+  const extDxSuggestRef = useRef<HTMLLabelElement | null>(null);
+  const deferredPdxQuery = useDeferredValue(createDraft.pdx);
+  const deferredExtDxQuery = useDeferredValue(createDraft.ext_dx);
   const [createSaving, setCreateSaving] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createHospitalQuery, setCreateHospitalQuery] = useState("");
@@ -894,6 +942,114 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [createModalMode, isCreateModalOpen]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) {
+      setIsPdxSuggestOpen(false);
+      setIsExtDxSuggestOpen(false);
+      setPdxActiveIndex(-1);
+      setExtDxActiveIndex(-1);
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (pdxSuggestRef.current?.contains(target)) return;
+      if (extDxSuggestRef.current?.contains(target)) return;
+      setIsPdxSuggestOpen(false);
+      setIsExtDxSuggestOpen(false);
+      setPdxActiveIndex(-1);
+      setExtDxActiveIndex(-1);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [isCreateModalOpen]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return;
+    const query = deferredPdxQuery.trim();
+    if (query.length < 2) {
+      setPdxOptions([]);
+      setPdxActiveIndex(-1);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch(`/api/icd-search?type=pdx&q=${encodeURIComponent(query)}`, {
+      signal: controller.signal,
+      headers: createPatientApiHeaders(authToken),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load ICD suggestions");
+        }
+        return response.json() as Promise<{ rows?: IcdOption[] }>;
+      })
+      .then((payload) => {
+        const rows = payload.rows ?? [];
+        setPdxOptions(rows);
+        setPdxActiveIndex(rows.length > 0 ? 0 : -1);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load ICD suggestions failed");
+      });
+
+    return () => controller.abort();
+  }, [authToken, deferredPdxQuery, isCreateModalOpen]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return;
+    const query = deferredExtDxQuery.trim();
+    if (query.length < 2) {
+      setExtDxOptions([]);
+      setExtDxActiveIndex(-1);
+      return;
+    }
+
+    const controller = new AbortController();
+    fetch(`/api/icd-search?type=ext&q=${encodeURIComponent(query)}`, {
+      signal: controller.signal,
+      headers: createPatientApiHeaders(authToken),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load External Cause suggestions");
+        }
+        return response.json() as Promise<{ rows?: IcdOption[] }>;
+      })
+      .then((payload) => {
+        const rows = payload.rows ?? [];
+        setExtDxOptions(rows);
+        setExtDxActiveIndex(rows.length > 0 ? 0 : -1);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load External Cause suggestions failed");
+      });
+
+    return () => controller.abort();
+  }, [authToken, deferredExtDxQuery, isCreateModalOpen]);
+
+  useEffect(() => {
+    if (!isPdxSuggestOpen || pdxActiveIndex < 0) return;
+    const active = pdxSuggestRef.current?.querySelector<HTMLElement>(
+      `[data-pdx-index="${pdxActiveIndex}"]`,
+    );
+    active?.scrollIntoView({ block: "nearest" });
+  }, [isPdxSuggestOpen, pdxActiveIndex]);
+
+  useEffect(() => {
+    if (!isExtDxSuggestOpen || extDxActiveIndex < 0) return;
+    const active = extDxSuggestRef.current?.querySelector<HTMLElement>(
+      `[data-ext-index="${extDxActiveIndex}"]`,
+    );
+    active?.scrollIntoView({ block: "nearest" });
+  }, [isExtDxSuggestOpen, extDxActiveIndex]);
 
   useEffect(() => {
     if (!isDetailModalOpen) return;
@@ -1412,6 +1568,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       hn: row.hn ?? "",
       cid: row.cid ?? "",
       patient_name: row.patient_name ?? "",
+      pdx: formatDxInputValue(row.pdx),
+      ext_dx: formatDxInputValue(row.ext_dx),
       visit_date: toDateInputValue(row.visit_date),
       visit_time: toTimeInputValue(row.visit_time),
       sex: row.sex ?? "",
@@ -1480,7 +1638,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         throw new Error(payload.message ?? "Failed to delete patient");
       }
 
-      await refreshRows();
+      setRows((current) => current.filter((item) => item.id !== row.id));
+      setTotal((current) => Math.max(0, current - 1));
+      void refreshRows();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : "Delete failed");
     } finally {
@@ -1600,6 +1760,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         hn: createDraft.hn.trim(),
         cid: createDraft.cid.trim(),
         patient_name: createDraft.patient_name.trim(),
+        pdx: parseDxInputValue(createDraft.pdx),
+        ext_dx: parseDxInputValue(createDraft.ext_dx),
         visit_date: createDraft.visit_date,
         visit_time: createDraft.visit_time,
         sex: createDraft.sex,
@@ -1961,7 +2123,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         >
           <div
             key={`${createModalMode}-${editingPatientId ?? "new"}`}
-            className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-4xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+            className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-6xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="patient-create-title"
@@ -2051,7 +2213,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   </label>
                 </div>
 
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                <div className="grid gap-5 xl:grid-cols-[minmax(0,4fr)_minmax(0,6fr)]">
                   <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4">
                     <div className="mb-4">
                       <h3 className="text-[12px] font-semibold text-slate-900">ข้อมูลผู้ป่วย</h3>
@@ -2116,6 +2278,18 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           onChange={(event) => updateCreateDraft({ age: sanitizeAgeInput(event.target.value) })}
                         />
                       </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                        <span>สุรา</span>
+                        <select
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          value={createDraft.alcohol}
+                          onChange={(event) => updateCreateDraft({ alcohol: event.target.value })}
+                        >
+                          <option value="">ไม่ระบุ</option>
+                          <option value="1">ดื่ม</option>
+                          <option value="0">ไม่ดื่ม</option>
+                        </select>
+                      </label>
                     </div>
                   </div>
 
@@ -2173,27 +2347,198 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           ))}
                         </select>
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>สุรา</span>
-                        <select
-                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          value={createDraft.alcohol}
-                          onChange={(event) => updateCreateDraft({ alcohol: event.target.value })}
-                        >
-                          <option value="">ไม่ระบุ</option>
-                          <option value="1">ดื่ม</option>
-                          <option value="0">ไม่ดื่ม</option>
-                        </select>
-                      </label>
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2">
                         <span>อาการสำคัญ <span className="text-rose-600">*</span></span>
                         <textarea
-                          className="min-h-[128px] w-full min-w-0 border border-sky-200 bg-white px-3 py-3 text-[12px] leading-5 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          rows={1}
+                          className="min-h-[40px] w-full min-w-0 border border-sky-200 bg-white px-3 py-2 text-[12px] leading-5 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           placeholder="บันทึกอาการสำคัญหรือหมายเหตุเบื้องต้น"
                           autoComplete="off"
                           value={createDraft.cc}
                           onChange={(event) => updateCreateDraft({ cc: event.target.value })}
                         />
+                      </label>
+                      <label
+                        ref={pdxSuggestRef}
+                        className="relative grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2"
+                      >
+                        <span>Principle DX</span>
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white pl-3 pr-10 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="เช่น S09.9 - Injury of head, unspecified"
+                          autoComplete="off"
+                          value={createDraft.pdx}
+                          onFocus={() => {
+                            const canOpen = createDraft.pdx.trim().length >= 2;
+                            setIsPdxSuggestOpen(canOpen);
+                            if (canOpen) setPdxActiveIndex(pdxOptions.length > 0 ? 0 : -1);
+                          }}
+                          onChange={(event) => {
+                            updateCreateDraft({ pdx: event.target.value });
+                            setIsPdxSuggestOpen(event.target.value.trim().length >= 2);
+                            setPdxActiveIndex(-1);
+                          }}
+                          onKeyDown={(event) => {
+                            if (!isPdxSuggestOpen || pdxOptions.length === 0) return;
+                            if (event.key === "ArrowDown") {
+                              event.preventDefault();
+                              setPdxActiveIndex((current) => {
+                                const next = current < 0 ? 0 : current + 1;
+                                return next >= pdxOptions.length ? pdxOptions.length - 1 : next;
+                              });
+                              return;
+                            }
+                            if (event.key === "ArrowUp") {
+                              event.preventDefault();
+                              setPdxActiveIndex((current) => (current <= 0 ? 0 : current - 1));
+                              return;
+                            }
+                            if (event.key === "Enter") {
+                              if (pdxActiveIndex < 0 || pdxActiveIndex >= pdxOptions.length) return;
+                              event.preventDefault();
+                              updateCreateDraft({ pdx: formatIcdLabel(pdxOptions[pdxActiveIndex]) });
+                              setIsPdxSuggestOpen(false);
+                              setPdxActiveIndex(-1);
+                              return;
+                            }
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              setIsPdxSuggestOpen(false);
+                              setPdxActiveIndex(-1);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2 top-[31px] inline-flex h-6 w-6 items-center justify-center rounded-full border border-sky-200 bg-white text-[12px] text-slate-500 hover:bg-sky-50"
+                          onClick={() => {
+                            updateCreateDraft({ pdx: "" });
+                            setPdxOptions([]);
+                            setIsPdxSuggestOpen(false);
+                            setPdxActiveIndex(-1);
+                          }}
+                          aria-label="Clear Principle DX"
+                        >
+                          x
+                        </button>
+                        {isPdxSuggestOpen ? (
+                          <div className="absolute bottom-[calc(100%+4px)] left-0 right-0 z-30 max-h-56 overflow-y-auto border border-sky-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
+                            {pdxOptions.length > 0 ? (
+                              pdxOptions.map((option, index) => (
+                                <button
+                                  key={`pdx-${option.code}`}
+                                  data-pdx-index={index}
+                                  type="button"
+                                  className={`flex w-full flex-col items-start gap-0.5 border-b border-sky-50 px-3 py-2 text-left text-[12px] text-slate-700 transition last:border-b-0 ${
+                                    pdxActiveIndex === index ? "bg-sky-100" : "hover:bg-sky-50"
+                                  }`}
+                                  onMouseDown={(event) => {
+                                    event.preventDefault();
+                                    updateCreateDraft({ pdx: formatIcdLabel(option) });
+                                    setIsPdxSuggestOpen(false);
+                                    setPdxActiveIndex(-1);
+                                  }}
+                                >
+                                  <span className="font-medium text-slate-900">{option.code}</span>
+                                  <span className="text-slate-500">{option.name ?? "-"}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-3 py-3 text-[12px] text-slate-500">ไม่พบข้อมูล ICD</div>
+                            )}
+                          </div>
+                        ) : null}
+                      </label>
+                      <label
+                        ref={extDxSuggestRef}
+                        className="relative grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2"
+                      >
+                        <span>External Cause</span>
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white pl-3 pr-10 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="เช่น V28.9 - Motorcycle rider injured, unspecified"
+                          autoComplete="off"
+                          value={createDraft.ext_dx}
+                          onFocus={() => {
+                            const canOpen = createDraft.ext_dx.trim().length >= 2;
+                            setIsExtDxSuggestOpen(canOpen);
+                            if (canOpen) setExtDxActiveIndex(extDxOptions.length > 0 ? 0 : -1);
+                          }}
+                          onChange={(event) => {
+                            updateCreateDraft({ ext_dx: event.target.value });
+                            setIsExtDxSuggestOpen(event.target.value.trim().length >= 2);
+                            setExtDxActiveIndex(-1);
+                          }}
+                          onKeyDown={(event) => {
+                            if (!isExtDxSuggestOpen || extDxOptions.length === 0) return;
+                            if (event.key === "ArrowDown") {
+                              event.preventDefault();
+                              setExtDxActiveIndex((current) => {
+                                const next = current < 0 ? 0 : current + 1;
+                                return next >= extDxOptions.length ? extDxOptions.length - 1 : next;
+                              });
+                              return;
+                            }
+                            if (event.key === "ArrowUp") {
+                              event.preventDefault();
+                              setExtDxActiveIndex((current) => (current <= 0 ? 0 : current - 1));
+                              return;
+                            }
+                            if (event.key === "Enter") {
+                              if (extDxActiveIndex < 0 || extDxActiveIndex >= extDxOptions.length) return;
+                              event.preventDefault();
+                              updateCreateDraft({ ext_dx: formatIcdLabel(extDxOptions[extDxActiveIndex]) });
+                              setIsExtDxSuggestOpen(false);
+                              setExtDxActiveIndex(-1);
+                              return;
+                            }
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              setIsExtDxSuggestOpen(false);
+                              setExtDxActiveIndex(-1);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2 top-[31px] inline-flex h-6 w-6 items-center justify-center rounded-full border border-sky-200 bg-white text-[12px] text-slate-500 hover:bg-sky-50"
+                          onClick={() => {
+                            updateCreateDraft({ ext_dx: "" });
+                            setExtDxOptions([]);
+                            setIsExtDxSuggestOpen(false);
+                            setExtDxActiveIndex(-1);
+                          }}
+                          aria-label="Clear External Cause"
+                        >
+                          x
+                        </button>
+                        {isExtDxSuggestOpen ? (
+                          <div className="absolute bottom-[calc(100%+4px)] left-0 right-0 z-30 max-h-56 overflow-y-auto border border-sky-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
+                            {extDxOptions.length > 0 ? (
+                              extDxOptions.map((option, index) => (
+                                <button
+                                  key={`ext-${option.code}`}
+                                  data-ext-index={index}
+                                  type="button"
+                                  className={`flex w-full flex-col items-start gap-0.5 border-b border-sky-50 px-3 py-2 text-left text-[12px] text-slate-700 transition last:border-b-0 ${
+                                    extDxActiveIndex === index ? "bg-sky-100" : "hover:bg-sky-50"
+                                  }`}
+                                  onMouseDown={(event) => {
+                                    event.preventDefault();
+                                    updateCreateDraft({ ext_dx: formatIcdLabel(option) });
+                                    setIsExtDxSuggestOpen(false);
+                                    setExtDxActiveIndex(-1);
+                                  }}
+                                >
+                                  <span className="font-medium text-slate-900">{option.code}</span>
+                                  <span className="text-slate-500">{option.name ?? "-"}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-3 py-3 text-[12px] text-slate-500">ไม่พบข้อมูล ICD</div>
+                            )}
+                          </div>
+                        ) : null}
                       </label>
                     </div>
                   </div>

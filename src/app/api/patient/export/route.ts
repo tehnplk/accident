@@ -92,6 +92,16 @@ function formatAddress(row: ExportRow) {
 }
 
 function formatDiagnosisEntry(value: unknown) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    try {
+      return formatDiagnosisEntry(JSON.parse(trimmed));
+    } catch {
+      return trimmed;
+    }
+  }
+
   if (!value || typeof value !== "object") return "";
   const row = value as { code?: unknown; name?: unknown };
   const code = typeof row.code === "string" ? row.code.trim() : "";

@@ -40,6 +40,24 @@ function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function serializeDiagnosisValue(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  return null;
+}
+
+function parseDiagnosisValue<T>(value: unknown): T | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return (trimmed || null) as T | null;
+  }
+  return String(value) as T;
+}
+
 export async function GET(request: NextRequest) {
   try {
     if (!patientApiAuthorized(request)) {
@@ -208,6 +226,9 @@ export async function GET(request: NextRequest) {
     const rowsResult = await dbQuery(dataQuery, pageValues);
     const rows = rowsResult.rows.map((row) => ({
       ...row,
+      pdx: parseDiagnosisValue(row.pdx),
+      ext_dx: parseDiagnosisValue(row.ext_dx),
+      dx_list: parseDiagnosisValue(row.dx_list),
       shift_name: normalizeShiftName(row.visit_time, row.shift_name),
     }));
 
@@ -248,9 +269,9 @@ export async function POST(request: NextRequest) {
     const status = normalizeText(body.status) || null;
     const cc = normalizeText(body.cc) || null;
     const source = normalizeText(body.source) || "man";
-    const pdxValue = body.pdx != null ? JSON.stringify(body.pdx) : null;
-    const extDxValue = body.ext_dx != null ? JSON.stringify(body.ext_dx) : null;
-    const dxListValue = body.dx_list != null ? JSON.stringify(body.dx_list) : null;
+    const pdxValue = serializeDiagnosisValue(body.pdx);
+    const extDxValue = serializeDiagnosisValue(body.ext_dx);
+    const dxListValue = serializeDiagnosisValue(body.dx_list);
     const alcoholValue =
       body.alcohol === null || body.alcohol === undefined || body.alcohol === ""
         ? 0
@@ -350,9 +371,9 @@ export async function POST(request: NextRequest) {
           $12,
           $13,
           $15,
-          $17::jsonb,
-          $18::jsonb,
-          $19::jsonb
+          $17,
+          $18,
+          $19
         )
         ${upsertClause}
         RETURNING
@@ -433,7 +454,16 @@ export async function POST(request: NextRequest) {
       dxListValue,   // $19
     ]);
 
-    return NextResponse.json({ row: result.rows[0] }, { status: 201 });
+    const row = result.rows[0]
+      ? {
+          ...result.rows[0],
+          pdx: parseDiagnosisValue(result.rows[0].pdx),
+          ext_dx: parseDiagnosisValue(result.rows[0].ext_dx),
+          dx_list: parseDiagnosisValue(result.rows[0].dx_list),
+        }
+      : null;
+
+    return NextResponse.json({ row }, { status: 201 });
   } catch (error) {
     const code = (error as { code?: string })?.code;
     if (code === "23505") {

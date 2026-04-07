@@ -10,6 +10,7 @@ const poolMax = Number.parseInt(process.env.DB_POOL_MAX ?? "10", 10);
 const idleTimeoutMillis = Number.parseInt(process.env.DB_IDLE_TIMEOUT_MS ?? "30000", 10);
 const connectionTimeoutMillis = Number.parseInt(process.env.DB_CONNECTION_TIMEOUT_MS ?? "10000", 10);
 const enableSsl = process.env.DB_SSL === "true";
+const normalizedPoolMax = Number.isFinite(poolMax) ? Math.max(poolMax, 10) : 10;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL is required");
@@ -19,7 +20,7 @@ const pool =
   global.__patientPool ??
   new Pool({
     connectionString,
-    max: Number.isFinite(poolMax) ? poolMax : 10,
+    max: normalizedPoolMax,
     idleTimeoutMillis: Number.isFinite(idleTimeoutMillis) ? idleTimeoutMillis : 30000,
     connectionTimeoutMillis: Number.isFinite(connectionTimeoutMillis) ? connectionTimeoutMillis : 10000,
     ssl: enableSsl ? { rejectUnauthorized: false } : undefined,

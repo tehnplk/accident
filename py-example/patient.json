@@ -1,0 +1,18 @@
+{
+  "hoscode": "11517",
+  "hosname": "โรงพยาบาลค่ายสมเด็จพระนเรศวร",
+  "hn": null,
+  "cid": "9151799999910",
+  "patient_name": "ทดสอบ จากไฟล์ JSON",
+  "visit_date": "2026-04-07",
+  "visit_time": "12:34:00",
+  "sex": "ชาย",
+  "age": 29,
+  "triage": "Emergency (ฉุกเฉิน)",
+  "status": "รับไว้รักษา",
+  "cc": "ทดสอบ post จาก patient.json",
+  "pdx": "S09.9-Injury of head, unspecified",
+  "ext_dx": "V28.9-Motorcycle rider injured, unspecified",
+  "source": "man",
+  "alcohol": 0
+}
