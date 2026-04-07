@@ -285,13 +285,16 @@ export async function POST(request: NextRequest) {
     // เพื่อรองรับการ push ซ้ำจาก HIS
     // form (source='man') ใช้ INSERT ธรรมดา ชนแล้วคืน 409
     const isAutoSource = source === "auto";
-    const upsertClause = isAutoSource && vn
-      ? `ON CONFLICT (hoscode, vn) DO UPDATE SET
+    const upsertClause = isAutoSource
+      ? `ON CONFLICT (hoscode, cid_hash, visit_date)
+         WHERE hoscode IS NOT NULL AND cid_hash IS NOT NULL AND visit_date IS NOT NULL
+         DO UPDATE SET
           hosname          = EXCLUDED.hosname,
           hn               = EXCLUDED.hn,
           cid              = EXCLUDED.cid,
           cid_hash         = EXCLUDED.cid_hash,
           patient_name     = EXCLUDED.patient_name,
+          vn               = COALESCE(EXCLUDED.vn, public.patient.vn),
           visit_date       = EXCLUDED.visit_date,
           visit_time       = EXCLUDED.visit_time,
           sex              = EXCLUDED.sex,
@@ -299,10 +302,12 @@ export async function POST(request: NextRequest) {
           triage           = EXCLUDED.triage,
           status           = EXCLUDED.status,
           cc               = EXCLUDED.cc,
+          source           = EXCLUDED.source,
           alcohol          = EXCLUDED.alcohol,
           pdx              = EXCLUDED.pdx,
           ext_dx           = EXCLUDED.ext_dx,
-          dx_list          = EXCLUDED.dx_list`
+          dx_list          = EXCLUDED.dx_list,
+          updated_at       = now()`
       : "";
 
     const sql = `
