@@ -298,6 +298,12 @@ type PatientCreateDraft = {
   hn: string;
   cid: string;
   patient_name: string;
+  house_no: string;
+  moo: string;
+  road: string;
+  tumbon: string;
+  amphoe: string;
+  changwat: string;
   pdx: string;
   ext_dx: string;
   visit_date: string;
@@ -431,6 +437,12 @@ function createInitialPatientDraft(): PatientCreateDraft {
     hn: "",
     cid: "",
     patient_name: "",
+    house_no: "",
+    moo: "",
+    road: "",
+    tumbon: "",
+    amphoe: "",
+    changwat: DEFAULT_PROVINCE_NAME,
     pdx: "",
     ext_dx: "",
     visit_date: now.toISOString().split("T")[0] ?? "",
@@ -1568,6 +1580,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       hn: row.hn ?? "",
       cid: row.cid ?? "",
       patient_name: row.patient_name ?? "",
+      house_no: row.house_no ?? "",
+      moo: row.moo ?? "",
+      road: row.road ?? "",
+      tumbon: row.tumbon ?? "",
+      amphoe: row.amphoe ?? "",
+      changwat: row.changwat ?? DEFAULT_PROVINCE_NAME,
       pdx: formatDxInputValue(row.pdx),
       ext_dx: formatDxInputValue(row.ext_dx),
       visit_date: toDateInputValue(row.visit_date),
@@ -1760,6 +1778,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         hn: createDraft.hn.trim(),
         cid: createDraft.cid.trim(),
         patient_name: createDraft.patient_name.trim(),
+        house_no: createDraft.house_no.trim(),
+        moo: createDraft.moo.trim(),
+        road: createDraft.road.trim(),
+        tumbon: createDraft.tumbon.trim(),
+        amphoe: createDraft.amphoe.trim(),
+        changwat: createDraft.changwat.trim(),
         pdx: parseDxInputValue(createDraft.pdx),
         ext_dx: parseDxInputValue(createDraft.ext_dx),
         visit_date: createDraft.visit_date,
@@ -2055,7 +2079,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <span className={`block text-[11px] ${getShiftTextClass(row.shift_name)}`}>{row.shift_name ?? "-"}</span>
                     </td>
                     <td className="break-words px-2 py-3">{formatHospitalName(row.hosname)}</td>
-                    <td className="break-words px-2 py-3">{row.patient_name ?? "-"}</td>
+                    <td className="break-words px-2 py-3">
+                      <span className="block">{row.patient_name ?? "-"}</span>
+                      <span className="mt-1 block text-[9px] text-slate-300">ID: {row.id ?? "-"}</span>
+                    </td>
                     <td className="px-2 py-3">{renderSexDisplay(row.sex)}</td>
                     <td className="px-2 py-3">{row.age ?? "-"}</td>
                     <td className="px-2 py-3">{row.triage ?? "-"}</td>
@@ -2154,8 +2181,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             <div className="flex-1 overflow-y-auto px-5 py-5">
               <div className="space-y-5">
                 <div className="grid items-start gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
-                  <label ref={hospitalSuggestRef} className="relative grid min-w-0 gap-2 text-[12px] text-slate-700">
-                    <span>รพ. <span className="text-rose-600">*</span></span>
+                  <label ref={hospitalSuggestRef} className="relative grid min-w-0 text-[12px] text-slate-700">
                     <input
                       className={`h-10 w-full min-w-0 border px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100 ${
                         createModalMode === "edit"
@@ -2163,6 +2189,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           : "border-sky-200 bg-white"
                       }`}
                       placeholder="พิมพ์ชื่อโรงพยาบาล หรือรหัส รพ."
+                      aria-label="โรงพยาบาล"
                       value={createHospitalQuery}
                       readOnly={createModalMode === "edit"}
                       onFocus={() => {
@@ -2203,10 +2230,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       </div>
                     ) : null}
                   </label>
-                  <label className="grid min-w-0 gap-2 self-start text-[12px] text-slate-700">
-                    <span>รหัส รพ.</span>
+                  <label className="grid min-w-0 self-start text-[12px] text-slate-700">
                     <input
                       className="h-10 w-full min-w-0 border border-sky-200 bg-slate-50 px-3 text-[12px] font-medium text-slate-900 outline-none"
+                      placeholder="รหัส รพ."
+                      aria-label="รหัส รพ."
                       value={createDraft.hoscode}
                       readOnly
                     />
@@ -2217,78 +2245,128 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4">
                     <div className="mb-4">
                       <h3 className="text-[12px] font-semibold text-slate-900">ข้อมูลผู้ป่วย</h3>
-                      <p className="mt-1 text-[11px] text-slate-500">กรอกข้อมูลระบุตัวตนของผู้ป่วย</p>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>CID <span className="text-rose-600">*</span></span>
+                    <div className="grid gap-4 sm:grid-cols-4">
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
                         <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                           inputMode="numeric"
                           maxLength={13}
                           autoComplete="off"
-                          placeholder="เลขประจำตัวประชาชน"
+                          placeholder="CID *"
+                          aria-label="CID"
                           value={createDraft.cid}
                           onChange={(event) =>
                             updateCreateDraft({ cid: event.target.value.replace(/\D/g, "").slice(0, 13) })
                           }
                         />
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>HN</span>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
                         <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          placeholder="เลข HN"
+                          placeholder="HN"
+                          aria-label="HN"
                           autoComplete="off"
                           value={createDraft.hn}
                           onChange={(event) => updateCreateDraft({ hn: event.target.value })}
                         />
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2">
-                        <span>ชื่อผู้ป่วย <span className="text-rose-600">*</span></span>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-4">
                         <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          placeholder="ชื่อ-นามสกุล"
+                          placeholder="ชื่อผู้ป่วย *"
+                          aria-label="ชื่อผู้ป่วย"
                           autoComplete="off"
                           value={createDraft.patient_name}
                           onChange={(event) => updateCreateDraft({ patient_name: event.target.value })}
                         />
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>เพศ <span className="text-rose-600">*</span></span>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
                         <select
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          aria-label="เพศ"
                           value={createDraft.sex}
                           onChange={(event) => updateCreateDraft({ sex: event.target.value })}
                         >
-                          <option value="">ไม่ระบุ</option>
+                          <option value="">เพศ *</option>
                           <option value="ชาย">ชาย</option>
                           <option value="หญิง">หญิง</option>
                         </select>
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>อายุ <span className="text-rose-600">*</span></span>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
                         <input
                           type="text"
                           inputMode="numeric"
                           autoComplete="off"
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          placeholder="ปี"
+                          placeholder="อายุ (ปี) *"
+                          aria-label="อายุ"
                           value={createDraft.age}
                           onChange={(event) => updateCreateDraft({ age: sanitizeAgeInput(event.target.value) })}
                         />
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
-                        <span>สุรา</span>
-                        <select
+                      <div className="sm:col-span-4">
+                        <div className="text-[12px] font-semibold text-slate-900">ภูมิลำเนา</div>
+                      </div>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
+                        <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          value={createDraft.alcohol}
-                          onChange={(event) => updateCreateDraft({ alcohol: event.target.value })}
-                        >
-                          <option value="">ไม่ระบุ</option>
-                          <option value="1">ดื่ม</option>
-                          <option value="0">ไม่ดื่ม</option>
-                        </select>
+                          placeholder="บ้านเลขที่"
+                          aria-label="บ้านเลขที่"
+                          autoComplete="off"
+                          value={createDraft.house_no}
+                          onChange={(event) => updateCreateDraft({ house_no: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="ถนน"
+                          aria-label="ถนน"
+                          autoComplete="off"
+                          value={createDraft.road}
+                          onChange={(event) => updateCreateDraft({ road: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="หมู่ที่"
+                          aria-label="หมู่ที่"
+                          autoComplete="off"
+                          value={createDraft.moo}
+                          onChange={(event) => updateCreateDraft({ moo: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="ตำบล"
+                          aria-label="ตำบล"
+                          autoComplete="off"
+                          value={createDraft.tumbon}
+                          onChange={(event) => updateCreateDraft({ tumbon: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="อำเภอ"
+                          aria-label="อำเภอ"
+                          autoComplete="off"
+                          value={createDraft.amphoe}
+                          onChange={(event) => updateCreateDraft({ amphoe: event.target.value })}
+                        />
+                      </label>
+                      <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
+                        <input
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          placeholder="จังหวัด"
+                          aria-label="จังหวัด"
+                          autoComplete="off"
+                          value={createDraft.changwat}
+                          onChange={(event) => updateCreateDraft({ changwat: event.target.value })}
+                        />
                       </label>
                     </div>
                   </div>
@@ -2296,10 +2374,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4">
                     <div className="mb-4">
                       <h3 className="text-[12px] font-semibold text-slate-900">ข้อมูลการมารับบริการ</h3>
-                      <p className="mt-1 text-[11px] text-slate-500">วันเวลา และสถานะเบื้องต้น</p>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-3">
                         <span>วันที่มา <span className="text-rose-600">*</span></span>
                         <input
                           type="date"
@@ -2308,7 +2385,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           onChange={(event) => updateCreateDraft({ visit_date: event.target.value })}
                         />
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-3">
                         <span>เวลามา</span>
                         <input
                           type="time"
@@ -2317,7 +2394,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           onChange={(event) => updateCreateDraft({ visit_time: event.target.value })}
                         />
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-2">
                         <span>Triage <span className="text-rose-600">*</span></span>
                         <select
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
@@ -2332,7 +2409,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           ))}
                         </select>
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-2">
                         <span>Status</span>
                         <select
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
@@ -2347,7 +2424,20 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           ))}
                         </select>
                       </label>
-                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2">
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-2">
+                        <span>สุรา</span>
+                        <select
+                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          aria-label="สุรา"
+                          value={createDraft.alcohol}
+                          onChange={(event) => updateCreateDraft({ alcohol: event.target.value })}
+                        >
+                          <option value="">ไม่ระบุ</option>
+                          <option value="1">ดื่ม</option>
+                          <option value="0">ไม่ดื่ม</option>
+                        </select>
+                      </label>
+                      <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2 lg:col-span-6">
                         <span>อาการสำคัญ <span className="text-rose-600">*</span></span>
                         <textarea
                           rows={1}
@@ -2360,7 +2450,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       </label>
                       <label
                         ref={pdxSuggestRef}
-                        className="relative grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2"
+                        className="relative grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2 lg:col-span-6"
                       >
                         <span>Principle DX</span>
                         <input
@@ -2451,7 +2541,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       </label>
                       <label
                         ref={extDxSuggestRef}
-                        className="relative grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2"
+                        className="relative grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2 lg:col-span-6"
                       >
                         <span>External Cause</span>
                         <input

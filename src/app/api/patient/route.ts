@@ -21,6 +21,12 @@ type CreatePatientBody = {
   visit_time?: string;
   sex?: string;
   age?: number | string | null;
+  house_no?: string;
+  moo?: string;
+  road?: string;
+  tumbon?: string;
+  amphoe?: string;
+  changwat?: string;
   triage?: string;
   status?: string;
   cc?: string;
@@ -265,6 +271,12 @@ export async function POST(request: NextRequest) {
     const visitDate = normalizeText(body.visit_date) || null;
     const visitTime = normalizeText(body.visit_time) || null;
     const sex = normalizeText(body.sex) || null;
+    const houseNo = normalizeText(body.house_no) || null;
+    const moo = normalizeText(body.moo) || null;
+    const road = normalizeText(body.road) || null;
+    const tumbon = normalizeText(body.tumbon) || null;
+    const amphoe = normalizeText(body.amphoe) || null;
+    const changwat = normalizeText(body.changwat) || null;
     const triage = normalizeText(body.triage) || null;
     const status = normalizeText(body.status) || null;
     const cc = normalizeText(body.cc) || null;
@@ -320,6 +332,12 @@ export async function POST(request: NextRequest) {
           visit_time       = EXCLUDED.visit_time,
           sex              = EXCLUDED.sex,
           age              = EXCLUDED.age,
+          house_no         = EXCLUDED.house_no,
+          moo              = EXCLUDED.moo,
+          road             = EXCLUDED.road,
+          tumbon           = EXCLUDED.tumbon,
+          amphoe           = EXCLUDED.amphoe,
+          changwat         = EXCLUDED.changwat,
           triage           = EXCLUDED.triage,
           status           = EXCLUDED.status,
           cc               = EXCLUDED.cc,
@@ -345,6 +363,12 @@ export async function POST(request: NextRequest) {
           visit_time,
           sex,
           age,
+          house_no,
+          moo,
+          road,
+          tumbon,
+          amphoe,
+          changwat,
           triage,
           status,
           cc,
@@ -357,11 +381,11 @@ export async function POST(request: NextRequest) {
         VALUES (
           $1,
           $2,
-          ${patientEncryptedValueSql(3, 14)},
-          ${patientEncryptedValueSql(4, 14)},
+          ${patientEncryptedValueSql(3, 20)},
+          ${patientEncryptedValueSql(4, 20)},
           encode(digest($4::bytea, 'sha256'), 'hex'),
-          ${patientEncryptedValueSql(5, 14)},
-          $16,
+          ${patientEncryptedValueSql(5, 20)},
+          $22,
           COALESCE($6::date, CURRENT_DATE),
           COALESCE($7::time, LOCALTIME(0)),
           $8,
@@ -370,10 +394,16 @@ export async function POST(request: NextRequest) {
           $11,
           $12,
           $13,
+          $14,
           $15,
+          $16,
           $17,
           $18,
-          $19
+          $19,
+          $21,
+          $23,
+          $24,
+          $25
         )
         ${upsertClause}
         RETURNING
@@ -407,9 +437,9 @@ export async function POST(request: NextRequest) {
         id,
         hoscode,
         hosname,
-        ${patientDecryptedColumnSql("hn", 14, "inserted")} AS hn,
-        ${patientDecryptedColumnSql("cid", 14, "inserted")} AS cid,
-        ${patientDecryptedColumnSql("patient_name", 14, "inserted")} AS patient_name,
+        ${patientDecryptedColumnSql("hn", 20, "inserted")} AS hn,
+        ${patientDecryptedColumnSql("cid", 20, "inserted")} AS cid,
+        ${patientDecryptedColumnSql("patient_name", 20, "inserted")} AS patient_name,
         vn,
         to_char(visit_date, 'YYYY-MM-DD') AS visit_date,
         to_char(visit_time, 'HH24:MI:SS') AS visit_time,
@@ -442,16 +472,22 @@ export async function POST(request: NextRequest) {
       visitTime,     // $7
       sex,           // $8
       ageValue,      // $9
-      triage,        // $10
-      status,        // $11
-      cc,            // $12
-      source,        // $13
-      aesSecret,     // $14
-      alcoholValue,  // $15
-      vn,            // $16
-      pdxValue,      // $17
-      extDxValue,    // $18
-      dxListValue,   // $19
+      houseNo,       // $10
+      moo,           // $11
+      road,          // $12
+      tumbon,        // $13
+      amphoe,        // $14
+      changwat,      // $15
+      triage,        // $16
+      status,        // $17
+      cc,            // $18
+      source,        // $19
+      aesSecret,     // $20
+      alcoholValue,  // $21
+      vn,            // $22
+      pdxValue,      // $23
+      extDxValue,    // $24
+      dxListValue,   // $25
     ]);
 
     const row = result.rows[0]

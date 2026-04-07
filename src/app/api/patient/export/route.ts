@@ -25,6 +25,7 @@ type ExportRow = {
   triage: string | null;
   house_no: string | null;
   moo: string | null;
+  road: string | null;
   tumbon: string | null;
   amphoe: string | null;
   changwat: string | null;
@@ -32,6 +33,9 @@ type ExportRow = {
   ext_dx: unknown;
   location_road: string | null;
   location_detail: string | null;
+  location_moo: string | null;
+  location_tumbon: string | null;
+  location_amphoe: string | null;
   alcohol: number | null;
   acd_vihicle_label: string | null;
   acd_vihicle_export_label: string | null;
@@ -68,14 +72,27 @@ function normalizeText(value: string | null | undefined) {
   return value?.trim() ?? "";
 }
 
-function formatLocationRoad(road: string | null, detail: string | null) {
-  const parts = [normalizeText(road), normalizeText(detail)].filter(Boolean);
+function formatLocationRoad(
+  detail: string | null,
+  road: string | null,
+  moo: string | null,
+  tumbon: string | null,
+  amphoe: string | null,
+) {
+  const parts = [
+    normalizeText(detail),
+    normalizeText(road),
+    normalizeText(moo) ? `หมู่ ${normalizeText(moo)}` : "",
+    normalizeText(tumbon),
+    normalizeText(amphoe),
+  ].filter(Boolean);
   return parts.length > 0 ? parts.join(" ") : "-";
 }
 
 function formatAddress(row: ExportRow) {
   const houseNo = normalizeText(row.house_no);
   const moo = normalizeText(row.moo);
+  const road = normalizeText(row.road);
   const tumbon = normalizeText(row.tumbon);
   const amphoe = normalizeText(row.amphoe);
   const changwat = normalizeText(row.changwat);
@@ -83,12 +100,13 @@ function formatAddress(row: ExportRow) {
   const parts = [
     houseNo ? `บ้านเลขที่ ${houseNo}` : "",
     moo ? `หมู่ ${moo}` : "",
+    road ? `ถนน ${road}` : "",
     tumbon || "",
     amphoe || "",
     changwat || "",
   ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join("/") : "-";
+  return parts.length > 0 ? parts.join(" ") : "-";
 }
 
 function formatDiagnosisEntry(value: unknown) {
@@ -231,6 +249,7 @@ export async function GET(request: NextRequest) {
           d.name_in_thai AS area,
           s.name_in_thai AS subdistrict_name,
           pv.name_in_thai AS province_name,
+          l.moo AS location_moo,
           l.road AS location_road,
           l.detail AS location_detail
         FROM public.patient_acd_location l
@@ -327,6 +346,7 @@ export async function GET(request: NextRequest) {
         p.triage,
         p.house_no,
         p.moo,
+        p.road,
         COALESCE(loc.subdistrict_name, p.tumbon) AS tumbon,
         loc.area AS amphoe,
         COALESCE(loc.province_name, p.changwat) AS changwat,
@@ -334,6 +354,9 @@ export async function GET(request: NextRequest) {
         p.ext_dx,
         loc.location_road,
         loc.location_detail,
+        loc.location_moo,
+        loc.subdistrict_name AS location_tumbon,
+        loc.area AS location_amphoe,
         p.alcohol,
         detail.acd_vihicle_label,
         detail.acd_vihicle_export_label,
@@ -356,8 +379,14 @@ export async function GET(request: NextRequest) {
       "วินิจฉัย (Diagnosis)": formatDiagnosis(row.pdx, row.ext_dx),
       "อาการสำคัญ": row.cc ?? "-",
       "การคัดแยก(Triage)": row.triage ?? "-",
-      "ภูมิลำเนา บ้านเลขที่/ตำบล/อำเภอ/จังหวัด": formatAddress(row),
-      "ถนนที่เกิดเหตุ": formatLocationRoad(row.location_road, row.location_detail),
+      ภูมิลำเนา: formatAddress(row),
+      "ถนนที่เกิดเหตุ": formatLocationRoad(
+        row.location_detail,
+        row.location_road,
+        row.location_moo,
+        row.location_tumbon,
+        row.location_amphoe,
+      ),
       อายุ: row.age ?? "-",
       เพศ: row.sex ?? "-",
       "1 สถานะ (status)": row.status ?? "-",

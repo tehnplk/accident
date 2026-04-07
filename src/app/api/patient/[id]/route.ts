@@ -18,6 +18,7 @@ type UpdateBody = {
   visit_date?: string;
   visit_time?: string;
   age?: number | string | null;
+  house_no?: string;
   changwat?: string;
   amphoe?: string;
   tumbon?: string;
@@ -44,6 +45,7 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "visit_date",
   "visit_time",
   "age",
+  "house_no",
   "changwat",
   "amphoe",
   "tumbon",
