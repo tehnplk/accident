@@ -19,6 +19,10 @@ function parseOrganization(raw: unknown): { hcode: string; hname_th: string; pos
   }).filter((o) => o.hname_th);
 }
 
+function toText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function ProfileModal({ profile, displayName, onClose }: {
   profile: Record<string, unknown> | null;
   displayName: string;
@@ -99,11 +103,13 @@ function UserMenu({ profile, userName }: { profile: Record<string, unknown> | nu
   const [open, setOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const providerId = profile?.provider_id ?? null;
+  const isUserPass = profile?.login_type === "user-pass";
 
   const displayName =
-    [profile?.title_th, profile?.firstname_th, profile?.lastname_th].filter(Boolean).join("") ||
-    profile?.name_th ||
-    userName ||
+    [profile?.title_th, profile?.firstname_th, profile?.lastname_th].map(toText).filter(Boolean).join("") ||
+    toText(profile?.name_th) ||
+    toText(userName) ||
     "ผู้ใช้งาน";
 
   useEffect(() => {
@@ -132,9 +138,9 @@ function UserMenu({ profile, userName }: { profile: Record<string, unknown> | nu
           <div className="absolute right-0 z-50 mt-1 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
             <div className="border-b border-slate-100 px-4 py-2">
               <p className="truncate text-[11px] font-semibold text-slate-800">{displayName}</p>
-              {Boolean(profile?.provider_id) ? (
-                <p className="truncate text-[10px] text-slate-400">{String(profile.provider_id)}</p>
-              ) : profile?.login_type === "user-pass" ? (
+              {Boolean(providerId) ? (
+                <p className="truncate text-[10px] text-slate-400">{String(providerId)}</p>
+              ) : isUserPass ? (
                 <p className="truncate text-[10px] text-slate-400">User/Pass</p>
               ) : null}
             </div>
