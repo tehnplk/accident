@@ -14,6 +14,12 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
+import type {
+  DashboardBarRow,
+  DashboardLinePoint,
+  DashboardSegment,
+  DashboardSummary,
+} from "@/lib/dashboard-summary";
 
 ChartJS.register(
   ArcElement,
@@ -27,52 +33,50 @@ ChartJS.register(
   Tooltip,
 );
 
-const vehicleSegments = [
-  { label: "รถจักรยานยนต์", value: 42, color: "#1e3a8a" },
-  { label: "รถเก๋ง / แท็กซี่", value: 18, color: "#475569" },
-  { label: "รถกระบะ", value: 14, color: "#0f766e" },
-  { label: "รถบรรทุก", value: 8, color: "#64748b" },
-  { label: "อื่น ๆ", value: 18, color: "#cbd5e1" },
-];
-
-const alcoholSegments = [
-  { label: "ไม่ดื่ม", value: 62, color: "#334155" },
-  { label: "ดื่ม", value: 21, color: "#b45309" },
-  { label: "ไม่ทราบ", value: 17, color: "#94a3b8" },
-];
-
-const injuryOutcomeSegments = [
-  { label: "บาดเจ็บ", value: 96, color: "#475569" },
-  { label: "เสียชีวิต", value: 4, color: "#b91c1c" },
-];
-
-const districtRows = [
-  { district: "เมืองพิษณุโลก", cases: 18, deaths: 1 },
-  { district: "บางระกำ", cases: 15, deaths: 2 },
-  { district: "วังทอง", cases: 12, deaths: 1 },
-  { district: "พรหมพิราม", cases: 10, deaths: 0 },
-  { district: "นครไทย", cases: 8, deaths: 1 },
-];
-
-const dailyCases = [
-  { label: "10 เม.ย. 69", value: 8 },
-  { label: "11 เม.ย. 69", value: 11 },
-  { label: "12 เม.ย. 69", value: 7 },
-  { label: "13 เม.ย. 69", value: 14 },
-  { label: "14 เม.ย. 69", value: 10 },
-  { label: "15 เม.ย. 69", value: 13 },
-  { label: "16 เม.ย. 69", value: 12 },
-  { label: "17 เม.ย. 69", value: 9 },
-  { label: "18 เม.ย. 69", value: 15 },
-  { label: "19 เม.ย. 69", value: 11 },
-  { label: "20 เม.ย. 69", value: 16 },
-  { label: "21 เม.ย. 69", value: 14 },
-  { label: "22 เม.ย. 69", value: 12 },
-  { label: "23 เม.ย. 69", value: 17 },
-];
+type DashboardHomeProps = {
+  initialData: DashboardSummary;
+};
 
 function formatPercent(value: number, total: number) {
+  if (!Number.isFinite(total) || total <= 0) return "0%";
   return `${Math.round((value / total) * 100)}%`;
+}
+
+function toThaiDate(isoDate: string | null) {
+  if (!isoDate) return "-";
+
+  const match = isoDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return isoDate;
+
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = match[3];
+  const monthLabels = [
+    "ม.ค.",
+    "ก.พ.",
+    "มี.ค.",
+    "เม.ย.",
+    "พ.ค.",
+    "มิ.ย.",
+    "ก.ค.",
+    "ส.ค.",
+    "ก.ย.",
+    "ต.ค.",
+    "พ.ย.",
+    "ธ.ค.",
+  ];
+  const monthLabel = monthLabels[month - 1];
+  if (!monthLabel || !Number.isFinite(year)) return isoDate;
+
+  return `${day} ${monthLabel} ${(year + 543).toString().slice(-2)}`;
+}
+
+function formatDateRange(minDate: string | null, maxDate: string | null) {
+  if (!minDate && !maxDate) return "ยังไม่มีข้อมูล";
+  if (minDate && maxDate && minDate === maxDate) return toThaiDate(minDate);
+  if (!minDate) return toThaiDate(maxDate);
+  if (!maxDate) return toThaiDate(minDate);
+  return `${toThaiDate(minDate)} - ${toThaiDate(maxDate)}`;
 }
 
 function ChartPanel({
@@ -82,7 +86,7 @@ function ChartPanel({
 }: {
   title: string;
   subtitle: string;
-  segments: typeof vehicleSegments;
+  segments: DashboardSegment[];
 }) {
   const total = segments.reduce((sum, item) => sum + item.value, 0);
   const data = {
@@ -101,12 +105,8 @@ function ChartPanel({
     <section className="rounded-[28px] border border-sky-100/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(37,99,235,0.08)] backdrop-blur-sm">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">
-            {title}
-          </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
-            {subtitle}
-          </h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">{title}</p>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">{subtitle}</h2>
         </div>
         <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
           รวม {total} เคส
@@ -133,9 +133,7 @@ function ChartPanel({
           />
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-3xl font-semibold tracking-tight text-slate-900">
-                {total}
-              </div>
+              <div className="text-3xl font-semibold tracking-tight text-slate-900">{total}</div>
               <div className="mt-1 text-xs uppercase tracking-[0.24em] text-slate-500">
                 เคสทั้งหมด
               </div>
@@ -150,21 +148,12 @@ function ChartPanel({
               className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <span
-                  className="h-3.5 w-3.5 rounded-full"
-                  style={{ backgroundColor: segment.color }}
-                />
-                <span className="text-sm font-medium text-slate-800">
-                  {segment.label}
-                </span>
+                <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: segment.color }} />
+                <span className="text-sm font-medium text-slate-800">{segment.label}</span>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold text-slate-900">
-                  {segment.value}
-                </div>
-                <div className="text-xs text-slate-500">
-                  {formatPercent(segment.value, total)}
-                </div>
+                <div className="text-sm font-semibold text-slate-900">{segment.value}</div>
+                <div className="text-xs text-slate-500">{formatPercent(segment.value, total)}</div>
               </div>
             </div>
           ))}
@@ -174,21 +163,21 @@ function ChartPanel({
   );
 }
 
-function BarChartPanel() {
-  const labels = districtRows.map((row) => row.district);
+function BarChartPanel({ rows }: { rows: DashboardBarRow[] }) {
+  const labels = rows.map((row) => row.district);
   const data = {
     labels,
     datasets: [
       {
         label: "จำนวนเคส",
-        data: districtRows.map((row) => row.cases),
+        data: rows.map((row) => row.cases),
         backgroundColor: "#64748b",
         borderRadius: 12,
         borderSkipped: false,
       },
       {
         label: "เสียชีวิต",
-        data: districtRows.map((row) => row.deaths),
+        data: rows.map((row) => row.deaths),
         backgroundColor: "#b91c1c",
         borderRadius: 12,
         borderSkipped: false,
@@ -200,15 +189,11 @@ function BarChartPanel() {
     <section className="rounded-[28px] border border-sky-100/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(37,99,235,0.08)] backdrop-blur-sm">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">
-            Bar Chart
-          </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
-            รายอำเภอ
-          </h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Bar Chart</p>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">รายงานตามอำเภอ</h2>
         </div>
         <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-          {districtRows.length} อำเภอ
+          {rows.length} อำเภอ
         </div>
       </div>
 
@@ -249,13 +234,19 @@ function BarChartPanel() {
   );
 }
 
-function LineChartPanel() {
+function LineChartPanel({
+  points,
+  dateRangeLabel,
+}: {
+  points: DashboardLinePoint[];
+  dateRangeLabel: string;
+}) {
   const data = {
-    labels: dailyCases.map((item) => item.label),
+    labels: points.map((item) => toThaiDate(item.label)),
     datasets: [
       {
         label: "จำนวนเคสรายวัน",
-        data: dailyCases.map((item) => item.value),
+        data: points.map((item) => item.value),
         borderColor: "#b91c1c",
         backgroundColor: "rgba(185, 28, 28, 0.10)",
         pointBackgroundColor: "#7f1d1d",
@@ -271,15 +262,11 @@ function LineChartPanel() {
     <section className="rounded-[28px] border border-sky-100/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(37,99,235,0.08)] backdrop-blur-sm">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">
-            Line Chart
-          </p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">
-            จำนวนเคสรายวัน
-          </h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Line Chart</p>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">จำนวนเคสรายวัน</h2>
         </div>
         <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-          7 วันล่าสุด
+          {dateRangeLabel}
         </div>
       </div>
 
@@ -315,7 +302,13 @@ function LineChartPanel() {
   );
 }
 
-export default function DashboardHome() {
+export default function DashboardHome({ initialData }: DashboardHomeProps) {
+  const dateRangeLabel = formatDateRange(initialData.minVisitDate, initialData.maxVisitDate);
+  const statusMap = new Map(initialData.statusSegments.map((item) => [item.label, item.value]));
+  const admittedCount = statusMap.get("รับไว้รักษา") ?? 0;
+  const dischargedCount = statusMap.get("กลับบ้าน") ?? 0;
+  const deathCount = statusMap.get("เสียชีวิต") ?? 0;
+
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -326,10 +319,11 @@ export default function DashboardHome() {
                 Accident Dashboard
               </p>
               <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                ภาพรวมผู้บาดเจ็บจากอุบัติเหตุทางถนนเทศกาลสงกรานต์ 10 - 21 เม.ย. 2569
+                ภาพรวมข้อมูลอุบัติเหตุทางถนนจากฐานจริง
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                สำนักงานสาธารณสุขจังหวัดพิษณุโลก (ข้อมูลทดสอบระบบ)
+                แสดงผลจากข้อมูลผู้ป่วยจริงในฐานข้อมูล พร้อมช่วงวันที่จาก
+                <span className="font-semibold text-slate-900"> {dateRangeLabel}</span>
               </p>
             </div>
 
@@ -347,30 +341,45 @@ export default function DashboardHome() {
           </div>
         </header>
 
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Total</p>
+            <div className="mt-3 text-3xl font-semibold text-slate-950">{initialData.totalCases}</div>
+            <p className="mt-2 text-sm text-slate-500">เคสทั้งหมดในฐานข้อมูล</p>
+          </div>
+          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Admitted</p>
+            <div className="mt-3 text-3xl font-semibold text-slate-950">{admittedCount}</div>
+            <p className="mt-2 text-sm text-slate-500">สถานะรับไว้รักษา</p>
+          </div>
+          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Discharged</p>
+            <div className="mt-3 text-3xl font-semibold text-slate-950">{dischargedCount}</div>
+            <p className="mt-2 text-sm text-slate-500">สถานะกลับบ้าน</p>
+          </div>
+          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Deaths</p>
+            <div className="mt-3 text-3xl font-semibold text-slate-950">{deathCount}</div>
+            <p className="mt-2 text-sm text-slate-500">สถานะเสียชีวิต</p>
+          </div>
+        </section>
+
         <section className="grid gap-6 xl:grid-cols-2">
           <ChartPanel
             title="Summary Chart"
-            subtitle="บาดเจ็บ / เสียชีวิต"
-            segments={injuryOutcomeSegments}
+            subtitle="สถานะผู้ป่วย"
+            segments={initialData.statusSegments}
           />
-          <ChartPanel
-            title="Pie Chart"
-            subtitle="สุรา"
-            segments={alcoholSegments}
-          />
+          <ChartPanel title="Pie Chart" subtitle="การดื่มสุรา" segments={initialData.alcoholSegments} />
         </section>
 
         <section className="grid gap-6 xl:grid-cols-2">
-          <ChartPanel
-            title="Pie Chart"
-            subtitle="ประเภทรถ"
-            segments={vehicleSegments}
-          />
-          <BarChartPanel />
+          <ChartPanel title="Pie Chart" subtitle="ประเภทรถ" segments={initialData.vehicleSegments} />
+          <BarChartPanel rows={initialData.districtRows} />
         </section>
 
         <section className="grid gap-6">
-          <LineChartPanel />
+          <LineChartPanel points={initialData.dailyCases} dateRangeLabel={dateRangeLabel} />
         </section>
       </div>
     </main>

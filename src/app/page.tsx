@@ -1,5 +1,9 @@
 import DashboardHome from "@/components/dashboard-home";
+import { loadDashboardSummary } from "@/lib/dashboard-summary";
 
-export default function HomePage() {
-  return <DashboardHome />;
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const dashboardData = await loadDashboardSummary();
+  return <DashboardHome initialData={dashboardData} />;
 }
