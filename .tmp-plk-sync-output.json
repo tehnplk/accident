@@ -1,0 +1,5054 @@
+﻿[
+  {
+    "index": 1,
+    "cid": "1650500063683",
+    "visit_date": "2026-01-04",
+    "response": {
+      "id": "1",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000118675",
+      "cid": "1650500063683",
+      "patient_name": "น.ส.พัชรินทร์ แก้วศรีทอง",
+      "vn": "690104103357",
+      "visit_date": "2026-01-04",
+      "visit_time": "10:33:57",
+      "sex": "หญิง",
+      "age": 37,
+      "house_no": "14",
+      "moo": "00",
+      "road": null,
+      "tumbon": "บางแค",
+      "amphoe": "เขตบางแค",
+      "changwat": "กรุงเทพมหานคร",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V0219-Pedestrian injured in collision with two-or three-wheeled motor vehicle at Traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "V0219",
+          "name": "Pedestrian injured in collision with two-or three-wheeled motor vehicle at Traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 2,
+    "cid": "1103705122310",
+    "visit_date": "2026-02-06",
+    "response": {
+      "id": "2",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000129552",
+      "cid": "1103705122310",
+      "patient_name": "ด.ช.ณัฐวัฒน์ ประกอบ",
+      "vn": "690206163646",
+      "visit_date": "2026-02-06",
+      "visit_time": "16:36:46",
+      "sex": "ชาย",
+      "age": 10,
+      "house_no": "10/2",
+      "moo": "10",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V0219-Pedestrian injured in collision with two-or three-wheeled motor vehicle at Traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V0219",
+          "name": "Pedestrian injured in collision with two-or three-wheeled motor vehicle at Traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 3,
+    "cid": "1218500068139",
+    "visit_date": "2026-01-27",
+    "response": {
+      "id": "3",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000117666",
+      "cid": "1218500068139",
+      "patient_name": "ด.ช.จักรกฤษณ์ คงเนียม",
+      "vn": "690127081158",
+      "visit_date": "2026-01-27",
+      "visit_time": "08:11:58",
+      "sex": "ชาย",
+      "age": 10,
+      "house_no": "60",
+      "moo": "09",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลที่มือขวาและเข่าขวา 1 ชม. ก่อนมา",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S619-Open wound of wrist and hand part, part unspecified",
+      "ext_dx": "V1819-Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V1819",
+          "name": "Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 4,
+    "cid": "3650500526078",
+    "visit_date": "2026-01-28",
+    "response": {
+      "id": "4",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000041745",
+      "cid": "3650500526078",
+      "patient_name": "นายอำนวย ศรีแก้ว",
+      "vn": "690128144410",
+      "visit_date": "2026-01-28",
+      "visit_time": "14:44:10",
+      "sex": "ชาย",
+      "age": 75,
+      "house_no": "2",
+      "moo": "05",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ขอใบรับรองความพิการ  PT note :  ปวดหลัง ขาอ่อนแรง  เคลื่อนย้ายตัวลำบาก  มา 1 เดือน",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S3200-Fracture of lumbar vertebra: closed",
+      "ext_dx": "V1819-Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S3200",
+          "name": "Fracture of lumbar vertebra: closed"
+        },
+        {
+          "code": "V1819",
+          "name": "Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity"
+        },
+        {
+          "code": "Z501",
+          "name": "Other physicla therapy"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 5,
+    "cid": "1659902646479",
+    "visit_date": "2026-01-28",
+    "response": {
+      "id": "5",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000104367",
+      "cid": "1659902646479",
+      "patient_name": "ด.ช.ณัฐพร แย้มเสาธง",
+      "vn": "690128173547",
+      "visit_date": "2026-01-28",
+      "visit_time": "17:35:47",
+      "sex": "ชาย",
+      "age": 14,
+      "house_no": "28",
+      "moo": "04",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลเปิดที่คอ 1 ชม.ก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S109-Superficial injury of neck, part unspecified",
+      "ext_dx": "V1819-Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S109",
+          "name": "Superficial injury of neck, part unspecified"
+        },
+        {
+          "code": "V1819",
+          "name": "Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 6,
+    "cid": "1659902646479",
+    "visit_date": "2026-02-02",
+    "response": {
+      "id": "6",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000104367",
+      "cid": "1659902646479",
+      "patient_name": "ด.ช.ณัฐพร แย้มเสาธง",
+      "vn": "690202091445",
+      "visit_date": "2026-02-02",
+      "visit_time": "09:14:45",
+      "sex": "ชาย",
+      "age": 14,
+      "house_no": "28",
+      "moo": "04",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "case woundนัดดูแผลที่คอ4วัน",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S109-Superficial injury of neck, part unspecified",
+      "ext_dx": "V1819-Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S109",
+          "name": "Superficial injury of neck, part unspecified"
+        },
+        {
+          "code": "V1819",
+          "name": "Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 7,
+    "cid": "1659903025966",
+    "visit_date": "2026-02-08",
+    "response": {
+      "id": "7",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000125546",
+      "cid": "1659903025966",
+      "patient_name": "ด.ช.ธีรภัทร ปัญญาคำ",
+      "vn": "690208123957",
+      "visit_date": "2026-02-08",
+      "visit_time": "12:39:57",
+      "sex": "ชาย",
+      "age": 7,
+      "house_no": "28",
+      "moo": "08",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Dressing wound แผลเปิด,Suture",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S810-Open wound of knee",
+      "ext_dx": "V1819-Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V1819",
+          "name": "Pedal cyclist injured in noncollision transport accident at Passenger injured in nontraffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 8,
+    "cid": "1660100084331",
+    "visit_date": "2026-02-05",
+    "response": {
+      "id": "8",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000132096",
+      "cid": "1660100084331",
+      "patient_name": "นายนัฐพงษ์ หลิมศิริวงษ์",
+      "vn": "690205080415",
+      "visit_date": "2026-02-05",
+      "visit_time": "08:04:15",
+      "sex": "ชาย",
+      "age": 39,
+      "house_no": "16",
+      "moo": "07",
+      "road": null,
+      "tumbon": "ท่าฬ่อ",
+      "amphoe": "เมืองพิจิตร",
+      "changwat": "พิจิตร",
+      "cc": "ปวดไหล่ขวา 30 นาทีก่อนมา",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2019-Motorcycle rider injured in collision with pedestrian or animal at Passenger injured in nontraffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "V2019",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at Passenger injured in nontraffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 9,
+    "cid": "3350400474397",
+    "visit_date": "2026-01-08",
+    "response": {
+      "id": "9",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000085128",
+      "cid": "3350400474397",
+      "patient_name": "นางกชกร นาคกุญชร",
+      "vn": "690108134851",
+      "visit_date": "2026-01-08",
+      "visit_time": "13:48:51",
+      "sex": "หญิง",
+      "age": 53,
+      "house_no": "41/1",
+      "moo": "04",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "L905-Scar conditions and fibrosis of skin",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "L905",
+          "name": "Scar conditions and fibrosis of skin"
+        },
+        {
+          "code": "S059",
+          "name": "Injury of eye and orbit, part unspecified"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 10,
+    "cid": "1650500086306",
+    "visit_date": "2026-01-18",
+    "response": {
+      "id": "10",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000000704",
+      "cid": "1650500086306",
+      "patient_name": "นายอนุชา ยืนยาว",
+      "vn": "690118195136",
+      "visit_date": "2026-01-18",
+      "visit_time": "19:51:36",
+      "sex": "ชาย",
+      "age": 31,
+      "house_no": "41",
+      "moo": "07",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S619-Open wound of wrist and hand part, part unspecified",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 11,
+    "cid": "3650500057884",
+    "visit_date": "2026-01-22",
+    "response": {
+      "id": "11",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000091840",
+      "cid": "3650500057884",
+      "patient_name": "นายปราโมทย์ คนคล่อง",
+      "vn": "690122164944",
+      "visit_date": "2026-01-22",
+      "visit_time": "16:49:44",
+      "sex": "ชาย",
+      "age": 48,
+      "house_no": "81",
+      "moo": "6",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "MC ชนสุนัข 19 ชม.ก่อนมา",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S301-Contusion of abdominal wall",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S301",
+          "name": "Contusion of abdominal wall"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 12,
+    "cid": "3650500057884",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "12",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000091840",
+      "cid": "3650500057884",
+      "patient_name": "นายปราโมทย์ คนคล่อง",
+      "vn": "690123161920",
+      "visit_date": "2026-01-23",
+      "visit_time": "16:19:20",
+      "sex": "ชาย",
+      "age": 48,
+      "house_no": "81",
+      "moo": "6",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S409-Superficial injury of shoulder and upper arm, unspecified",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S409",
+          "name": "Superficial injury of shoulder and upper arm, unspecified"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z029",
+          "name": "Examination for administrative purposes, unspecified"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 13,
+    "cid": "5650501032148",
+    "visit_date": "2026-01-29",
+    "response": {
+      "id": "13",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000112738",
+      "cid": "5650501032148",
+      "patient_name": "นายสมบูรณ์ ภู่แย้ม",
+      "vn": "690129123404",
+      "visit_date": "2026-01-29",
+      "visit_time": "12:34:04",
+      "sex": "ชาย",
+      "age": 64,
+      "house_no": "16",
+      "moo": "01",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S0231-Open fracture of orbital floor",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S0231",
+          "name": "Open fracture of orbital floor"
+        },
+        {
+          "code": "S409",
+          "name": "Superficial injury of shoulder and upper arm, unspecified"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 14,
+    "cid": "1539900403138",
+    "visit_date": "2026-01-30",
+    "response": {
+      "id": "14",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000006097",
+      "cid": "1539900403138",
+      "patient_name": "นายพิมพ์ญาดา แก้วเพียร",
+      "vn": "690130221641",
+      "visit_date": "2026-01-30",
+      "visit_time": "22:16:41",
+      "sex": "ชาย",
+      "age": 32,
+      "house_no": "137/2",
+      "moo": "09",
+      "road": null,
+      "tumbon": "บ้านเกาะ",
+      "amphoe": "เมืองอุตรดิตถ์",
+      "changwat": "อุตรดิตถ์",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S409",
+          "name": "Superficial injury of shoulder and upper arm, unspecified"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 15,
+    "cid": "5650500018079",
+    "visit_date": "2026-02-10",
+    "response": {
+      "id": "15",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000101086",
+      "cid": "5650500018079",
+      "patient_name": "นายเชิด อินทโชติ",
+      "vn": "690210101358",
+      "visit_date": "2026-02-10",
+      "visit_time": "10:13:58",
+      "sex": "ชาย",
+      "age": 76,
+      "house_no": "3/2",
+      "moo": "06",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลเปิดที่ศีรษะด้านขวา เจ็บแน่นหน้าอก 2 ชม ก่อนมา รพ.",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 16,
+    "cid": "5650500018079",
+    "visit_date": "2026-02-10",
+    "response": {
+      "id": "15",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000101086",
+      "cid": "5650500018079",
+      "patient_name": "นายเชิด อินทโชติ",
+      "vn": "690210185507",
+      "visit_date": "2026-02-10",
+      "visit_time": "18:55:07",
+      "sex": "ชาย",
+      "age": 76,
+      "house_no": "3/2",
+      "moo": "06",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "รับไว้รักษา",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V2049-Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "V2049",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 17,
+    "cid": "1679900811464",
+    "visit_date": "2026-01-01",
+    "response": {
+      "id": "17",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000102878",
+      "cid": "1679900811464",
+      "patient_name": "น.ส.ชุติกาญจน์ คำอ้าย",
+      "vn": "690101192202",
+      "visit_date": "2026-01-01",
+      "visit_time": "19:22:02",
+      "sex": "หญิง",
+      "age": 15,
+      "house_no": "147/2",
+      "moo": "4",
+      "road": "-",
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S619-Open wound of wrist and hand part, part unspecified",
+      "ext_dx": "V2059-Motorcycle rider injured in collision with pedestrian or animal at passenger injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2059",
+          "name": "Motorcycle rider injured in collision with pedestrian or animal at passenger injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 18,
+    "cid": "3650500044812",
+    "visit_date": "2026-01-05",
+    "response": {
+      "id": "18",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000045443",
+      "cid": "3650500044812",
+      "patient_name": "น.ส.ประทุมพร ขวัญอยู่",
+      "vn": "690105111403",
+      "visit_date": "2026-01-05",
+      "visit_time": "11:14:03",
+      "sex": "หญิง",
+      "age": 55,
+      "house_no": "85/1",
+      "moo": "05",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S008-Superficial injury of other parts of head",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S008",
+          "name": "Superficial injury of other parts of head"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 19,
+    "cid": "3650500289254",
+    "visit_date": "2026-01-20",
+    "response": {
+      "id": "19",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000115414",
+      "cid": "3650500289254",
+      "patient_name": "นางมนุ มีเงินทอง",
+      "vn": "690120151131",
+      "visit_date": "2026-01-20",
+      "visit_time": "15:11:31",
+      "sex": "หญิง",
+      "age": 56,
+      "house_no": "42/1",
+      "moo": "08",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        },
+        {
+          "code": "Z712",
+          "name": "Person consulting for explanation of investigation findings"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 20,
+    "cid": "1620800048710",
+    "visit_date": "2026-01-20",
+    "response": {
+      "id": "20",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000095683",
+      "cid": "1620800048710",
+      "patient_name": "น.ส.สุทธิดา ชมศิลป์",
+      "vn": "690120151157",
+      "visit_date": "2026-01-20",
+      "visit_time": "15:11:57",
+      "sex": "หญิง",
+      "age": 21,
+      "house_no": "81/1",
+      "moo": "05",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "มีแผลเปิดที่หน้าผาก 1 ชม.ก่อนมา",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 21,
+    "cid": "1101200172016",
+    "visit_date": "2026-01-22",
+    "response": {
+      "id": "21",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000137386",
+      "cid": "1101200172016",
+      "patient_name": "น.ส.จิณณพัต เสมามิ่ง",
+      "vn": "690122192953",
+      "visit_date": "2026-01-22",
+      "visit_time": "19:29:53",
+      "sex": "หญิง",
+      "age": 39,
+      "house_no": "3",
+      "moo": "01",
+      "road": null,
+      "tumbon": "สนามคลี",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S6280-Closed fracture of other and unspecified parts of wrist and hand",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S6280",
+          "name": "Closed fracture of other and unspecified parts of wrist and hand"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 22,
+    "cid": "3660101073231",
+    "visit_date": "2026-01-22",
+    "response": {
+      "id": "22",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000153724",
+      "cid": "3660101073231",
+      "patient_name": "นายเรือง รุ่งอินทร์",
+      "vn": "690122193335",
+      "visit_date": "2026-01-22",
+      "visit_time": "19:33:35",
+      "sex": "ชาย",
+      "age": 81,
+      "house_no": "11",
+      "moo": "02",
+      "road": null,
+      "tumbon": "ปากทาง",
+      "amphoe": "เมืองพิจิตร",
+      "changwat": "พิจิตร",
+      "cc": "เเน่นหน้าอก 40นาทีก่อนมารพ",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S011-Open wound of eyelid and  periocular area",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S011",
+          "name": "Open wound of eyelid and  periocular area"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 23,
+    "cid": "1101200172016",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "23",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000137386",
+      "cid": "1101200172016",
+      "patient_name": "น.ส.จิณณพัต เสมามิ่ง",
+      "vn": "690123074433",
+      "visit_date": "2026-01-23",
+      "visit_time": "07:44:33",
+      "sex": "หญิง",
+      "age": 39,
+      "house_no": "3",
+      "moo": "01",
+      "road": null,
+      "tumbon": "สนามคลี",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S810-Open wound of knee",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 24,
+    "cid": "1659902519345",
+    "visit_date": "2026-01-27",
+    "response": {
+      "id": "24",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000096486",
+      "cid": "1659902519345",
+      "patient_name": "น.ส.กัญญาณัฐ เทพประมวล",
+      "vn": "690127175001",
+      "visit_date": "2026-01-27",
+      "visit_time": "17:50:01",
+      "sex": "หญิง",
+      "age": 16,
+      "house_no": "16/1",
+      "moo": "04",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Dressing wound แผลเปิด",
+      "status": "กลับบ้าน",
+      "triage": "Non Urgency (รอได้)",
+      "source": "auto",
+      "pdx": "S510-Open wound of elbow",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 25,
+    "cid": "3650500062985",
+    "visit_date": "2026-01-28",
+    "response": {
+      "id": "25",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000004336",
+      "cid": "3650500062985",
+      "patient_name": "น.ส.นงค์ลักษณ์ เที่ยงทอง",
+      "vn": "690128191322",
+      "visit_date": "2026-01-28",
+      "visit_time": "19:13:22",
+      "sex": "หญิง",
+      "age": 43,
+      "house_no": "41/5",
+      "moo": "11",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S911-Open wound of toe(s) without damage to nail",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S911",
+          "name": "Open wound of toe(s) without damage to nail"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 26,
+    "cid": "1119902658498",
+    "visit_date": "2026-01-31",
+    "response": {
+      "id": "26",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000151769",
+      "cid": "1119902658498",
+      "patient_name": "ด.ช.ธันวา บุญมาก",
+      "vn": "690131195513",
+      "visit_date": "2026-01-31",
+      "visit_time": "19:55:13",
+      "sex": "ชาย",
+      "age": 14,
+      "house_no": "11/1",
+      "moo": "07",
+      "road": null,
+      "tumbon": "มะขามสูง",
+      "amphoe": "เมืองพิษณุโลก",
+      "changwat": "พิษณุโลก",
+      "cc": "ขี่ MC เฉี่ยวชน MC เจ็บลำตัวข้างขวา 2 ชม.ก่อนมารพ",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S308-Other superficial injuries of abdomen, lower back and pelvis",
+      "ext_dx": "V2249-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S308",
+          "name": "Other superficial injuries of abdomen, lower back and pelvis"
+        },
+        {
+          "code": "V2249",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 27,
+    "cid": "3650500352185",
+    "visit_date": "2026-01-22",
+    "response": {
+      "id": "27",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000125953",
+      "cid": "3650500352185",
+      "patient_name": "นางโฉมยา รุ่งอินทร์",
+      "vn": "690122193248",
+      "visit_date": "2026-01-22",
+      "visit_time": "19:32:48",
+      "sex": "หญิง",
+      "age": 72,
+      "house_no": "50/4",
+      "moo": "01",
+      "road": null,
+      "tumbon": "สนามคลี",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V2259-Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at passenger injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "V2259",
+          "name": "Motorcycle rider injured in collision with two-or three-wheeled motor vehicle at passenger injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 28,
+    "cid": "3650500226872",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "28",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000006549",
+      "cid": "3650500226872",
+      "patient_name": "น.ส.ลำเจียก ขันทา",
+      "vn": "690112143649",
+      "visit_date": "2026-01-12",
+      "visit_time": "14:36:49",
+      "sex": "หญิง",
+      "age": 69,
+      "house_no": "28",
+      "moo": "08",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S4200-Fracture of clavicle: closed",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 29,
+    "cid": "3650500242878",
+    "visit_date": "2026-01-15",
+    "response": {
+      "id": "29",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000086984",
+      "cid": "3650500242878",
+      "patient_name": "น.ส.ผุดผ่อง อินกลิ่น",
+      "vn": "690115130533",
+      "visit_date": "2026-01-15",
+      "visit_time": "13:05:33",
+      "sex": "หญิง",
+      "age": 49,
+      "house_no": "1/2",
+      "moo": "04",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดขาซ้าย 15 นาทีก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S809-Superficial injury of knee and leg, unspecified",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S809",
+          "name": "Superficial injury of knee and leg, unspecified"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 30,
+    "cid": "1478600092668",
+    "visit_date": "2026-01-15",
+    "response": {
+      "id": "30",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000151086",
+      "cid": "1478600092668",
+      "patient_name": "น.ส.พฤกษา พงษ์สวัสดิ์",
+      "vn": "690115151041",
+      "visit_date": "2026-01-15",
+      "visit_time": "15:10:41",
+      "sex": "หญิง",
+      "age": 20,
+      "house_no": "63",
+      "moo": "04",
+      "road": null,
+      "tumbon": "สว่างแดนดิน",
+      "amphoe": "สว่างแดนดิน",
+      "changwat": "สกลนคร",
+      "cc": "ปวดแขนซ้าย  30 นาทีก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S509-Superficial injury of elbow and forearm, unspecified",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S509",
+          "name": "Superficial injury of elbow and forearm, unspecified"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 31,
+    "cid": "3650500034094",
+    "visit_date": "2026-01-16",
+    "response": {
+      "id": "31",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000092563",
+      "cid": "3650500034094",
+      "patient_name": "นายวิบูลย์ พลอยระย้า",
+      "vn": "690116092418",
+      "visit_date": "2026-01-16",
+      "visit_time": "09:24:18",
+      "sex": "ชาย",
+      "age": 79,
+      "house_no": "175/2",
+      "moo": "04",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S913-Open wound of other parts of foot",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 32,
+    "cid": "3650500417376",
+    "visit_date": "2026-01-16",
+    "response": {
+      "id": "32",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000087635",
+      "cid": "3650500417376",
+      "patient_name": "นายวิน แก่นทองเจริญ",
+      "vn": "690116190446",
+      "visit_date": "2026-01-16",
+      "visit_time": "19:04:46",
+      "sex": "ชาย",
+      "age": 76,
+      "house_no": "34",
+      "moo": "08",
+      "road": null,
+      "tumbon": "โคกสลุด",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S709-Superficial injury of hip and thigh, unspecified",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S109",
+          "name": "Superficial injury of neck, part unspecified"
+        },
+        {
+          "code": "S709",
+          "name": "Superficial injury of hip and thigh, unspecified"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 33,
+    "cid": "1650500085156",
+    "visit_date": "2026-02-01",
+    "response": {
+      "id": "33",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000079488",
+      "cid": "1650500085156",
+      "patient_name": "น.ส.อัจฉรา ยอดสงค์",
+      "vn": "690201183526",
+      "visit_date": "2026-02-01",
+      "visit_time": "18:35:26",
+      "sex": "หญิง",
+      "age": 32,
+      "house_no": "76/4",
+      "moo": "05",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S509-Superficial injury of elbow and forearm, unspecified",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S509",
+          "name": "Superficial injury of elbow and forearm, unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 34,
+    "cid": "3650500068291",
+    "visit_date": "2026-02-09",
+    "response": {
+      "id": "34",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000021105",
+      "cid": "3650500068291",
+      "patient_name": "น.ส.วิราภรณ์ ยิ้มสบาย",
+      "vn": "690209160010",
+      "visit_date": "2026-02-09",
+      "visit_time": "16:00:10",
+      "sex": "หญิง",
+      "age": 50,
+      "house_no": "34/2",
+      "moo": "01",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดสีข้างด้านขวา 3 ชม. ก่อนมา",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S309-Superficial injuries of abdomen, lower back and pelvis, part unspecified",
+      "ext_dx": "V2349-Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S309",
+          "name": "Superficial injuries of abdomen, lower back and pelvis, part unspecified"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "V2349",
+          "name": "Motorcycle rider injured in collision with car, pick-up truck or van at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 35,
+    "cid": "1200901361905",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "35",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156454",
+      "cid": "1200901361905",
+      "patient_name": "น.ส.ณัฐกฤตา นพวัติ",
+      "vn": "690112173238",
+      "visit_date": "2026-01-12",
+      "visit_time": "17:32:38",
+      "sex": "หญิง",
+      "age": 21,
+      "house_no": "216",
+      "moo": "4",
+      "road": null,
+      "tumbon": "นาม่วง",
+      "amphoe": "กิ่งอำเภอประจักษ์ศิลปาคม",
+      "changwat": "อุดรธานี",
+      "cc": "ปวดเข่าซ้าย 20 นาทีก่อนมา",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S8210-Fracture of upper end of tibia: closed",
+      "ext_dx": "V2749-Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S609",
+          "name": "Superficial injury of wrist and hand, unspecified"
+        },
+        {
+          "code": "S8210",
+          "name": "Fracture of upper end of tibia: closed"
+        },
+        {
+          "code": "V2749",
+          "name": "Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 36,
+    "cid": "3650500309255",
+    "visit_date": "2026-01-29",
+    "response": {
+      "id": "36",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000027339",
+      "cid": "3650500309255",
+      "patient_name": "นายณรงค์ โตกำแพง",
+      "vn": "690129084537",
+      "visit_date": "2026-01-29",
+      "visit_time": "08:45:37",
+      "sex": "ชาย",
+      "age": 73,
+      "house_no": "138",
+      "moo": "04",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "จำเหตุการณ์ไม่ได้ มีแผลในปาก  30 นาทีก่อนมา",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S0240-Fracture of malar and maxillary bones: closed",
+      "ext_dx": "V2749-Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S0240",
+          "name": "Fracture of malar and maxillary bones: closed"
+        },
+        {
+          "code": "V2749",
+          "name": "Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 37,
+    "cid": "3650500168856",
+    "visit_date": "2026-01-31",
+    "response": {
+      "id": "37",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000081535",
+      "cid": "3650500168856",
+      "patient_name": "นางนิยม ศรีพระจันทร์",
+      "vn": "690131084925",
+      "visit_date": "2026-01-31",
+      "visit_time": "08:49:25",
+      "sex": "หญิง",
+      "age": 60,
+      "house_no": "41/4",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "รับไว้รักษา",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S911-Open wound of toe(s) without damage to nail",
+      "ext_dx": "V2749-Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S911",
+          "name": "Open wound of toe(s) without damage to nail"
+        },
+        {
+          "code": "V2749",
+          "name": "Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 38,
+    "cid": "1650500079334",
+    "visit_date": "2026-02-04",
+    "response": {
+      "id": "38",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000007008",
+      "cid": "1650500079334",
+      "patient_name": "นายกันตภณ แพงเพ็ชร",
+      "vn": "690204234340",
+      "visit_date": "2026-02-04",
+      "visit_time": "23:43:40",
+      "sex": "ชาย",
+      "age": 33,
+      "house_no": "38",
+      "moo": "03",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดไหล่ข้างขวา แผลถลอกตามร่างกาย 20 นาที ก่อนมา รพ.",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2749-Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S509",
+          "name": "Superficial injury of elbow and forearm, unspecified"
+        },
+        {
+          "code": "V2749",
+          "name": "Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 39,
+    "cid": "1650500079334",
+    "visit_date": "2026-02-05",
+    "response": {
+      "id": "39",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000007008",
+      "cid": "1650500079334",
+      "patient_name": "นายกันตภณ แพงเพ็ชร",
+      "vn": "690205084231",
+      "visit_date": "2026-02-05",
+      "visit_time": "08:42:31",
+      "sex": "ชาย",
+      "age": 33,
+      "house_no": "38",
+      "moo": "03",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "case close fx rt rib4-6 / Fx clavicle refer กลับจากพุทธ มารักษาต่อ",
+      "status": "รับไว้รักษา",
+      "triage": "Urgency (ด่วนมาก)",
+      "source": "auto",
+      "pdx": "S4200-Fracture of clavicle: closed",
+      "ext_dx": "V2749-Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S2240",
+          "name": "Multiple closed fractures of ribs"
+        },
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "V2749",
+          "name": "Motorcycle rider injured in collision with fixed or stationary object at driver injured in traffic  accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 40,
+    "cid": "1650501128541",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "40",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000098836",
+      "cid": "1650501128541",
+      "patient_name": "น.ส.นันทิชา อิสโร",
+      "vn": "690112171638",
+      "visit_date": "2026-01-12",
+      "visit_time": "17:16:38",
+      "sex": "หญิง",
+      "age": 15,
+      "house_no": "2/2",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S519-Open wound of forearm, part unspecified",
+      "ext_dx": "V2759-Motorcycle rider injured in collision with fixed or stationary object at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S008",
+          "name": "Superficial injury of other parts of head"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2759",
+          "name": "Motorcycle rider injured in collision with fixed or stationary object at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 41,
+    "cid": "1659902349831",
+    "visit_date": "2026-01-01",
+    "response": {
+      "id": "41",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156370",
+      "cid": "1659902349831",
+      "patient_name": "นายทักษ์ดนัย แจ่มมณี",
+      "vn": "690101025440",
+      "visit_date": "2026-01-01",
+      "visit_time": "02:54:40",
+      "sex": "ชาย",
+      "age": 19,
+      "house_no": "80/2",
+      "moo": "2",
+      "road": null,
+      "tumbon": "วังน้ำคู้",
+      "amphoe": "เมืองพิษณุโลก",
+      "changwat": "พิษณุโลก",
+      "cc": "ให้สารน้ำทางหลอดเลือดดำ/on IV,ฉีดยา IV,suction ดูดเสมหะ,EKG monitor,Splint ข้อ ดามกระดูกภายนอก",
+      "status": "เสียชีวิต",
+      "triage": null,
+      "source": "auto",
+      "pdx": "R99-Other ill-defined and unspecified causes of mortality",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "R99",
+          "name": "Other ill-defined and unspecified causes of mortality"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z712",
+          "name": "Person consulting for explanation of investigation findings"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 42,
+    "cid": "3650500278635",
+    "visit_date": "2026-01-01",
+    "response": {
+      "id": "42",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000018016",
+      "cid": "3650500278635",
+      "patient_name": "นายอำนาจ พลสว่าง",
+      "vn": "690101103933",
+      "visit_date": "2026-01-01",
+      "visit_time": "10:39:33",
+      "sex": "ชาย",
+      "age": 57,
+      "house_no": "105/5",
+      "moo": "01",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S519-Open wound of forearm, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S311",
+          "name": "Open wound of abdominal wall"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 43,
+    "cid": "1118700173425",
+    "visit_date": "2026-01-01",
+    "response": {
+      "id": "43",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000114593",
+      "cid": "1118700173425",
+      "patient_name": "น.ส.ศณิษา คงสมอรรถ",
+      "vn": "690101191535",
+      "visit_date": "2026-01-01",
+      "visit_time": "19:15:35",
+      "sex": "หญิง",
+      "age": 15,
+      "house_no": "59",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 44,
+    "cid": "3650500017882",
+    "visit_date": "2026-01-02",
+    "response": {
+      "id": "44",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000103302",
+      "cid": "3650500017882",
+      "patient_name": "นายจิตรกร รองแก้ว",
+      "vn": "690102122300",
+      "visit_date": "2026-01-02",
+      "visit_time": "12:23:00",
+      "sex": "ชาย",
+      "age": 46,
+      "house_no": "100/3",
+      "moo": "03",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S002-Other superficial injuries of eyelid and periocular area",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S002",
+          "name": "Other superficial injuries of eyelid and periocular area"
+        },
+        {
+          "code": "S409",
+          "name": "Superficial injury of shoulder and upper arm, unspecified"
+        },
+        {
+          "code": "S709",
+          "name": "Superficial injury of hip and thigh, unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 45,
+    "cid": "1659902609905",
+    "visit_date": "2026-01-02",
+    "response": {
+      "id": "45",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000102097",
+      "cid": "1659902609905",
+      "patient_name": "ด.ช.ชยานันท์ มากสลุด",
+      "vn": "690102152248",
+      "visit_date": "2026-01-02",
+      "visit_time": "15:22:48",
+      "sex": "ชาย",
+      "age": 14,
+      "house_no": "20/4",
+      "moo": "2",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลถลอกแขนข้างซ้าย 1 ชม.ก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S519-Open wound of forearm, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 46,
+    "cid": "1679800385773",
+    "visit_date": "2026-01-04",
+    "response": {
+      "id": "46",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156386",
+      "cid": "1679800385773",
+      "patient_name": "น.ส.เนตรชนก คำชู",
+      "vn": "690104121210",
+      "visit_date": "2026-01-04",
+      "visit_time": "12:12:10",
+      "sex": "หญิง",
+      "age": 19,
+      "house_no": "182/1",
+      "moo": "6",
+      "road": null,
+      "tumbon": "น้ำชุน",
+      "amphoe": "หล่มสัก",
+      "changwat": "เพชรบูรณ์",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 47,
+    "cid": "1411200137480",
+    "visit_date": "2026-01-04",
+    "response": {
+      "id": "47",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156388",
+      "cid": "1411200137480",
+      "patient_name": "นายอนุสรณ์ สุทธิรักษา",
+      "vn": "690104133802",
+      "visit_date": "2026-01-04",
+      "visit_time": "13:38:02",
+      "sex": "ชาย",
+      "age": 36,
+      "house_no": "119",
+      "moo": "04",
+      "road": null,
+      "tumbon": "ด่านช้าง",
+      "amphoe": "นากลาง",
+      "changwat": "หนองบัวลำภู",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S810-Open wound of knee",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 48,
+    "cid": "1669900352826",
+    "visit_date": "2026-01-06",
+    "response": {
+      "id": "48",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000142749",
+      "cid": "1669900352826",
+      "patient_name": "นายบุญญฤทธิ์ บุสำโรง",
+      "vn": "690106190450",
+      "visit_date": "2026-01-06",
+      "visit_time": "19:04:50",
+      "sex": "ชาย",
+      "age": 27,
+      "house_no": "32/1",
+      "moo": "06",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลถลอกขาข้างขวา 1 ชม.ก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S819-Open wound of knee and leg, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 49,
+    "cid": "1650900070130",
+    "visit_date": "2026-01-06",
+    "response": {
+      "id": "49",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000001236",
+      "cid": "1650900070130",
+      "patient_name": "นายเอกนรินทร์ อ่อนชาวนา",
+      "vn": "690106205144",
+      "visit_date": "2026-01-06",
+      "visit_time": "20:51:44",
+      "sex": "ชาย",
+      "age": 41,
+      "house_no": "45/2",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 50,
+    "cid": "3650500536855",
+    "visit_date": "2026-01-07",
+    "response": {
+      "id": "50",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000094062",
+      "cid": "3650500536855",
+      "patient_name": "นางสำเริง ฉิมจิ๋ว",
+      "vn": "690107133113",
+      "visit_date": "2026-01-07",
+      "visit_time": "13:31:13",
+      "sex": "หญิง",
+      "age": 63,
+      "house_no": "51/2",
+      "moo": "02",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S8290-Closed fracture of lower leg, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S8290",
+          "name": "Closed fracture of lower leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 51,
+    "cid": "1650501120281",
+    "visit_date": "2026-01-07",
+    "response": {
+      "id": "51",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000027703",
+      "cid": "1650501120281",
+      "patient_name": "นายพรเมษา เมธี",
+      "vn": "690107211853",
+      "visit_date": "2026-01-07",
+      "visit_time": "21:18:53",
+      "sex": "ชาย",
+      "age": 21,
+      "house_no": "102",
+      "moo": "06",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลที่ใบหน้า แขนและขาสองข้าง 30 นาทีก่อนมา",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 52,
+    "cid": "3650500167108",
+    "visit_date": "2026-01-09",
+    "response": {
+      "id": "52",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000014274",
+      "cid": "3650500167108",
+      "patient_name": "นายธนวัฒน์ พบรักแท้",
+      "vn": "690109110733",
+      "visit_date": "2026-01-09",
+      "visit_time": "11:07:33",
+      "sex": "ชาย",
+      "age": 58,
+      "house_no": "9/6",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S4200-Fracture of clavicle: closed",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 53,
+    "cid": "1659902566084",
+    "visit_date": "2026-01-10",
+    "response": {
+      "id": "53",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000105572",
+      "cid": "1659902566084",
+      "patient_name": "นายชัชพิสิฐ ไม้ส้มซ่า",
+      "vn": "690110123258",
+      "visit_date": "2026-01-10",
+      "visit_time": "12:32:58",
+      "sex": "ชาย",
+      "age": 15,
+      "house_no": "64/2",
+      "moo": "07",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลถลอกเข่าสองข้าง และศฮกขวา 20 นาทีก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S817-Multiple open wounds of knee and leg",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S817",
+          "name": "Multiple open wounds of knee and leg"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 54,
+    "cid": "1659902724381",
+    "visit_date": "2026-01-10",
+    "response": {
+      "id": "54",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000119182",
+      "cid": "1659902724381",
+      "patient_name": "ด.ช.ปฐมฤกษ์ เสมียนอ่ำ",
+      "vn": "690110184504",
+      "visit_date": "2026-01-10",
+      "visit_time": "18:45:04",
+      "sex": "ชาย",
+      "age": 13,
+      "house_no": "25",
+      "moo": "05",
+      "road": null,
+      "tumbon": "โคกสลุด",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดศรีษะ มีแผลถลอกขาขวา สะโพขวา 25 ก่อนมา รพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S819-Open wound of knee and leg, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S718",
+          "name": "Open wound of other and unspecified parts of pelvic girdle"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 55,
+    "cid": "1101000391610",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "55",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000114555",
+      "cid": "1101000391610",
+      "patient_name": "ด.ช.ธนธรณ์ แก้วทอง",
+      "vn": "690112194142",
+      "visit_date": "2026-01-12",
+      "visit_time": "19:41:42",
+      "sex": "ชาย",
+      "age": 13,
+      "house_no": "10/3",
+      "moo": "07",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S810-Open wound of knee",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 56,
+    "cid": "3650500536855",
+    "visit_date": "2026-01-14",
+    "response": {
+      "id": "56",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000094062",
+      "cid": "3650500536855",
+      "patient_name": "นางสำเริง ฉิมจิ๋ว",
+      "vn": "690114130328",
+      "visit_date": "2026-01-14",
+      "visit_time": "13:03:28",
+      "sex": "หญิง",
+      "age": 63,
+      "house_no": "51/2",
+      "moo": "02",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Case  Fx Rt.distal fibula on SLSนัดดูอาการ 1 สัปดาห์",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "M7967-Pain in limb Ankle and foot",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "M7967",
+          "name": "Pain in limb Ankle and foot"
+        },
+        {
+          "code": "S8250",
+          "name": "Closed fracture of medial malleolus"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 57,
+    "cid": "1102003547824",
+    "visit_date": "2026-01-16",
+    "response": {
+      "id": "57",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000087905",
+      "cid": "1102003547824",
+      "patient_name": "นายรวีโรจน์ ใสไหม",
+      "vn": "690116145458",
+      "visit_date": "2026-01-16",
+      "visit_time": "14:54:58",
+      "sex": "ชาย",
+      "age": 22,
+      "house_no": "48/3",
+      "moo": "07",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Dressing wound แผลเปิด",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S810-Open wound of knee",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 58,
+    "cid": "1769900527005",
+    "visit_date": "2026-01-17",
+    "response": {
+      "id": "58",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000012394",
+      "cid": "1769900527005",
+      "patient_name": "น.ส.สุพรรณิกา ธารีรัชต์",
+      "vn": "690117083423",
+      "visit_date": "2026-01-17",
+      "visit_time": "08:34:23",
+      "sex": "หญิง",
+      "age": 27,
+      "house_no": "72/2",
+      "moo": "01",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S800-Contusion of knee",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S800",
+          "name": "Contusion of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 59,
+    "cid": "3650500160359",
+    "visit_date": "2026-01-17",
+    "response": {
+      "id": "59",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000024147",
+      "cid": "3650500160359",
+      "patient_name": "นางดารัณ หนูท่านา",
+      "vn": "690117101049",
+      "visit_date": "2026-01-17",
+      "visit_time": "10:10:49",
+      "sex": "หญิง",
+      "age": 67,
+      "house_no": "147/1",
+      "moo": "03",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "เจ็บหน้าอก มีแผลถลอกที่ศีรษะ 20 นาทีก่อนมา รพ.",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S011-Open wound of eyelid and  periocular area",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S011",
+          "name": "Open wound of eyelid and  periocular area"
+        },
+        {
+          "code": "S208",
+          "name": "Superficial injury of other and unspecified parts of thorax"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 60,
+    "cid": "3650500408342",
+    "visit_date": "2026-01-17",
+    "response": {
+      "id": "60",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000089870",
+      "cid": "3650500408342",
+      "patient_name": "นายมีศักดิ์ คงสัมฤทธิ์",
+      "vn": "690117161309",
+      "visit_date": "2026-01-17",
+      "visit_time": "16:13:09",
+      "sex": "ชาย",
+      "age": 63,
+      "house_no": "2/59",
+      "moo": "06",
+      "road": null,
+      "tumbon": "โคกสลุด",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S011-Open wound of eyelid and  periocular area",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S011",
+          "name": "Open wound of eyelid and  periocular area"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 61,
+    "cid": "3650500459044",
+    "visit_date": "2026-01-18",
+    "response": {
+      "id": "61",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000083467",
+      "cid": "3650500459044",
+      "patient_name": "นายวรพงษ์ นุ่มสุข",
+      "vn": "690118084802",
+      "visit_date": "2026-01-18",
+      "visit_time": "08:48:02",
+      "sex": "ชาย",
+      "age": 52,
+      "house_no": "21/4",
+      "moo": "2",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 62,
+    "cid": "3660100200442",
+    "visit_date": "2026-01-18",
+    "response": {
+      "id": "62",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000117303",
+      "cid": "3660100200442",
+      "patient_name": "นายพุฒิกร โพธิ์ทอง",
+      "vn": "690118104528",
+      "visit_date": "2026-01-18",
+      "visit_time": "10:45:28",
+      "sex": "ชาย",
+      "age": 43,
+      "house_no": "74",
+      "moo": "03",
+      "road": null,
+      "tumbon": "คลองคะเชนทร์",
+      "amphoe": "เมืองพิจิตร",
+      "changwat": "พิจิตร",
+      "cc": "ปวดไหล่ข้างขวา 23 ชม. ก่อนมา รพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S4200-Fracture of clavicle: closed",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 63,
+    "cid": "1650500067743",
+    "visit_date": "2026-01-20",
+    "response": {
+      "id": "63",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000009600",
+      "cid": "1650500067743",
+      "patient_name": "น.ส.อุมาภรณ์ กลัดเนินกุ่ม",
+      "vn": "690120080457",
+      "visit_date": "2026-01-20",
+      "visit_time": "08:04:57",
+      "sex": "หญิง",
+      "age": 36,
+      "house_no": "51/5",
+      "moo": "08",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S509-Superficial injury of elbow and forearm, unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S409",
+          "name": "Superficial injury of shoulder and upper arm, unspecified"
+        },
+        {
+          "code": "S509",
+          "name": "Superficial injury of elbow and forearm, unspecified"
+        },
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 64,
+    "cid": "3650500292425",
+    "visit_date": "2026-01-20",
+    "response": {
+      "id": "64",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000013546",
+      "cid": "3650500292425",
+      "patient_name": "นางพรรษชล พงษ์พานิช",
+      "vn": "690120120253",
+      "visit_date": "2026-01-20",
+      "visit_time": "12:02:53",
+      "sex": "หญิง",
+      "age": 62,
+      "house_no": "99/1",
+      "moo": "03",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S809-Superficial injury of knee and leg, unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "M7799",
+          "name": "Enthesopathy, unspecified Site unspecified"
+        },
+        {
+          "code": "S809",
+          "name": "Superficial injury of knee and leg, unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z501",
+          "name": "Other physicla therapy"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 65,
+    "cid": "3650500019532",
+    "visit_date": "2026-01-21",
+    "response": {
+      "id": "65",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000104250",
+      "cid": "3650500019532",
+      "patient_name": "นายประลัม อ้วนวิจิตร",
+      "vn": "690121091744",
+      "visit_date": "2026-01-21",
+      "visit_time": "09:17:44",
+      "sex": "ชาย",
+      "age": 65,
+      "house_no": "88",
+      "moo": "03",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ขี่จักรยานยนต์ล้มเอง 20 นาทีก่อนมารพ",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 66,
+    "cid": "3650500281652",
+    "visit_date": "2026-01-21",
+    "response": {
+      "id": "66",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000008567",
+      "cid": "3650500281652",
+      "patient_name": "นายมณเฑียร รอดเครือวัลย์",
+      "vn": "690121170223",
+      "visit_date": "2026-01-21",
+      "visit_time": "17:02:23",
+      "sex": "ชาย",
+      "age": 66,
+      "house_no": "21",
+      "moo": "02",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "วูบ ขับจักรยานยนต์ล้ม 30 นาทีก่อนมารพ",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S301-Contusion of abdominal wall",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S301",
+          "name": "Contusion of abdominal wall"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 67,
+    "cid": "3650500281652",
+    "visit_date": "2026-01-22",
+    "response": {
+      "id": "67",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000008567",
+      "cid": "3650500281652",
+      "patient_name": "นายมณเฑียร รอดเครือวัลย์",
+      "vn": "690122102446",
+      "visit_date": "2026-01-22",
+      "visit_time": "10:24:46",
+      "sex": "ชาย",
+      "age": 66,
+      "house_no": "21",
+      "moo": "02",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S208-Superficial injury of other and unspecified parts of thorax",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "M9409",
+          "name": "Chondrocostal junction syndrome [ Tietze ] Site unspecified"
+        },
+        {
+          "code": "S208",
+          "name": "Superficial injury of other and unspecified parts of thorax"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 68,
+    "cid": "3650100932371",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "68",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000023572",
+      "cid": "3650100932371",
+      "patient_name": "นายประหยัด เรืองสุกใส",
+      "vn": "690123122121",
+      "visit_date": "2026-01-23",
+      "visit_time": "12:21:21",
+      "sex": "ชาย",
+      "age": 70,
+      "house_no": "43/2",
+      "moo": "6",
+      "road": null,
+      "tumbon": "งิ้วงาม",
+      "amphoe": "เมืองพิษณุโลก",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 69,
+    "cid": "1104000163903",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "69",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156536",
+      "cid": "1104000163903",
+      "patient_name": "นายวัชระชัย จินดารัตน์",
+      "vn": "690123123145",
+      "visit_date": "2026-01-23",
+      "visit_time": "12:31:45",
+      "sex": "ชาย",
+      "age": 19,
+      "house_no": "111/1",
+      "moo": "11",
+      "road": null,
+      "tumbon": "บ้านนา",
+      "amphoe": "วชิรบารมี",
+      "changwat": "พิจิตร",
+      "cc": "แผลถลอกศอกข้างซ้าย 1 ชม.ก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S510-Open wound of elbow",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 70,
+    "cid": "3650500167108",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "70",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000014274",
+      "cid": "3650500167108",
+      "patient_name": "นายธนวัฒน์ พบรักแท้",
+      "vn": "690123125451",
+      "visit_date": "2026-01-23",
+      "visit_time": "12:54:51",
+      "sex": "ชาย",
+      "age": 58,
+      "house_no": "9/6",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S4200-Fracture of clavicle: closed",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "E789",
+          "name": "Disorder of lipoprotein metabolism,unspecified"
+        },
+        {
+          "code": "I10",
+          "name": "Essential (primary) hypertension"
+        },
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 71,
+    "cid": "1659902172965",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "71",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000019712",
+      "cid": "1659902172965",
+      "patient_name": "นายสงกรานต์ แปรรินทร์",
+      "vn": "690123231903",
+      "visit_date": "2026-01-23",
+      "visit_time": "23:19:03",
+      "sex": "ชาย",
+      "age": 22,
+      "house_no": "10",
+      "moo": "01",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดไหล่ขวา แผลถลอกใบหน้า 25 นาทีก่อนมารพ.",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S409-Superficial injury of shoulder and upper arm, unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S409",
+          "name": "Superficial injury of shoulder and upper arm, unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 72,
+    "cid": "3650500376131",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "72",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000153837",
+      "cid": "3650500376131",
+      "patient_name": "นายณชพล โตแป้น",
+      "vn": "690123235822",
+      "visit_date": "2026-01-23",
+      "visit_time": "23:58:22",
+      "sex": "ชาย",
+      "age": 43,
+      "house_no": "87/1",
+      "moo": "02",
+      "road": null,
+      "tumbon": "วัดตายม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดหลัง ปวดต้นคอ 30 นาทีก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S204-Other superficial injuries of back wall of thorax",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S108",
+          "name": "Superficial injury of other parts of neck"
+        },
+        {
+          "code": "S204",
+          "name": "Other superficial injuries of back wall of thorax"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 73,
+    "cid": "3650500469457",
+    "visit_date": "2026-01-24",
+    "response": {
+      "id": "73",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000107700",
+      "cid": "3650500469457",
+      "patient_name": "นายสุชาติ ดีอินทร์",
+      "vn": "690124173602",
+      "visit_date": "2026-01-24",
+      "visit_time": "17:36:02",
+      "sex": "ชาย",
+      "age": 64,
+      "house_no": "63/1",
+      "moo": "04",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Splint ข้อ ดามกระดูกภายนอก",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S011-Open wound of eyelid and  periocular area",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S011",
+          "name": "Open wound of eyelid and  periocular area"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 74,
+    "cid": "3660100952215",
+    "visit_date": "2026-01-24",
+    "response": {
+      "id": "74",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000096816",
+      "cid": "3660100952215",
+      "patient_name": "นางมาลี เล่าสูงเนิน",
+      "vn": "690124182214",
+      "visit_date": "2026-01-24",
+      "visit_time": "18:22:14",
+      "sex": "หญิง",
+      "age": 54,
+      "house_no": "50/5",
+      "moo": "05",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดข้อมือข้างขวา 30 นาที ก่อนมา รพ.",
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S6280-Closed fracture of other and unspecified parts of wrist and hand",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S6280",
+          "name": "Closed fracture of other and unspecified parts of wrist and hand"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 75,
+    "cid": "3650500056381",
+    "visit_date": "2026-01-27",
+    "response": {
+      "id": "75",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000026471",
+      "cid": "3650500056381",
+      "patient_name": "นางบุญยิ้ม สีฉิม",
+      "vn": "690127065033",
+      "visit_date": "2026-01-27",
+      "visit_time": "06:50:33",
+      "sex": "หญิง",
+      "age": 75,
+      "house_no": "19/1",
+      "moo": "05",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Suture",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S610-Open wound of thumb and finger(s) without damage to nail",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S610",
+          "name": "Open wound of thumb and finger(s) without damage to nail"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 76,
+    "cid": "3650500251192",
+    "visit_date": "2026-01-27",
+    "response": {
+      "id": "76",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000026281",
+      "cid": "3650500251192",
+      "patient_name": "นางมณี ศรีสมบุญ",
+      "vn": "690127065303",
+      "visit_date": "2026-01-27",
+      "visit_time": "06:53:03",
+      "sex": "หญิง",
+      "age": 65,
+      "house_no": "3/1",
+      "moo": "06",
+      "road": null,
+      "tumbon": "สนามคลี",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "ปวดเสียวซี่โครงขวา แผลที่นิ้วกลางและนิ้วนางมือซ้าย 30 นาทีก่อนมา",
+      "status": "กลับบ้าน",
+      "triage": "Non Urgency (รอได้)",
+      "source": "auto",
+      "pdx": "S619-Open wound of wrist and hand part, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S308",
+          "name": "Other superficial injuries of abdomen, lower back and pelvis"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 77,
+    "cid": "3650500251192",
+    "visit_date": "2026-01-27",
+    "response": {
+      "id": "76",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000026281",
+      "cid": "3650500251192",
+      "patient_name": "นางมณี ศรีสมบุญ",
+      "vn": "690127102911",
+      "visit_date": "2026-01-27",
+      "visit_time": "10:29:11",
+      "sex": "หญิง",
+      "age": 65,
+      "house_no": "3/1",
+      "moo": "06",
+      "road": null,
+      "tumbon": "สนามคลี",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "รับไว้รักษา",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S610-Open wound of thumb and finger(s) without damage to nail",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "E119",
+          "name": "Non-insulin-dependent diabetes mellitus type 2 at without complications"
+        },
+        {
+          "code": "S308",
+          "name": "Other superficial injuries of abdomen, lower back and pelvis"
+        },
+        {
+          "code": "S610",
+          "name": "Open wound of thumb and finger(s) without damage to nail"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 78,
+    "cid": "1659902371658",
+    "visit_date": "2026-01-28",
+    "response": {
+      "id": "78",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000146393",
+      "cid": "1659902371658",
+      "patient_name": "น.ส.กัญญาวีร์ เกิดทวี",
+      "vn": "690128142053",
+      "visit_date": "2026-01-28",
+      "visit_time": "14:20:53",
+      "sex": "หญิง",
+      "age": 19,
+      "house_no": "17/1",
+      "moo": "02",
+      "road": null,
+      "tumbon": "ท่าสะแก",
+      "amphoe": "ชาติตระการ",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S819-Open wound of knee and leg, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 79,
+    "cid": "3650500086965",
+    "visit_date": "2026-01-29",
+    "response": {
+      "id": "79",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000045415",
+      "cid": "3650500086965",
+      "patient_name": "นายสมคิด ชอนบุรี",
+      "vn": "690129015329",
+      "visit_date": "2026-01-29",
+      "visit_time": "01:53:29",
+      "sex": "ชาย",
+      "age": 48,
+      "house_no": "11/1",
+      "moo": "4",
+      "road": "-",
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลถลอกตามร่างกาย 30 นาที ก่อนมา รพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S005-Superficial injury of lip and oral cavity",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S005",
+          "name": "Superficial injury of lip and oral cavity"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 80,
+    "cid": "1129701381316",
+    "visit_date": "2026-01-30",
+    "response": {
+      "id": "80",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000155874",
+      "cid": "1129701381316",
+      "patient_name": "นายธนาธิป แดงชาวนา",
+      "vn": "690130122835",
+      "visit_date": "2026-01-30",
+      "visit_time": "12:28:35",
+      "sex": "ชาย",
+      "age": 19,
+      "house_no": "1",
+      "moo": "06",
+      "road": null,
+      "tumbon": "หนองแขม",
+      "amphoe": "พรหมพิราม",
+      "changwat": "พิษณุโลก",
+      "cc": "Suture",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 81,
+    "cid": "3650500106290",
+    "visit_date": "2026-01-31",
+    "response": {
+      "id": "81",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000147055",
+      "cid": "3650500106290",
+      "patient_name": "นายสมหมาย เหมือนเพชร",
+      "vn": "690131110700",
+      "visit_date": "2026-01-31",
+      "visit_time": "11:07:00",
+      "sex": "ชาย",
+      "age": 59,
+      "house_no": "67",
+      "moo": "11",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Dressing wound แผลเปิด",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S208-Superficial injury of other and unspecified parts of thorax",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S208",
+          "name": "Superficial injury of other and unspecified parts of thorax"
+        },
+        {
+          "code": "S610",
+          "name": "Open wound of thumb and finger(s) without damage to nail"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 82,
+    "cid": "1650501130732",
+    "visit_date": "2026-01-31",
+    "response": {
+      "id": "82",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000106865",
+      "cid": "1650501130732",
+      "patient_name": "ด.ช.กิตติพร แสงสุวรรณ",
+      "vn": "690131183129",
+      "visit_date": "2026-01-31",
+      "visit_time": "18:31:29",
+      "sex": "ชาย",
+      "age": 13,
+      "house_no": "10/1",
+      "moo": "03",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S510-Open wound of elbow",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 83,
+    "cid": "1650501134711",
+    "visit_date": "2026-02-01",
+    "response": {
+      "id": "83",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000121173",
+      "cid": "1650501134711",
+      "patient_name": "ด.ญ.จารุกร สันทอง",
+      "vn": "690201183554",
+      "visit_date": "2026-02-01",
+      "visit_time": "18:35:54",
+      "sex": "หญิง",
+      "age": 8,
+      "house_no": "76/4",
+      "moo": "05",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S519-Open wound of forearm, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "K291",
+          "name": "Other acute gastritis"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 84,
+    "cid": "3650500022355",
+    "visit_date": "2026-02-01",
+    "response": {
+      "id": "84",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000058584",
+      "cid": "3650500022355",
+      "patient_name": "นายประจวบ รองกลิ่น",
+      "vn": "690201192459",
+      "visit_date": "2026-02-01",
+      "visit_time": "19:24:59",
+      "sex": "ชาย",
+      "age": 73,
+      "house_no": "114",
+      "moo": "03",
+      "road": "-",
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S208-Superficial injury of other and unspecified parts of thorax",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S208",
+          "name": "Superficial injury of other and unspecified parts of thorax"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 85,
+    "cid": "1650501128347",
+    "visit_date": "2026-02-02",
+    "response": {
+      "id": "85",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000097911",
+      "cid": "1650501128347",
+      "patient_name": "น.ส.รอนอริน สินใหม",
+      "vn": "690202080246",
+      "visit_date": "2026-02-02",
+      "visit_time": "08:02:46",
+      "sex": "หญิง",
+      "age": 16,
+      "house_no": "52/2",
+      "moo": "06",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Dressing wound แผลเปิด",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S819-Open wound of knee and leg, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 86,
+    "cid": "1650801259862",
+    "visit_date": "2026-02-02",
+    "response": {
+      "id": "86",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000127983",
+      "cid": "1650801259862",
+      "patient_name": "น.ส.ธัญชนก นาคจัง",
+      "vn": "690202115739",
+      "visit_date": "2026-02-02",
+      "visit_time": "11:57:39",
+      "sex": "หญิง",
+      "age": 19,
+      "house_no": "3/4",
+      "moo": "10",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S509-Superficial injury of elbow and forearm, unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S509",
+          "name": "Superficial injury of elbow and forearm, unspecified"
+        },
+        {
+          "code": "S809",
+          "name": "Superficial injury of knee and leg, unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 87,
+    "cid": "3650100943585",
+    "visit_date": "2026-02-02",
+    "response": {
+      "id": "87",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000064274",
+      "cid": "3650100943585",
+      "patient_name": "นายพยุง อุทัยสวัสดิ์",
+      "vn": "690202212903",
+      "visit_date": "2026-02-02",
+      "visit_time": "21:29:03",
+      "sex": "ชาย",
+      "age": 63,
+      "house_no": "71/2",
+      "moo": "10",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S509-Superficial injury of elbow and forearm, unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "J939",
+          "name": "Pneumothorax, unspecified"
+        },
+        {
+          "code": "S509",
+          "name": "Superficial injury of elbow and forearm, unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 88,
+    "cid": "3160600203763",
+    "visit_date": "2026-02-03",
+    "response": {
+      "id": "88",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000155336",
+      "cid": "3160600203763",
+      "patient_name": "นายปรีชา บุญนำมา",
+      "vn": "690203152529",
+      "visit_date": "2026-02-03",
+      "visit_time": "15:25:29",
+      "sex": "ชาย",
+      "age": 69,
+      "house_no": "27",
+      "moo": "08",
+      "road": null,
+      "tumbon": "โคกสลุด",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "รับไว้รักษา",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S4200-Fracture of clavicle: closed",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S2230",
+          "name": "Closed fracture of rib"
+        },
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 89,
+    "cid": "3100503329511",
+    "visit_date": "2026-02-06",
+    "response": {
+      "id": "89",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000106618",
+      "cid": "3100503329511",
+      "patient_name": "น.ส.สุจิตตรา มรินทร์สิงห์",
+      "vn": "690206045200",
+      "visit_date": "2026-02-06",
+      "visit_time": "04:52:00",
+      "sex": "หญิง",
+      "age": 45,
+      "house_no": "54/4",
+      "moo": "03",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S619-Open wound of wrist and hand part, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 90,
+    "cid": "1659902368231",
+    "visit_date": "2026-02-06",
+    "response": {
+      "id": "90",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000086925",
+      "cid": "1659902368231",
+      "patient_name": "นายกฤตานันท์ จันบ้านคลอง",
+      "vn": "690206214923",
+      "visit_date": "2026-02-06",
+      "visit_time": "21:49:23",
+      "sex": "ชาย",
+      "age": 19,
+      "house_no": "21/2",
+      "moo": "06",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "เจ็บแผลที่แขนขวา ไหล่ขวา 15 นาทีก่อนมา รพ.",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S519-Open wound of forearm, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S410",
+          "name": "Open wound of shoulder"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 91,
+    "cid": "1661200058294",
+    "visit_date": "2026-02-06",
+    "response": {
+      "id": "91",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156642",
+      "cid": "1661200058294",
+      "patient_name": "น.ส.กนกรดา ใจขัน",
+      "vn": "690206215713",
+      "visit_date": "2026-02-06",
+      "visit_time": "21:57:13",
+      "sex": "หญิง",
+      "age": 17,
+      "house_no": "4",
+      "moo": "13",
+      "road": null,
+      "tumbon": "บึงบัว",
+      "amphoe": "วชิรบารมี",
+      "changwat": "พิจิตร",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S519-Open wound of forearm, part unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 92,
+    "cid": "3320101173531",
+    "visit_date": "2026-02-08",
+    "response": {
+      "id": "92",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000032687",
+      "cid": "3320101173531",
+      "patient_name": "นายสุชาติ สุขจิตร",
+      "vn": "690208214840",
+      "visit_date": "2026-02-08",
+      "visit_time": "21:48:40",
+      "sex": "ชาย",
+      "age": 53,
+      "house_no": "350",
+      "moo": "02",
+      "road": null,
+      "tumbon": "วัดตายม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S098-Other specified injuries of head",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S098",
+          "name": "Other specified injuries of head"
+        },
+        {
+          "code": "S2240",
+          "name": "Multiple closed fractures of ribs"
+        },
+        {
+          "code": "S4200",
+          "name": "Fracture of clavicle: closed"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 93,
+    "cid": "1129902381895",
+    "visit_date": "2026-02-10",
+    "response": {
+      "id": "93",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000128142",
+      "cid": "1129902381895",
+      "patient_name": "ด.ช.วีรภาพ วงษ์คล้าย",
+      "vn": "690210175241",
+      "visit_date": "2026-02-10",
+      "visit_time": "17:52:41",
+      "sex": "ชาย",
+      "age": 12,
+      "house_no": "349",
+      "moo": "02",
+      "road": null,
+      "tumbon": "วัดตายม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S609-Superficial injury of wrist and hand, unspecified",
+      "ext_dx": "V2849-Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S609",
+          "name": "Superficial injury of wrist and hand, unspecified"
+        },
+        {
+          "code": "S810",
+          "name": "Open wound of knee"
+        },
+        {
+          "code": "S910",
+          "name": "Open wound of ankle"
+        },
+        {
+          "code": "V2849",
+          "name": "Motorcycle rider injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 94,
+    "cid": "1659902581784",
+    "visit_date": "2026-01-02",
+    "response": {
+      "id": "94",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000111140",
+      "cid": "1659902581784",
+      "patient_name": "นายพิชญพงศ์ ไชยศิลา",
+      "vn": "690102152221",
+      "visit_date": "2026-01-02",
+      "visit_time": "15:22:21",
+      "sex": "ชาย",
+      "age": 15,
+      "house_no": "26",
+      "moo": "01",
+      "road": null,
+      "tumbon": "บางกระทุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลถลอกมือ 2 ข้าง 1 ชม.ก่อนมารพ.",
+      "status": "กลับบ้าน",
+      "triage": "Non Urgency (รอได้)",
+      "source": "auto",
+      "pdx": "S009-Superficial injury of head, part unspecified",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S009",
+          "name": "Superficial injury of head, part unspecified"
+        },
+        {
+          "code": "S310",
+          "name": "Open wound of lower back and pelvis"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 95,
+    "cid": "1659902935365",
+    "visit_date": "2026-01-07",
+    "response": {
+      "id": "95",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000119249",
+      "cid": "1659902935365",
+      "patient_name": "ด.ช.กวีวัธน์ บุตรา",
+      "vn": "690107205341",
+      "visit_date": "2026-01-07",
+      "visit_time": "20:53:41",
+      "sex": "ชาย",
+      "age": 9,
+      "house_no": "99",
+      "moo": "04",
+      "road": null,
+      "tumbon": "วัดตายม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "แผลที่หลัง แขนและขาซ้าย 3 ชม. ก่อนมา",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S3189-Open wound of unspecified parts of abdomen, lower back, pelvis",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S3189",
+          "name": "Open wound of unspecified parts of abdomen, lower back, pelvis"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 96,
+    "cid": "1769900688050",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "96",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156453",
+      "cid": "1769900688050",
+      "patient_name": "น.ส.อภาภรณ์ กลิ่นหอม",
+      "vn": "690112173320",
+      "visit_date": "2026-01-12",
+      "visit_time": "17:33:20",
+      "sex": "หญิง",
+      "age": 22,
+      "house_no": "101/1",
+      "moo": "02",
+      "road": null,
+      "tumbon": "ปากทะเล",
+      "amphoe": "บ้านแหลม",
+      "changwat": "เพชรบุรี",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S009-Superficial injury of head, part unspecified",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S009",
+          "name": "Superficial injury of head, part unspecified"
+        },
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S909",
+          "name": "Superficial injury of ankle and foot, unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 97,
+    "cid": "3650100868991",
+    "visit_date": "2026-01-18",
+    "response": {
+      "id": "97",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000096767",
+      "cid": "3650100868991",
+      "patient_name": "นางประหยัด คำไพร",
+      "vn": "690118084807",
+      "visit_date": "2026-01-18",
+      "visit_time": "08:48:07",
+      "sex": "หญิง",
+      "age": 70,
+      "house_no": "21/2",
+      "moo": "02",
+      "road": null,
+      "tumbon": "บ้านไร่",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S909-Superficial injury of ankle and foot, unspecified",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S010",
+          "name": "Open wound of scalp"
+        },
+        {
+          "code": "S411",
+          "name": "Open wound of upper arm"
+        },
+        {
+          "code": "S909",
+          "name": "Superficial injury of ankle and foot, unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 98,
+    "cid": "3650500129397",
+    "visit_date": "2026-01-19",
+    "response": {
+      "id": "98",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000021332",
+      "cid": "3650500129397",
+      "patient_name": "นางอำนวย ปราระกานนท์",
+      "vn": "690119134400",
+      "visit_date": "2026-01-19",
+      "visit_time": "13:44:00",
+      "sex": "หญิง",
+      "age": 68,
+      "house_no": "31",
+      "moo": "12",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": "Non Urgency (รอได้)",
+      "source": "auto",
+      "pdx": "S72408-Closed Fracture of distal femur, others",
+      "ext_dx": "W0199-Fall on same level from slipping, tripping and stumbling at unspecified place During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S72408",
+          "name": "Closed Fracture of distal femur, others"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "W0199",
+          "name": "Fall on same level from slipping, tripping and stumbling at unspecified place During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 99,
+    "cid": "3650500129397",
+    "visit_date": "2026-01-19",
+    "response": {
+      "id": "98",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000021332",
+      "cid": "3650500129397",
+      "patient_name": "นางอำนวย ปราระกานนท์",
+      "vn": "690119134400",
+      "visit_date": "2026-01-19",
+      "visit_time": "13:44:00",
+      "sex": "หญิง",
+      "age": 68,
+      "house_no": "31",
+      "moo": "12",
+      "road": null,
+      "tumbon": "นครป่าหมาก",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": "Non Urgency (รอได้)",
+      "source": "auto",
+      "pdx": "S72408-Closed Fracture of distal femur, others",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S72408",
+          "name": "Closed Fracture of distal femur, others"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "W0199",
+          "name": "Fall on same level from slipping, tripping and stumbling at unspecified place During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 100,
+    "cid": "3650500502012",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "100",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156535",
+      "cid": "3650500502012",
+      "patient_name": "นางลิ้ม เรืองสุกใส",
+      "vn": "690123123122",
+      "visit_date": "2026-01-23",
+      "visit_time": "12:31:22",
+      "sex": "หญิง",
+      "age": 66,
+      "house_no": "43/2",
+      "moo": "06",
+      "road": null,
+      "tumbon": "งิ้วงาม",
+      "amphoe": "เมืองพิษณุโลก",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S809-Superficial injury of knee and leg, unspecified",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S809",
+          "name": "Superficial injury of knee and leg, unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 101,
+    "cid": "1661200053063",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "101",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156537",
+      "cid": "1661200053063",
+      "patient_name": "น.ส.สิริพร เขียวพุ่มพวง",
+      "vn": "690123123338",
+      "visit_date": "2026-01-23",
+      "visit_time": "12:33:38",
+      "sex": "หญิง",
+      "age": 20,
+      "house_no": "18/2",
+      "moo": "14",
+      "road": null,
+      "tumbon": "บ้านนา",
+      "amphoe": "วชิรบารมี",
+      "changwat": "พิจิตร",
+      "cc": "Dressing wound แผลเปิด",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S510-Open wound of elbow",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "S619",
+          "name": "Open wound of wrist and hand part, part unspecified"
+        },
+        {
+          "code": "S910",
+          "name": "Open wound of ankle"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 102,
+    "cid": "3650500157731",
+    "visit_date": "2026-01-30",
+    "response": {
+      "id": "102",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000006225",
+      "cid": "3650500157731",
+      "patient_name": "นางพูน ช่วงชิด",
+      "vn": "690130220008",
+      "visit_date": "2026-01-30",
+      "visit_time": "22:00:08",
+      "sex": "หญิง",
+      "age": 65,
+      "house_no": "52/1",
+      "moo": "01",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S609-Superficial injury of wrist and hand, unspecified",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S519",
+          "name": "Open wound of forearm, part unspecified"
+        },
+        {
+          "code": "S609",
+          "name": "Superficial injury of wrist and hand, unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 103,
+    "cid": "1659902695569",
+    "visit_date": "2026-02-02",
+    "response": {
+      "id": "103",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000109955",
+      "cid": "1659902695569",
+      "patient_name": "ด.ญ.นริศรา สีดวงจันทร์",
+      "vn": "690202080357",
+      "visit_date": "2026-02-02",
+      "visit_time": "08:03:57",
+      "sex": "หญิง",
+      "age": 13,
+      "house_no": "45/5",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": "Dressing wound แผลเปิด",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S819-Open wound of knee and leg, part unspecified",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S819",
+          "name": "Open wound of knee and leg, part unspecified"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 104,
+    "cid": "3650500416795",
+    "visit_date": "2026-02-03",
+    "response": {
+      "id": "104",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000147313",
+      "cid": "3650500416795",
+      "patient_name": "นางน้ำค้าง บุญนำมา",
+      "vn": "690203153948",
+      "visit_date": "2026-02-03",
+      "visit_time": "15:39:48",
+      "sex": "หญิง",
+      "age": 75,
+      "house_no": "27",
+      "moo": "08",
+      "road": null,
+      "tumbon": "โคกสลุด",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S510-Open wound of elbow",
+      "ext_dx": "V2859-Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S510",
+          "name": "Open wound of elbow"
+        },
+        {
+          "code": "V2859",
+          "name": "Motorcycle rider injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 105,
+    "cid": "1539901058469",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "105",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000109994",
+      "cid": "1539901058469",
+      "patient_name": "นายสุรสิทธิ์ ใจซื่อ",
+      "vn": "690112171544",
+      "visit_date": "2026-01-12",
+      "visit_time": "17:15:44",
+      "sex": "ชาย",
+      "age": 16,
+      "house_no": "55",
+      "moo": "02",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "รับไว้รักษา",
+      "triage": "Semi Urgency (ด่วน)",
+      "source": "auto",
+      "pdx": "S099-Unspecified injury of head",
+      "ext_dx": null,
+      "dx_list": [
+        {
+          "code": "S099",
+          "name": "Unspecified injury of head"
+        },
+        {
+          "code": "V2999",
+          "name": "Motorcycle rider [any] injured in unspecified traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 106,
+    "cid": "1409600164309",
+    "visit_date": "2026-01-31",
+    "response": {
+      "id": "106",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000129733",
+      "cid": "1409600164309",
+      "patient_name": "นายทนงศักดิ์ รัตนเพ็ชร",
+      "vn": "690131100109",
+      "visit_date": "2026-01-31",
+      "visit_time": "10:01:09",
+      "sex": "ชาย",
+      "age": 31,
+      "house_no": "26/1",
+      "moo": "04",
+      "road": null,
+      "tumbon": "เนินกุ่ม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S709-Superficial injury of hip and thigh, unspecified",
+      "ext_dx": "V4759-Car occupant injured in collision with fixed or stationary object at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S709",
+          "name": "Superficial injury of hip and thigh, unspecified"
+        },
+        {
+          "code": "V4759",
+          "name": "Car occupant injured in collision with fixed or stationary object at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 107,
+    "cid": "3779800107639",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "107",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156447",
+      "cid": "3779800107639",
+      "patient_name": "นายสุริยา เพ็ชรล้ำ",
+      "vn": "690112101500",
+      "visit_date": "2026-01-12",
+      "visit_time": "10:15:00",
+      "sex": "ชาย",
+      "age": 53,
+      "house_no": "7/91",
+      "moo": "00",
+      "road": "ซอยหมู่บ้านสมอโพรง",
+      "tumbon": "หัวหิน",
+      "amphoe": "หัวหิน",
+      "changwat": "ประจวบคีรีขันธ์",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S008-Superficial injury of other parts of head",
+      "ext_dx": "V4859-Car occupant injured in noncollision transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S008",
+          "name": "Superficial injury of other parts of head"
+        },
+        {
+          "code": "S308",
+          "name": "Other superficial injuries of abdomen, lower back and pelvis"
+        },
+        {
+          "code": "V4859",
+          "name": "Car occupant injured in noncollision transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 108,
+    "cid": "1779800422520",
+    "visit_date": "2026-01-12",
+    "response": {
+      "id": "108",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156446",
+      "cid": "1779800422520",
+      "patient_name": "ด.ญ.บุษดี เพ็ชรล้ำ",
+      "vn": "690112101248",
+      "visit_date": "2026-01-12",
+      "visit_time": "10:12:48",
+      "sex": "หญิง",
+      "age": 13,
+      "house_no": "7/91",
+      "moo": "00",
+      "road": "ซอยหมู่บ้านสมอโพรง",
+      "tumbon": "หัวหิน",
+      "amphoe": "หัวหิน",
+      "changwat": "ประจวบคีรีขันธ์",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S109-Superficial injury of neck, part unspecified",
+      "ext_dx": "V4869-Car occupant injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S109",
+          "name": "Superficial injury of neck, part unspecified"
+        },
+        {
+          "code": "S709",
+          "name": "Superficial injury of hip and thigh, unspecified"
+        },
+        {
+          "code": "V4869",
+          "name": "Car occupant injured in noncollision transport accident at passenger injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 109,
+    "cid": "2120600018275",
+    "visit_date": "2026-01-23",
+    "response": {
+      "id": "109",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000027438",
+      "cid": "2120600018275",
+      "patient_name": "นายอุเทน สระบัวทอง",
+      "vn": "690123201524",
+      "visit_date": "2026-01-23",
+      "visit_time": "20:15:24",
+      "sex": "ชาย",
+      "age": 45,
+      "house_no": "12",
+      "moo": "8",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "ส่งต่อ",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S019-Open wound of head, part unspecified",
+      "ext_dx": "V6459-Occupant of heavy transport vehicle injured in collison with heavy transport vehicle or bus at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S019",
+          "name": "Open wound of head, part unspecified"
+        },
+        {
+          "code": "S9291",
+          "name": "Open fracture of foot, unspecified"
+        },
+        {
+          "code": "V6459",
+          "name": "Occupant of heavy transport vehicle injured in collison with heavy transport vehicle or bus at driver injured in traffic accident During unspecified activity"
+        },
+        {
+          "code": "Z235",
+          "name": "Need for immunization against tetanus alone"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 110,
+    "cid": "3340100688430",
+    "visit_date": "2026-01-17",
+    "response": {
+      "id": "110",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000156486",
+      "cid": "3340100688430",
+      "patient_name": "นายกฤษ ขาววงษ์",
+      "vn": "690117211653",
+      "visit_date": "2026-01-17",
+      "visit_time": "21:16:53",
+      "sex": "ชาย",
+      "age": 62,
+      "house_no": "1",
+      "moo": "11",
+      "road": null,
+      "tumbon": "วังชะโอน",
+      "amphoe": "บึงสามัคคี",
+      "changwat": "กำแพงเพชร",
+      "cc": "ปวดชายโครงด้านขวา 20นาทีก่อนมารพ",
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S208-Superficial injury of other and unspecified parts of thorax",
+      "ext_dx": "V6859-Occupant of heavy transport vehicle injured in noncollison transport accident at driver injured in traffic accident During unspecified activity",
+      "dx_list": [
+        {
+          "code": "S011",
+          "name": "Open wound of eyelid and  periocular area"
+        },
+        {
+          "code": "S208",
+          "name": "Superficial injury of other and unspecified parts of thorax"
+        },
+        {
+          "code": "V6859",
+          "name": "Occupant of heavy transport vehicle injured in noncollison transport accident at driver injured in traffic accident During unspecified activity"
+        }
+      ],
+      "alcohol": 0
+    }
+  },
+  {
+    "index": 111,
+    "cid": "1650500096204",
+    "visit_date": "2026-01-29",
+    "response": {
+      "id": "111",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000013894",
+      "cid": "1650500096204",
+      "patient_name": "นายจิรวัฒน์ ศรีบ้านแกร",
+      "vn": "690129183047",
+      "visit_date": "2026-01-29",
+      "visit_time": "18:30:47",
+      "sex": "ชาย",
+      "age": 28,
+      "house_no": "56/1",
+      "moo": "08",
+      "road": null,
+      "tumbon": "ท่าตาล",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "รับไว้รักษา",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S009-Superficial injury of head, part unspecified",
+      "ext_dx": "V8499-Unspecified occupant of special agricultulral vehicle injured in nontraffic accident during unspecified activity",
+      "dx_list": [
+        {
+          "code": "S009",
+          "name": "Superficial injury of head, part unspecified"
+        },
+        {
+          "code": "S203",
+          "name": "Other superficial injuries of front wall of thorax"
+        },
+        {
+          "code": "S913",
+          "name": "Open wound of other parts of foot"
+        },
+        {
+          "code": "V8499",
+          "name": "Unspecified occupant of special agricultulral vehicle injured in nontraffic accident during unspecified activity"
+        }
+      ],
+      "alcohol": 1
+    }
+  },
+  {
+    "index": 112,
+    "cid": "3650500545463",
+    "visit_date": "2026-02-11",
+    "response": {
+      "id": "112",
+      "hoscode": "11253",
+      "hosname": "โรงพยาบาลบางกระทุ่ม",
+      "hn": "000135510",
+      "cid": "3650500545463",
+      "patient_name": "นายวิระ เดชเดชา",
+      "vn": "690211043344",
+      "visit_date": "2026-02-11",
+      "visit_time": "04:33:44",
+      "sex": "ชาย",
+      "age": 43,
+      "house_no": "28/2",
+      "moo": "10",
+      "road": null,
+      "tumbon": "ไผ่ล้อม",
+      "amphoe": "บางกระทุ่ม",
+      "changwat": "พิษณุโลก",
+      "cc": null,
+      "status": "กลับบ้าน",
+      "triage": null,
+      "source": "auto",
+      "pdx": "S909-Superficial injury of ankle and foot, unspecified",
+      "ext_dx": "V8999-Person injured in unsepcified motor-vehicle accident during unspecified activity",
+      "dx_list": [
+        {
+          "code": "S909",
+          "name": "Superficial injury of ankle and foot, unspecified"
+        },
+        {
+          "code": "V8999",
+          "name": "Person injured in unsepcified motor-vehicle accident during unspecified activity"
+        },
+        {
+          "code": "Z501",
+          "name": "Other physicla therapy"
+        }
+      ],
+      "alcohol": 0
+    }
+  }
+]
