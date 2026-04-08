@@ -106,10 +106,10 @@ function toThaiDate(isoDate: string | null) {
 
 function formatDateRange(minDate: string | null, maxDate: string | null) {
   if (!minDate && !maxDate) return "ยังไม่มีข้อมูล";
-  if (minDate && maxDate && minDate === maxDate) return toThaiDate(minDate);
+  if (minDate && maxDate && minDate === maxDate) return `${toThaiDate(minDate)} ถึง ${toThaiDate(maxDate)}`;
   if (!minDate) return toThaiDate(maxDate);
   if (!maxDate) return toThaiDate(minDate);
-  return `${toThaiDate(minDate)} - ${toThaiDate(maxDate)}`;
+  return `${toThaiDate(minDate)} ถึง ${toThaiDate(maxDate)}`;
 }
 
 function ChartPanel({
@@ -346,15 +346,14 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
         <header className="rounded-[30px] border border-sky-100/80 bg-white/80 px-5 py-4 shadow-[0_18px_55px_rgba(37,99,235,0.06)] backdrop-blur-sm sm:px-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-500">
-                Accident Dashboard
+              <p className="text-xs font-semibold tracking-[0.08em] text-sky-500">
+                สำนักงานสาธารณสุขจังหวัดพิษณุโลก
               </p>
               <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                 ภาพรวมข้อมูลอุบัติเหตุทางถนนในช่วงเทศกาลสงกรานต์ ปี 2569 จังหวัดพิษณุโลก
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                แสดงผลจากข้อมูลผู้ป่วยจริงในฐานข้อมูล พร้อมช่วงวันที่จาก
-                <span className="font-semibold text-slate-900"> {dateRangeLabel}</span>
+                ตั้งแต่วันที่ <span className="font-semibold text-slate-900">{dateRangeLabel}</span>
               </p>
             </div>
 
