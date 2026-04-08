@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { Activity, Skull, Users } from "lucide-react";
 import {
   ArcElement,
   BarElement,
@@ -36,6 +38,37 @@ ChartJS.register(
 type DashboardHomeProps = {
   initialData: DashboardSummary;
 };
+
+function SummaryCard({
+  label,
+  value,
+  icon,
+  className,
+  iconClassName,
+}: {
+  label: string;
+  value: number;
+  icon: ReactNode;
+  className: string;
+  iconClassName: string;
+}) {
+  return (
+    <div className={`rounded-[26px] border p-5 shadow-[0_18px_55px_rgba(15,23,42,0.08)] ${className}`}>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-700">{label}</p>
+          <div className="mt-3 flex items-end gap-2">
+            <span className="text-4xl font-semibold tracking-tight text-slate-950">{value}</span>
+            <span className="pb-1 text-base font-medium text-slate-600">ราย</span>
+          </div>
+        </div>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${iconClassName}`}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function formatPercent(value: number, total: number) {
   if (!Number.isFinite(total) || total <= 0) return "0%";
@@ -304,10 +337,8 @@ function LineChartPanel({
 
 export default function DashboardHome({ initialData }: DashboardHomeProps) {
   const dateRangeLabel = formatDateRange(initialData.minVisitDate, initialData.maxVisitDate);
-  const statusMap = new Map(initialData.statusSegments.map((item) => [item.label, item.value]));
-  const admittedCount = statusMap.get("รับไว้รักษา") ?? 0;
-  const dischargedCount = statusMap.get("กลับบ้าน") ?? 0;
-  const deathCount = statusMap.get("เสียชีวิต") ?? 0;
+  const deathCount = initialData.deathCases;
+  const injuredCount = Math.max(initialData.totalCases - deathCount, 0);
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
@@ -341,27 +372,28 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
           </div>
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Total</p>
-            <div className="mt-3 text-3xl font-semibold text-slate-950">{initialData.totalCases}</div>
-            <p className="mt-2 text-sm text-slate-500">เคสทั้งหมดในฐานข้อมูล</p>
-          </div>
-          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Admitted</p>
-            <div className="mt-3 text-3xl font-semibold text-slate-950">{admittedCount}</div>
-            <p className="mt-2 text-sm text-slate-500">สถานะรับไว้รักษา</p>
-          </div>
-          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Discharged</p>
-            <div className="mt-3 text-3xl font-semibold text-slate-950">{dischargedCount}</div>
-            <p className="mt-2 text-sm text-slate-500">สถานะกลับบ้าน</p>
-          </div>
-          <div className="rounded-[24px] border border-sky-100/80 bg-white/90 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.06)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Deaths</p>
-            <div className="mt-3 text-3xl font-semibold text-slate-950">{deathCount}</div>
-            <p className="mt-2 text-sm text-slate-500">สถานะเสียชีวิต</p>
-          </div>
+        <section className="grid gap-4 md:grid-cols-3">
+          <SummaryCard
+            label="ทั้งหมด"
+            value={initialData.totalCases}
+            icon={<Users className="h-6 w-6" />}
+            className="border-sky-200/80 bg-gradient-to-br from-sky-50 via-white to-cyan-50"
+            iconClassName="border-sky-200 bg-white text-sky-600"
+          />
+          <SummaryCard
+            label="บาดเจ็บ"
+            value={injuredCount}
+            icon={<Activity className="h-6 w-6" />}
+            className="border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-orange-50"
+            iconClassName="border-amber-200 bg-white text-amber-600"
+          />
+          <SummaryCard
+            label="เสียชีวิต"
+            value={deathCount}
+            icon={<Skull className="h-6 w-6" />}
+            className="border-rose-200/80 bg-gradient-to-br from-rose-50 via-white to-red-50"
+            iconClassName="border-rose-200 bg-white text-rose-700"
+          />
         </section>
 
         <section className="grid gap-6 xl:grid-cols-2">

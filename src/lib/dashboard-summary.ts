@@ -21,6 +21,7 @@ export type DashboardLinePoint = {
 
 export type DashboardSummary = {
   totalCases: number;
+  deathCases: number;
   minVisitDate: string | null;
   maxVisitDate: string | null;
   statusSegments: DashboardSegment[];
@@ -97,8 +98,10 @@ function withOtherBucket<T>(
 }
 
 export async function loadDashboardSummary(): Promise<DashboardSummary> {
-  const totalResult = await dbQuery<{ total: number }>(
-    `SELECT count(*)::int AS total
+  const totalResult = await dbQuery<{ total: number; death_cases: number }>(
+    `SELECT
+       count(*)::int AS total,
+       count(*) FILTER (WHERE status = 'เสียชีวิต')::int AS death_cases
      FROM public.patient
      WHERE COALESCE(is_rejected, false) = false`,
   );
@@ -234,6 +237,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
 
   return {
     totalCases: Number(totalResult.rows[0]?.total) || 0,
+    deathCases: Number(totalResult.rows[0]?.death_cases) || 0,
     minVisitDate,
     maxVisitDate,
     statusSegments,
