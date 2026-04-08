@@ -99,14 +99,16 @@ function withOtherBucket<T>(
 export async function loadDashboardSummary(): Promise<DashboardSummary> {
   const totalResult = await dbQuery<{ total: number }>(
     `SELECT count(*)::int AS total
-     FROM public.patient`,
+     FROM public.patient
+     WHERE COALESCE(is_rejected, false) = false`,
   );
 
   const rangeResult = await dbQuery<{ min_visit_date: string | null; max_visit_date: string | null }>(
     `SELECT
        to_char(min(visit_date), 'YYYY-MM-DD') AS min_visit_date,
        to_char(max(visit_date), 'YYYY-MM-DD') AS max_visit_date
-     FROM public.patient`,
+     FROM public.patient
+     WHERE COALESCE(is_rejected, false) = false`,
   );
 
   const [statusResult, alcoholResult, vehicleResult, districtResult] = await Promise.all([
@@ -115,6 +117,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          COALESCE(NULLIF(status, ''), 'ไม่ระบุ') AS label,
          count(*)::int AS value
        FROM public.patient
+       WHERE COALESCE(is_rejected, false) = false
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -127,6 +130,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          END AS label,
          count(*)::int AS value
        FROM public.patient
+       WHERE COALESCE(is_rejected, false) = false
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -135,7 +139,9 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          COALESCE(NULLIF(av.name, ''), NULLIF(detail.acd_vihicle_addon, ''), detail.acd_vihicle::text, 'ไม่ระบุ') AS label,
          count(*)::int AS value
        FROM public.patient_detail detail
+       JOIN public.patient p ON p.id = detail.patient_id
        LEFT JOIN public.acd_vihicle av ON av.code = detail.acd_vihicle
+       WHERE COALESCE(p.is_rejected, false) = false
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -145,14 +151,15 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          count(*)::int AS cases,
          count(*) FILTER (WHERE p.status = 'เสียชีวิต')::int AS deaths
        FROM public.patient p
-       LEFT JOIN LATERAL (
-         SELECT d.name_in_thai AS district_name
-         FROM public.patient_acd_location l
-         LEFT JOIN public.districts d ON d.code::text = l.amp_code
-         WHERE l.patient_id = p.id
-         ORDER BY l.id DESC
-         LIMIT 1
-       ) loc ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT d.name_in_thai AS district_name
+          FROM public.patient_acd_location l
+          LEFT JOIN public.districts d ON d.code::text = l.amp_code
+          WHERE l.patient_id = p.id
+          ORDER BY l.id DESC
+          LIMIT 1
+        ) loc ON TRUE
+       WHERE COALESCE(p.is_rejected, false) = false
        GROUP BY 1
        ORDER BY cases DESC, district ASC`,
     ),
@@ -175,7 +182,9 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          to_char(series.day, 'YYYY-MM-DD') AS day,
          count(p.id)::int AS value
        FROM series
-       LEFT JOIN public.patient p ON p.visit_date::date = series.day
+       LEFT JOIN public.patient p
+         ON p.visit_date::date = series.day
+        AND COALESCE(p.is_rejected, false) = false
        GROUP BY series.day
        ORDER BY series.day`,
       [minVisitDate, maxVisitDate],
