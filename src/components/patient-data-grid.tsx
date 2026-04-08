@@ -1531,11 +1531,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setSelectedRow(row);
     setDraft({
       changwat: DEFAULT_PROVINCE_NAME,
-      amphoe: row.amphoe ?? "",
-      tumbon: row.tumbon ?? "",
+      amphoe: "",
+      tumbon: "",
       moo: "",
-      road: row.road ?? "",
-      cc: row.cc ?? "",
+      road: "",
+      cc: "",
     });
     setSelectedProvinceCode(DEFAULT_PROVINCE_CODE);
     setSelectedAmphoeCode("");
