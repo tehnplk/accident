@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { dbQuery } from "@/lib/db";
+import SyncLogFilterForm from "./filter-form";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +17,53 @@ type HospitalOption = {
   hosname: string | null;
 };
 
-async function loadSyncLogs(hospital: string) {
+async function loadSyncLogs(hospital: string, dateFrom: string, dateTo: string, latestOnly: boolean) {
   const values: unknown[] = [];
-  const whereClause = hospital
-    ? (() => {
-        values.push(hospital);
-        return `WHERE hoscode = $1`;
-      })()
-    : "";
+  const whereParts: string[] = [];
 
-  const result = await dbQuery<SyncLogRow>(
-    `
+  if (hospital) {
+    values.push(hospital);
+    whereParts.push(`hoscode = $${values.length}`);
+  }
+
+  if (dateFrom) {
+    values.push(dateFrom);
+    whereParts.push(`date_time::date >= $${values.length}::date`);
+  }
+
+  if (dateTo) {
+    values.push(dateTo);
+    whereParts.push(`date_time::date <= $${values.length}::date`);
+  }
+
+  const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
+  const query = latestOnly
+    ? `
+    WITH filtered AS (
+      SELECT
+        id,
+        date_time,
+        hoscode,
+        hosname,
+        num_pt_case,
+        row_number() OVER (
+          PARTITION BY hoscode
+          ORDER BY date_time DESC, id DESC
+        ) AS rn
+      FROM public.sync_log
+      ${whereClause}
+    )
+    SELECT
+      id::text AS id,
+      to_char(date_time AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS date_time,
+      hoscode,
+      hosname,
+      num_pt_case
+    FROM filtered
+    WHERE rn = 1
+    ORDER BY date_time DESC, id DESC
+  `
+    : `
     SELECT
       id::text AS id,
       to_char(date_time AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS date_time,
@@ -36,9 +73,9 @@ async function loadSyncLogs(hospital: string) {
     FROM public.sync_log
     ${whereClause}
     ORDER BY date_time DESC, id DESC
-  `,
-    values,
-  );
+  `;
+
+  const result = await dbQuery<SyncLogRow>(query, values);
 
   return result.rows;
 }
@@ -60,12 +97,15 @@ async function loadHospitalOptions() {
 export default async function SyncLogPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ hospital?: string }>;
+  searchParams?: Promise<{ hospital?: string; dateFrom?: string; dateTo?: string; latestOnly?: string }>;
 }) {
   const params = (await searchParams) ?? {};
   const selectedHospital = params.hospital?.trim() ?? "";
+  const dateFrom = params.dateFrom?.trim() ?? "";
+  const dateTo = params.dateTo?.trim() ?? "";
+  const latestOnly = params.latestOnly === "1";
   const [rows, hospitals] = await Promise.all([
-    loadSyncLogs(selectedHospital),
+    loadSyncLogs(selectedHospital, dateFrom, dateTo, latestOnly),
     loadHospitalOptions(),
   ]);
 
@@ -98,43 +138,13 @@ export default async function SyncLogPage({
           </div>
         </header>
 
-        <section className="rounded-[28px] border border-sky-100/80 bg-white/95 px-6 py-5 shadow-[0_18px_55px_rgba(37,99,235,0.08)]">
-          <form className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div className="w-full max-w-md">
-              <label htmlFor="hospital" className="mb-2 block text-sm font-medium text-slate-700">
-                รพ.
-              </label>
-              <select
-                id="hospital"
-                name="hospital"
-                defaultValue={selectedHospital}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-              >
-                <option value="">ทั้งหมด</option>
-                {hospitals.map((hospital) => (
-                  <option key={hospital.hoscode} value={hospital.hoscode}>
-                    {hospital.hoscode} {hospital.hosname || ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="submit"
-                className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
-              >
-                กรอง
-              </button>
-              <Link
-                href="/sync-log"
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
-              >
-                ล้างตัวกรอง
-              </Link>
-            </div>
-          </form>
-        </section>
+        <SyncLogFilterForm
+          hospitals={hospitals}
+          selectedHospital={selectedHospital}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          latestOnly={latestOnly}
+        />
 
         <section className="overflow-hidden rounded-[28px] border border-sky-100/80 bg-white/95 shadow-[0_18px_55px_rgba(37,99,235,0.08)]">
           <div className="overflow-x-auto">
