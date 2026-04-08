@@ -101,7 +101,10 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
   const totalResult = await dbQuery<{ total: number; death_cases: number }>(
     `SELECT
        count(*)::int AS total,
-       count(*) FILTER (WHERE status = 'เสียชีวิต')::int AS death_cases
+       count(*) FILTER (
+         WHERE COALESCE(status, '') LIKE '%เสียชีวิต%'
+            OR COALESCE(status, '') LIKE '%ตาย%'
+       )::int AS death_cases
      FROM public.patient
      WHERE COALESCE(is_rejected, false) = false`,
   );
@@ -152,7 +155,10 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
       `SELECT
          COALESCE(NULLIF(loc.district_name, ''), NULLIF(p.amphoe, ''), 'ไม่ระบุ') AS district,
          count(*)::int AS cases,
-         count(*) FILTER (WHERE p.status = 'เสียชีวิต')::int AS deaths
+         count(*) FILTER (
+           WHERE COALESCE(p.status, '') LIKE '%เสียชีวิต%'
+              OR COALESCE(p.status, '') LIKE '%ตาย%'
+         )::int AS deaths
        FROM public.patient p
         LEFT JOIN LATERAL (
           SELECT d.name_in_thai AS district_name

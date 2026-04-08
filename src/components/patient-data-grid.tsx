@@ -771,6 +771,11 @@ function getShiftTextClass(shiftName: string | null) {
   return "text-slate-500";
 }
 
+function isDeathStatus(status: string | null | undefined) {
+  const text = status?.trim() ?? "";
+  return text.includes("เสียชีวิต") || text.includes("ตาย");
+}
+
 function isManualSource(source: string | null | undefined) {
   return source === "man";
 }
@@ -2239,7 +2244,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="break-words px-2 py-3">{formatHospitalName(row.hosname)}</td>
                     <td className="break-words px-2 py-3">
                       <span className="block">{row.patient_name ?? "-"}</span>
-                      <span className="mt-1 block text-[9px] text-slate-300">ID: {row.id ?? "-"}</span>
+                      <span className="mt-1 flex flex-wrap items-center gap-2 text-[9px] text-slate-300">
+                        <span>ID: {row.id ?? "-"}</span>
+                        {isDeathStatus(row.status) ? (
+                          <span className="font-medium text-rose-600">เสียชีวิต</span>
+                        ) : null}
+                      </span>
                     </td>
                     <td className="px-2 py-3">{renderSexDisplay(row.sex)}</td>
                     <td className="px-2 py-3">{row.age ?? "-"}</td>
