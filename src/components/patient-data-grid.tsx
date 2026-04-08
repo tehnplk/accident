@@ -2642,9 +2642,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               </div>
             ) : null}
 
-            <div className="flex flex-col-reverse gap-3 border-t border-sky-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[11px] text-slate-500">ช่องที่มี <span className="text-rose-600">*</span> จำเป็นต้องกรอก</p>
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-3 border-t border-sky-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex">
                 {createModalMode === "edit" ? (
                   <button
                     type="button"
@@ -2654,6 +2653,17 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   >
                     <Trash2 size={16} />
                     ลบผู้ป่วย
+                  </button>
+                ) : null}
+              </div>
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+                {createModalMode === "edit" ? (
+                  <button
+                    type="button"
+                    className="inline-flex h-11 items-center justify-center gap-2 border border-amber-300 bg-amber-50 px-4 text-[12px] font-medium text-amber-800 hover:bg-amber-100"
+                  >
+                    <User size={16} />
+                    ไม่นับเคส
                   </button>
                 ) : null}
                 <button
