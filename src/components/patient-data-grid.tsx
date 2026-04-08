@@ -267,8 +267,117 @@ function ChiefComplaintCell({
         </span>
       </button>
 
-      <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-72 max-w-[28rem] border border-sky-200 bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block">
+      <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1 hidden w-72 max-w-[28rem] border border-sky-200 bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block">
         {text}
+      </div>
+    </div>
+  );
+}
+
+function DiagnosisDialog({
+  title,
+  pdx,
+  extDx,
+  onClose,
+}: {
+  title: string;
+  pdx: string;
+  extDx: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="diagnosis-dialog-title"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-sky-100 bg-sky-50/50 px-4 py-4 sm:px-5">
+          <div>
+            <h2 id="diagnosis-dialog-title" className="text-[14px] font-semibold text-slate-900">
+              การวินิจฉัย
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-500">{title}</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100"
+            onClick={onClose}
+            aria-label="Close diagnosis dialog"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="grid gap-4 overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="border border-sky-100 bg-sky-50/40 px-3 py-3">
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-sky-700">PDX</div>
+            <div className="text-[12px] leading-6 whitespace-pre-wrap text-slate-700">{pdx || "-"}</div>
+          </div>
+          <div className="border border-sky-100 bg-sky-50/40 px-3 py-3">
+            <div className="mb-2 text-[11px] font-semibold tracking-wide text-sky-700">สาเหตุภายนอก</div>
+            <div className="text-[12px] leading-6 whitespace-pre-wrap text-slate-700">{extDx || "-"}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DiagnosisCell({
+  pdx,
+  extDx,
+  onOpen,
+}: {
+  pdx: unknown;
+  extDx: unknown;
+  onOpen: () => void;
+}) {
+  const pdxText = formatDx(pdx) || "-";
+  const extDxText = formatDx(extDx) || "-";
+
+  return (
+    <div className="group relative">
+      <button
+        type="button"
+        className="w-full text-left text-[10px] leading-5 text-slate-700 transition hover:text-sky-700 focus:outline-none"
+        onClick={onOpen}
+      >
+        <span
+          className="block overflow-hidden break-words"
+          style={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+          }}
+        >
+          {pdxText}
+        </span>
+        <span
+          className="mt-1 inline-flex h-5 w-5 items-center justify-center text-sky-600"
+          aria-label="สาเหตุภายนอก"
+        >
+          <FileText size={13} />
+        </span>
+      </button>
+
+      <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1 hidden w-80 max-w-[30rem] border border-sky-200 bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block">
+        <div className="font-semibold text-sky-700">สาเหตุภายนอก</div>
+        <div className="mt-1 break-words">{extDxText}</div>
       </div>
     </div>
   );
@@ -948,6 +1057,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailRow, setSelectedDetailRow] = useState<PatientRow | null>(null);
   const [selectedChiefComplaintRow, setSelectedChiefComplaintRow] = useState<PatientRow | null>(null);
+  const [selectedDiagnosisRow, setSelectedDiagnosisRow] = useState<PatientRow | null>(null);
   const [pendingDeleteRow, setPendingDeleteRow] = useState<PatientRow | null>(null);
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
   const [createDraft, setCreateDraft] = useState<PatientCreateDraft>(() => createInitialPatientDraft());
@@ -2257,7 +2367,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="px-2 py-3">
                       <ChiefComplaintCell value={row.cc} onOpen={() => setSelectedChiefComplaintRow(row)} />
                     </td>
-                    <td className="break-words px-2 py-3 text-[10px]">{formatDx(row.pdx)}</td>
+                    <td className="px-2 py-3">
+                      <DiagnosisCell pdx={row.pdx} extDx={row.ext_dx} onOpen={() => setSelectedDiagnosisRow(row)} />
+                    </td>
                     <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.alcohol === 1 ? "ดื่ม" : row.alcohol === 0 ? "ไม่ดื่ม" : "-"}</td>
@@ -3486,6 +3598,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           title={`${selectedChiefComplaintRow.patient_name ?? "-"} (${selectedChiefComplaintRow.id})`}
           value={selectedChiefComplaintRow.cc?.trim() || "-"}
           onClose={() => setSelectedChiefComplaintRow(null)}
+        />
+      ) : null}
+
+      {selectedDiagnosisRow ? (
+        <DiagnosisDialog
+          title={`${selectedDiagnosisRow.patient_name ?? "-"} (${selectedDiagnosisRow.id})`}
+          pdx={formatDx(selectedDiagnosisRow.pdx) || "-"}
+          extDx={formatDx(selectedDiagnosisRow.ext_dx) || "-"}
+          onClose={() => setSelectedDiagnosisRow(null)}
         />
       ) : null}
     </section>

@@ -98,12 +98,12 @@ function formatAddress(row: ExportRow) {
   const changwat = normalizeText(row.changwat);
 
   const parts = [
-    houseNo ? `บ้านเลขที่ ${houseNo}` : "",
-    moo ? `หมู่ ${moo}` : "",
-    road ? `ถนน ${road}` : "",
-    tumbon || "",
-    amphoe || "",
-    changwat || "",
+    houseNo || "",
+    moo ? `ม.${moo}` : "",
+    road ? `ถ.${road}` : "",
+    tumbon ? `ต.${tumbon}` : "",
+    amphoe ? `อ.${amphoe}` : "",
+    changwat ? `จ.${changwat}` : "",
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(" ") : "-";
@@ -349,9 +349,9 @@ export async function GET(request: NextRequest) {
         p.house_no,
         p.moo,
         p.road,
-        COALESCE(loc.subdistrict_name, p.tumbon) AS tumbon,
-        loc.area AS amphoe,
-        COALESCE(loc.province_name, p.changwat) AS changwat,
+        p.tumbon,
+        p.amphoe,
+        p.changwat,
         p.pdx,
         p.ext_dx,
         loc.location_road,

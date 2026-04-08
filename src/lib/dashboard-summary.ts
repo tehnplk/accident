@@ -153,7 +153,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     ),
     dbQuery<DistrictCountRow>(
       `SELECT
-         COALESCE(NULLIF(loc.district_name, ''), NULLIF(p.amphoe, ''), 'ไม่ระบุ') AS district,
+         COALESCE(NULLIF(loc.district_name, ''), 'ไม่ระบุ') AS district,
          count(*)::int AS cases,
          count(*) FILTER (
            WHERE COALESCE(p.status, '') LIKE '%เสียชีวิต%'
