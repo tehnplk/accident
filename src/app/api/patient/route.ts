@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
     const vehicle = params.get("vehicle")?.trim() ?? "";
     const alcohol = params.get("alcohol")?.trim() ?? "";
     const sex = params.get("sex")?.trim() ?? "";
+    const isRejected = params.get("is_rejected") === "true";
     const sortBy =
       params.get("sortBy") === "visit_date_time"
         ? "visit_date_time"
@@ -111,6 +112,7 @@ export async function GET(request: NextRequest) {
     if (vehicleParam) filterValues.push(vehicleParam);
     if (alcoholParam) filterValues.push(alcoholParam);
     if (sexParam) filterValues.push(sexParam);
+    whereParts.push(isRejected ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false");
 
     const dataSecretParamIndex = filterValues.length + 1;
     const decryptedPatientNameSql = patientDecryptedColumnSql("patient_name", dataSecretParamIndex);
@@ -214,6 +216,7 @@ export async function GET(request: NextRequest) {
         p.status,
         p.triage,
         p.source,
+        p.is_rejected,
         p.pdx,
         p.ext_dx,
         p.alcohol,
@@ -261,7 +264,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await request.json()) as CreatePatientBody;
+    const body = (await request.json()) as CreatePatientBody & {
+      is_rejected?: unknown;
+      rejected_note?: unknown;
+    };
     const hoscode = normalizeText(body.hoscode) || null;
     const hosname = normalizeText(body.hosname) || null;
     const hn = normalizeText(body.hn) || null;
@@ -313,6 +319,9 @@ export async function POST(request: NextRequest) {
     }
 
     const aesSecret = getPatientAesSecret();
+
+    // POST /api/patient must never create or overwrite rejection state.
+    // patient.is_rejected and patient.rejected_note are controlled only by PATCH /api/patient/[id].
 
     // external client (source='auto') ใช้ ON CONFLICT (hoscode, vn) DO UPDATE
     // เพื่อรองรับการ push ซ้ำจาก HIS
@@ -428,6 +437,7 @@ export async function POST(request: NextRequest) {
           status,
           triage,
           source,
+          is_rejected,
           pdx,
           ext_dx,
           dx_list,
@@ -455,6 +465,7 @@ export async function POST(request: NextRequest) {
         status,
         triage,
         source,
+        is_rejected,
         pdx,
         ext_dx,
         dx_list,

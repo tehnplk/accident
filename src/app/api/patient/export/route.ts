@@ -142,6 +142,7 @@ function parseExportFilters(params: URLSearchParams) {
     vehicle: params.get("vehicle")?.trim() ?? "",
     alcohol: params.get("alcohol")?.trim() ?? "",
     sex: params.get("sex")?.trim() ?? "",
+    isRejected: params.get("is_rejected") === "true",
     sortBy:
       params.get("sortBy") === "age"
         ? "age"
@@ -231,6 +232,7 @@ export async function GET(request: NextRequest) {
       paramIndex += 1;
       whereParts.push(`p.sex = $${paramIndex}`);
     }
+    whereParts.push(filters.isRejected ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false");
 
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
     const orderBy =

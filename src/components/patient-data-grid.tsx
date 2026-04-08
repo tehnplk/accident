@@ -6,6 +6,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowDownUp, Briefcase, Building2, ChevronDown, FileText, LogOut, MapPin, Pencil, Plus, Save, Trash2, User, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import Swal from "sweetalert2";
 
 function parseOrganization(raw: unknown): { hcode: string; hname_th: string; position: string }[] {
   if (!Array.isArray(raw)) return [];
@@ -200,6 +201,8 @@ export type PatientRow = {
   created_at: string | null;
   updated_at: string | null;
   source: string | null;
+  is_rejected: boolean;
+  rejected_note?: string | null;
   pdx: unknown;
   ext_dx: unknown;
 };
@@ -366,6 +369,7 @@ export type FilterState = {
   vehicle: string;
   alcohol: string;
   sex: string;
+  isRejected: "true" | "false";
   sortBy: "visit_date" | "visit_date_time" | "age" | "created_at";
   sortDir: "asc" | "desc";
   page: number;
@@ -413,6 +417,7 @@ function buildQueryString(state: FilterState) {
   if (state.vehicle.trim()) params.set("vehicle", state.vehicle.trim());
   if (state.alcohol.trim()) params.set("alcohol", state.alcohol.trim());
   if (state.sex) params.set("sex", state.sex);
+  if (state.isRejected === "true") params.set("is_rejected", "true");
   params.set("sortBy", state.sortBy);
   params.set("sortDir", state.sortDir);
 
@@ -469,6 +474,7 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
     vehicle: searchParams.get("vehicle") ?? "",
     alcohol: searchParams.get("alcohol") ?? "",
     sex: searchParams.get("sex") ?? "",
+    isRejected: searchParams.get("is_rejected") === "true" ? "true" : "false",
     sortBy:
       searchParams.get("sortBy") === "visit_date_time"
         ? "visit_date_time"
@@ -850,6 +856,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const deferredPdxQuery = useDeferredValue(createDraft.pdx);
   const deferredExtDxQuery = useDeferredValue(createDraft.ext_dx);
   const [createSaving, setCreateSaving] = useState(false);
+  const [rejectingPatient, setRejectingPatient] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createHospitalQuery, setCreateHospitalQuery] = useState("");
   const [isHospitalSuggestOpen, setIsHospitalSuggestOpen] = useState(false);
@@ -1684,6 +1691,56 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setIsDeleteConfirmOpen(false);
     await performDeletePatientRow(pendingDeleteRow);
     cancelCreate();
+  };
+
+  const markCurrentPatientRejected = async () => {
+    if (!editingPatientId) return;
+
+    const result = await Swal.fire({
+      title: "ไม่นับเคสอุบัติเหตุ",
+      input: "textarea",
+      inputLabel: "เหตุผล",
+      inputPlaceholder: "กรอกเหตุผลที่ไม่ให้นับเคสนี้",
+      inputAttributes: {
+        autocapitalize: "off",
+        autocorrect: "off",
+      },
+      showCancelButton: true,
+      confirmButtonText: "บันทึก",
+      cancelButtonText: "ยกเลิก",
+      confirmButtonColor: "#b45309",
+      reverseButtons: true,
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return "กรุณากรอกเหตุผล";
+        }
+        return undefined;
+      },
+    });
+
+    if (!result.isConfirmed || !result.value?.trim()) return;
+
+    setCreateError(null);
+    setRejectingPatient(true);
+    try {
+      const response = await fetch(`/api/patient/${editingPatientId}`, {
+        method: "PATCH",
+        headers: createPatientApiHeaders(authToken, { "Content-Type": "application/json" }),
+        body: JSON.stringify({ is_rejected: true, rejected_note: result.value.trim() }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as CreatePatientResponse;
+      if (!response.ok) {
+        throw new Error(payload.message ?? "Failed to reject patient");
+      }
+
+      cancelCreate();
+      updateFilter({ page: 1 });
+      void refreshRows();
+    } catch (rejectError) {
+      setCreateError(rejectError instanceof Error ? rejectError.message : "Reject patient failed");
+    } finally {
+      setRejectingPatient(false);
+    }
   };
 
   const closeDetailModal = () => {
@@ -2643,34 +2700,40 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             ) : null}
 
             <div className="flex flex-col gap-3 border-t border-sky-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex">
+              <div className="flex flex-wrap items-center gap-3">
                 {createModalMode === "edit" ? (
-                  <button
-                    type="button"
-                    className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow) ? "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
-                    onClick={requestDeleteCurrentPatient}
-                    disabled={createSaving || !canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow)}
-                  >
-                    <Trash2 size={16} />
-                    ลบผู้ป่วย
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow) ? "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+                      onClick={requestDeleteCurrentPatient}
+                      disabled={createSaving || !canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow)}
+                    >
+                      <Trash2 size={16} />
+                      ลบผู้ป่วย
+                    </button>
+                    <button
+                      type="button"
+                      className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${
+                        rows.find((r) => r.id === editingPatientId)?.is_rejected
+                          ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
+                          : "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                      }`}
+                      onClick={() => void markCurrentPatientRejected()}
+                      disabled={createSaving || rejectingPatient || rows.find((r) => r.id === editingPatientId)?.is_rejected}
+                    >
+                      <User size={16} />
+                      {rows.find((r) => r.id === editingPatientId)?.is_rejected ? "ไม่นับเคสแล้ว" : "ไม่นับเคส"}
+                    </button>
+                  </>
                 ) : null}
               </div>
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
-                {createModalMode === "edit" ? (
-                  <button
-                    type="button"
-                    className="inline-flex h-11 items-center justify-center gap-2 border border-amber-300 bg-amber-50 px-4 text-[12px] font-medium text-amber-800 hover:bg-amber-100"
-                  >
-                    <User size={16} />
-                    ไม่นับเคส
-                  </button>
-                ) : null}
                 <button
                   type="button"
                   className="inline-flex h-11 items-center justify-center border border-sky-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-sky-50"
                   onClick={cancelCreate}
-                  disabled={createSaving}
+                  disabled={createSaving || rejectingPatient}
                 >
                   Cancel
                 </button>
@@ -2678,7 +2741,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   type="button"
                   className="inline-flex h-11 items-center justify-center gap-2 border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700 disabled:opacity-60"
                   onClick={() => void saveCreate()}
-                  disabled={createSaving}
+                  disabled={createSaving || rejectingPatient}
                 >
                   <Save size={16} />
                   {createSaving

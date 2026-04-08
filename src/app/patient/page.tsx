@@ -45,6 +45,7 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
     vehicle: pickParam(searchParams.vehicle),
     alcohol: pickParam(searchParams.alcohol),
     sex: pickParam(searchParams.sex),
+    isRejected: pickParam(searchParams.is_rejected) === "true" ? "true" : "false",
     sortBy:
       pickParam(searchParams.sortBy) === "visit_date_time"
         ? "visit_date_time"
@@ -113,6 +114,9 @@ function buildPatientQuery(filters: FilterState) {
     paramIndex += 1;
     whereParts.push(`p.sex = $${paramIndex}`);
   }
+  whereParts.push(
+    filters.isRejected === "true" ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false",
+  );
 
   const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
   const countValues = nameParam || hnParam ? [...filterValues, aesSecret] : filterValues;
@@ -179,6 +183,7 @@ function buildPatientQuery(filters: FilterState) {
         p.status,
         p.triage,
         p.source,
+        p.is_rejected,
         p.pdx,
         p.ext_dx,
         p.alcohol,

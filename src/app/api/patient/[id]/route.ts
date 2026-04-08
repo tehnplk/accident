@@ -32,6 +32,8 @@ type UpdateBody = {
   ext_dx?: unknown;
   dx_list?: unknown;
   source?: string;
+  is_rejected?: boolean | null;
+  rejected_note?: string | null;
 };
 
 const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
@@ -59,6 +61,8 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "ext_dx",
   "dx_list",
   "source",
+  "is_rejected",
+  "rejected_note",
 ];
 
 function serializeDiagnosisValue(value: unknown) {
@@ -99,8 +103,10 @@ export async function PATCH(
     const aesSecret = getPatientAesSecret();
     const updates: string[] = [];
     const values: unknown[] = [aesSecret];
+    const hasOwnField = (field: keyof UpdateBody) => Object.prototype.hasOwnProperty.call(body, field);
 
     for (const field of ALLOWED_FIELDS) {
+      if (!hasOwnField(field)) continue;
       const raw = body[field];
       if (typeof raw === "string") {
         values.push(raw.trim());
@@ -124,6 +130,9 @@ export async function PATCH(
         updates.push(`${field} = $${values.length}`);
       } else if (field === "dx_list") {
         values.push(serializeDiagnosisValue(raw));
+        updates.push(`${field} = $${values.length}`);
+      } else if (field === "is_rejected" && typeof raw === "boolean") {
+        values.push(raw);
         updates.push(`${field} = $${values.length}`);
       }
     }
@@ -160,6 +169,8 @@ export async function PATCH(
           cc,
           status,
           triage,
+          is_rejected,
+          rejected_note,
           pdx,
           ext_dx,
           dx_list,
@@ -187,6 +198,8 @@ export async function PATCH(
         cc,
         status,
         triage,
+        is_rejected,
+        rejected_note,
         pdx,
         ext_dx,
         dx_list,
