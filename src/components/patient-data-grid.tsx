@@ -174,6 +174,106 @@ function UserMenu({ profile, userName }: { profile: Record<string, unknown> | nu
   );
 }
 
+function ChiefComplaintDialog({
+  title,
+  value,
+  onClose,
+}: {
+  title: string;
+  value: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="flex max-h-[calc(100vh-3rem)] w-full max-w-2xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chief-complaint-dialog-title"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-sky-100 bg-sky-50/50 px-4 py-4 sm:px-5">
+          <div>
+            <h2 id="chief-complaint-dialog-title" className="text-[14px] font-semibold text-slate-900">
+              อาการสำคัญ
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-500">{title}</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100"
+            onClick={onClose}
+            aria-label="Close chief complaint dialog"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="border border-sky-100 bg-sky-50/40 px-3 py-3 text-[12px] leading-6 whitespace-pre-wrap text-slate-700">
+            {value}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChiefComplaintCell({
+  value,
+  onOpen,
+}: {
+  value: string | null;
+  onOpen: () => void;
+}) {
+  const text = value?.trim() || "-";
+  const isEmpty = text === "-";
+
+  if (isEmpty) {
+    return <span className="text-slate-400">-</span>;
+  }
+
+  return (
+    <div className="group relative">
+      <button
+        type="button"
+        className="w-full text-left text-[10px] leading-5 text-slate-700 transition hover:text-sky-700 focus:outline-none"
+        onClick={onOpen}
+      >
+        <span
+          className="block overflow-hidden break-words"
+          style={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+          }}
+        >
+          {text}
+        </span>
+        <span className="mt-1 inline-flex text-[10px] font-medium text-sky-600 underline underline-offset-2">
+          ดูเพิ่มเติม
+        </span>
+      </button>
+
+      <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden w-72 max-w-[28rem] border border-sky-200 bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block">
+        {text}
+      </div>
+    </div>
+  );
+}
+
 export type PatientRow = {
   id: number;
   hoscode: string | null;
@@ -842,6 +942,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailRow, setSelectedDetailRow] = useState<PatientRow | null>(null);
+  const [selectedChiefComplaintRow, setSelectedChiefComplaintRow] = useState<PatientRow | null>(null);
   const [pendingDeleteRow, setPendingDeleteRow] = useState<PatientRow | null>(null);
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
   const [createDraft, setCreateDraft] = useState<PatientCreateDraft>(() => createInitialPatientDraft());
@@ -2143,7 +2244,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="px-2 py-3">{renderSexDisplay(row.sex)}</td>
                     <td className="px-2 py-3">{row.age ?? "-"}</td>
                     <td className="px-2 py-3">{row.triage ?? "-"}</td>
-                    <td className="break-words px-2 py-3 text-[10px]">{row.cc ?? "-"}</td>
+                    <td className="px-2 py-3">
+                      <ChiefComplaintCell value={row.cc} onOpen={() => setSelectedChiefComplaintRow(row)} />
+                    </td>
                     <td className="break-words px-2 py-3 text-[10px]">{formatDx(row.pdx)}</td>
                     <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
@@ -3366,6 +3469,14 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             </div>
           </div>
         </div>
+      ) : null}
+
+      {selectedChiefComplaintRow ? (
+        <ChiefComplaintDialog
+          title={`${selectedChiefComplaintRow.patient_name ?? "-"} (${selectedChiefComplaintRow.id})`}
+          value={selectedChiefComplaintRow.cc?.trim() || "-"}
+          onClose={() => setSelectedChiefComplaintRow(null)}
+        />
       ) : null}
     </section>
   );
