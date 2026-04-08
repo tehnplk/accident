@@ -11,8 +11,22 @@ type SyncLogRow = {
   num_pt_case: number;
 };
 
-async function loadSyncLogs() {
-  const result = await dbQuery<SyncLogRow>(`
+type HospitalOption = {
+  hoscode: string;
+  hosname: string | null;
+};
+
+async function loadSyncLogs(hospital: string) {
+  const values: unknown[] = [];
+  const whereClause = hospital
+    ? (() => {
+        values.push(hospital);
+        return `WHERE hoscode = $1`;
+      })()
+    : "";
+
+  const result = await dbQuery<SyncLogRow>(
+    `
     SELECT
       id::text AS id,
       to_char(date_time AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS date_time,
@@ -20,14 +34,40 @@ async function loadSyncLogs() {
       hosname,
       num_pt_case
     FROM public.sync_log
+    ${whereClause}
     ORDER BY date_time DESC, id DESC
+  `,
+    values,
+  );
+
+  return result.rows;
+}
+
+async function loadHospitalOptions() {
+  const result = await dbQuery<HospitalOption>(`
+    SELECT DISTINCT
+      hoscode,
+      NULLIF(MAX(hosname), '') AS hosname
+    FROM public.sync_log
+    WHERE hoscode IS NOT NULL AND trim(hoscode) <> ''
+    GROUP BY hoscode
+    ORDER BY hoscode ASC
   `);
 
   return result.rows;
 }
 
-export default async function SyncLogPage() {
-  const rows = await loadSyncLogs();
+export default async function SyncLogPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ hospital?: string }>;
+}) {
+  const params = (await searchParams) ?? {};
+  const selectedHospital = params.hospital?.trim() ?? "";
+  const [rows, hospitals] = await Promise.all([
+    loadSyncLogs(selectedHospital),
+    loadHospitalOptions(),
+  ]);
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-10">
@@ -57,6 +97,44 @@ export default async function SyncLogPage() {
             </nav>
           </div>
         </header>
+
+        <section className="rounded-[28px] border border-sky-100/80 bg-white/95 px-6 py-5 shadow-[0_18px_55px_rgba(37,99,235,0.08)]">
+          <form className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="w-full max-w-md">
+              <label htmlFor="hospital" className="mb-2 block text-sm font-medium text-slate-700">
+                รพ.
+              </label>
+              <select
+                id="hospital"
+                name="hospital"
+                defaultValue={selectedHospital}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              >
+                <option value="">ทั้งหมด</option>
+                {hospitals.map((hospital) => (
+                  <option key={hospital.hoscode} value={hospital.hoscode}>
+                    {hospital.hoscode} {hospital.hosname || ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="submit"
+                className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+              >
+                กรอง
+              </button>
+              <Link
+                href="/sync-log"
+                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+              >
+                ล้างตัวกรอง
+              </Link>
+            </div>
+          </form>
+        </section>
 
         <section className="overflow-hidden rounded-[28px] border border-sky-100/80 bg-white/95 shadow-[0_18px_55px_rgba(37,99,235,0.08)]">
           <div className="overflow-x-auto">
