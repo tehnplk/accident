@@ -42,6 +42,7 @@ yarn-error.log*
 .claude/
 tmp/
 py-example/
+docker-acd-plk-sync/
 playwright-report/
 test-results/
 .vscode/

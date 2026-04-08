@@ -1,3 +1,0 @@
-python-dotenv
-PyMySQL
-psycopg[binary]
