@@ -1,4 +1,4 @@
-﻿SELECT
+SELECT
     NULL AS id,
     (SELECT hospitalcode FROM opdconfig LIMIT 1) AS hoscode,
     (SELECT hospitalname FROM opdconfig LIMIT 1) AS hosname,
@@ -7,6 +7,7 @@
     concat(coalesce(p.pname, ''), coalesce(p.fname, ''), ' ', coalesce(p.lname, '')) AS patient_name,
     v.vn AS vn,
     to_char(v.vstdate::date, 'YYYY-MM-DD') AS visit_date,
+    to_char(v.vsttime::time, 'HH24:MI:SS') AS visit_time,
     CASE p.sex
         WHEN '1' THEN 'ชาย'
         WHEN '2' THEN 'หญิง'
@@ -39,7 +40,6 @@
             WHERE d3.vn = v.vn
         ) AS dx
     ) AS dx_list,
-    to_char(v.vsttime::time, 'HH24:MI:SS') AS visit_time,
     'auto' AS source,
     CASE WHEN aat.is_code = '1' THEN 1 ELSE 0 END AS alcohol,
     NULL AS cid_hash

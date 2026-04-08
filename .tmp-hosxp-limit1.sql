@@ -7,7 +7,6 @@ SELECT
     CONCAT(p.pname, p.fname, ' ', p.lname) AS patient_name,
     v.vn AS vn,
     DATE_FORMAT(v.vstdate, '%Y-%m-%d') AS visit_date,
-    TIME_FORMAT(v.vsttime, '%H:%i:%s') AS visit_time,
     CASE p.sex
         WHEN '1' THEN 'ชาย'
         WHEN '2' THEN 'หญิง'
@@ -45,6 +44,7 @@ SELECT
         JOIN icd101 i3 ON i3.code = d3.icd10
         WHERE d3.vn = v.vn
     ) AS dx_list,
+    TIME_FORMAT(v.vsttime, '%H:%i:%s') AS visit_time,
     'auto' AS source,
     CASE WHEN aat.is_code = '1' THEN 1 ELSE 0 END AS alcohol,
     NULL AS cid_hash
@@ -85,4 +85,4 @@ WHERE EXISTS (
     WHERE d0.vn = v.vn
       AND d0.icd10 LIKE 'V%'
 )
-  AND v.vstdate >= '2026-01-01';
+  AND v.vstdate >= '2026-01-01' LIMIT 1;
