@@ -249,7 +249,7 @@ function ChiefComplaintCell({
     <div className="group relative">
       <button
         type="button"
-        className="w-full text-left text-[10px] leading-5 text-slate-700 transition hover:text-sky-700 focus:outline-none"
+        className="w-full cursor-pointer text-left text-[10px] leading-5 text-slate-700 transition hover:text-sky-700 focus:outline-none"
         onClick={onOpen}
       >
         <span
@@ -276,13 +276,13 @@ function ChiefComplaintCell({
 
 function DiagnosisDialog({
   title,
-  pdx,
-  extDx,
+  items,
+  loading,
   onClose,
 }: {
   title: string;
-  pdx: string;
-  extDx: string;
+  items: Array<{ code: string; name: string; isPdx: boolean }>;
+  loading: boolean;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -325,12 +325,27 @@ function DiagnosisDialog({
         </div>
         <div className="grid gap-4 overflow-y-auto px-4 py-4 sm:px-5">
           <div className="border border-sky-100 bg-sky-50/40 px-3 py-3">
-            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-sky-700">PDX</div>
-            <div className="text-[12px] leading-6 whitespace-pre-wrap text-slate-700">{pdx || "-"}</div>
-          </div>
-          <div className="border border-sky-100 bg-sky-50/40 px-3 py-3">
-            <div className="mb-2 text-[11px] font-semibold tracking-wide text-sky-700">สาเหตุภายนอก</div>
-            <div className="text-[12px] leading-6 whitespace-pre-wrap text-slate-700">{extDx || "-"}</div>
+            <div className="mb-2 text-[11px] font-semibold tracking-wide text-sky-700">รหัสโรค</div>
+            <div className="grid gap-2">
+              {loading ? (
+                <div className="text-[12px] text-slate-500">กำลังโหลด...</div>
+              ) : items.length > 0 ? (
+                items.map((item) => (
+                  <div
+                    key={`${item.code}-${item.isPdx ? "pdx" : "dx"}`}
+                    className="grid grid-cols-[120px_minmax(0,1fr)] gap-3 border border-sky-100 bg-white px-3 py-2 text-[12px] text-slate-700"
+                  >
+                    <div className="font-medium text-slate-900">
+                      {item.code}
+                      {item.isPdx ? <span className="ml-2 text-[10px] text-sky-700">PDX</span> : null}
+                    </div>
+                    <div className="break-words">{item.name || "-"}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-[12px] text-slate-500">-</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -340,23 +355,16 @@ function DiagnosisDialog({
 
 function DiagnosisCell({
   pdx,
-  extDx,
   onOpen,
 }: {
   pdx: unknown;
-  extDx: unknown;
   onOpen: () => void;
 }) {
   const pdxText = formatDx(pdx) || "-";
-  const extDxText = formatDx(extDx) || "-";
 
   return (
     <div className="group relative">
-      <button
-        type="button"
-        className="w-full text-left text-[10px] leading-5 text-slate-700 transition hover:text-sky-700 focus:outline-none"
-        onClick={onOpen}
-      >
+      <div className="text-[10px] leading-5 text-slate-700">
         <span
           className="block overflow-hidden break-words"
           style={{
@@ -367,17 +375,19 @@ function DiagnosisCell({
         >
           {pdxText}
         </span>
-        <span
-          className="mt-1 inline-flex h-5 w-5 items-center justify-center text-sky-600"
-          aria-label="สาเหตุภายนอก"
+        <button
+          type="button"
+          className="mt-1 inline-flex h-5 w-5 cursor-pointer items-center justify-center text-sky-600 transition hover:text-sky-800 focus:outline-none"
+          aria-label="ดูรายการรหัสโรค"
+          onClick={onOpen}
         >
           <FileText size={13} />
-        </span>
-      </button>
+        </button>
+      </div>
 
       <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1 hidden w-80 max-w-[30rem] border border-sky-200 bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block">
-        <div className="font-semibold text-sky-700">สาเหตุภายนอก</div>
-        <div className="mt-1 break-words">{extDxText}</div>
+        <div className="font-semibold text-sky-700">กดรูปกระดาษเพื่อดูรหัสโรคทั้งหมด</div>
+        <div className="mt-1 break-words">{pdxText}</div>
       </div>
     </div>
   );
@@ -414,6 +424,7 @@ export type PatientRow = {
   rejected_note?: string | null;
   pdx: unknown;
   ext_dx: unknown;
+  dx_list?: unknown;
 };
 
 type GridResponse = {
@@ -421,6 +432,11 @@ type GridResponse = {
   page: number;
   pageSize: number;
   total: number;
+};
+
+type IcdLookupItem = {
+  code: string;
+  name: string;
 };
 
 type CreatePatientResponse = {
@@ -835,6 +851,77 @@ function formatDx(value: unknown) {
   }
 }
 
+function extractDiagnosisCode(value: unknown) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const match = trimmed.match(/^([A-Z][A-Z0-9.]*)/i);
+    return match?.[1]?.toUpperCase() ?? "";
+  }
+
+  if (typeof value === "object") {
+    const row = value as { code?: unknown };
+    return typeof row.code === "string" ? row.code.trim().toUpperCase() : "";
+  }
+
+  return "";
+}
+
+function extractDiagnosisLabel(value: unknown) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const parts = trimmed.split(/[-|]/);
+    return parts.slice(1).join("-").trim();
+  }
+
+  if (typeof value === "object" && value) {
+    const row = value as { name?: unknown };
+    return typeof row.name === "string" ? row.name.trim() : "";
+  }
+
+  return "";
+}
+
+function parseDxListCodes(value: unknown) {
+  if (value === null || value === undefined) return [] as string[];
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      return parseDxListCodes(JSON.parse(trimmed));
+    } catch {
+      return trimmed
+        .split("|")
+        .map((item) => extractDiagnosisCode(item))
+        .filter(Boolean);
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => extractDiagnosisCode(item)).filter(Boolean);
+  }
+
+  return [];
+}
+
+function buildDiagnosisItems(row: PatientRow, lookupRows: IcdLookupItem[]) {
+  const pdxCode = extractDiagnosisCode(row.pdx);
+  const pdxLabel = extractDiagnosisLabel(row.pdx);
+  const codes = [pdxCode, ...parseDxListCodes(row.dx_list)];
+  const uniqueCodes = Array.from(new Set(codes.filter(Boolean)));
+  const lookupMap = new Map(lookupRows.map((item) => [item.code.toUpperCase(), item.name]));
+
+  return uniqueCodes.map((code, index) => ({
+    code,
+    name: lookupMap.get(code.toUpperCase()) || (index === 0 && pdxLabel ? pdxLabel : "-"),
+    isPdx: index === 0 && code === pdxCode,
+  }));
+}
+
 function formatDxInputValue(value: unknown) {
   if (!value) return "";
   if (typeof value === "string") return value.trim();
@@ -1058,6 +1145,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [selectedDetailRow, setSelectedDetailRow] = useState<PatientRow | null>(null);
   const [selectedChiefComplaintRow, setSelectedChiefComplaintRow] = useState<PatientRow | null>(null);
   const [selectedDiagnosisRow, setSelectedDiagnosisRow] = useState<PatientRow | null>(null);
+  const [diagnosisLookupRows, setDiagnosisLookupRows] = useState<IcdLookupItem[]>([]);
+  const [diagnosisLookupLoading, setDiagnosisLookupLoading] = useState(false);
   const [pendingDeleteRow, setPendingDeleteRow] = useState<PatientRow | null>(null);
   const [draft, setDraft] = useState<PatientEditDraft>(EMPTY_DRAFT);
   const [createDraft, setCreateDraft] = useState<PatientCreateDraft>(() => createInitialPatientDraft());
@@ -1109,6 +1198,56 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   useEffect(() => {
     selectedTambonCodeRef.current = selectedTambonCode;
   }, [selectedTambonCode]);
+
+  useEffect(() => {
+    if (!selectedDiagnosisRow) {
+      setDiagnosisLookupRows([]);
+      setDiagnosisLookupLoading(false);
+      return;
+    }
+
+    const codes = Array.from(
+      new Set([
+        extractDiagnosisCode(selectedDiagnosisRow.pdx),
+        ...parseDxListCodes(selectedDiagnosisRow.dx_list),
+      ].filter(Boolean)),
+    );
+
+    if (codes.length === 0) {
+      setDiagnosisLookupRows([]);
+      setDiagnosisLookupLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setDiagnosisLookupLoading(true);
+
+    fetch(`/api/icd-lookup?${codes.map((code) => `code=${encodeURIComponent(code)}`).join("&")}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = (await response.json().catch(() => ({}))) as {
+          rows?: IcdLookupItem[];
+          message?: string;
+        };
+        if (!response.ok) {
+          throw new Error(payload.message ?? "Failed to lookup ICD");
+        }
+        setDiagnosisLookupRows(payload.rows ?? []);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setDiagnosisLookupRows([]);
+        setError(error instanceof Error ? error.message : "Failed to lookup ICD");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setDiagnosisLookupLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [selectedDiagnosisRow]);
 
   const hospitalOptions = initialData.hospitalOptions;
   const hospitalChoices = initialData.hospitalChoices;
@@ -2368,7 +2507,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <ChiefComplaintCell value={row.cc} onOpen={() => setSelectedChiefComplaintRow(row)} />
                     </td>
                     <td className="px-2 py-3">
-                      <DiagnosisCell pdx={row.pdx} extDx={row.ext_dx} onOpen={() => setSelectedDiagnosisRow(row)} />
+                      <DiagnosisCell
+                        pdx={row.pdx}
+                        onOpen={() => {
+                          setError(null);
+                          setSelectedDiagnosisRow(row);
+                        }}
+                      />
                     </td>
                     <td className="break-words px-2 py-3">{row.area ?? "-"}</td>
                     <td className="break-words px-2 py-3">{row.vehicle ?? "-"}</td>
@@ -3604,8 +3749,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       {selectedDiagnosisRow ? (
         <DiagnosisDialog
           title={`${selectedDiagnosisRow.patient_name ?? "-"} (${selectedDiagnosisRow.id})`}
-          pdx={formatDx(selectedDiagnosisRow.pdx) || "-"}
-          extDx={formatDx(selectedDiagnosisRow.ext_dx) || "-"}
+          items={buildDiagnosisItems(selectedDiagnosisRow, diagnosisLookupRows)}
+          loading={diagnosisLookupLoading}
           onClose={() => setSelectedDiagnosisRow(null)}
         />
       ) : null}

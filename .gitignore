@@ -22,6 +22,9 @@
 
 # data exports / imports
 /data/
+/data/*.dump
+/data/*.sql
+/data/*backup*
 /docs/
 
 # misc

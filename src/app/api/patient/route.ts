@@ -219,6 +219,7 @@ export async function GET(request: NextRequest) {
         p.is_rejected,
         p.pdx,
         p.ext_dx,
+        p.dx_list,
         p.alcohol,
         detail.vehicle AS vehicle,
         shift.shift_name AS shift_name,
