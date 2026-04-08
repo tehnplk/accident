@@ -70,18 +70,6 @@ function serializeDiagnosisValue(value: unknown) {
   return null;
 }
 
-function serializeJsonValue(value: unknown) {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-  if (Array.isArray(value) || typeof value === "object") {
-    return JSON.stringify(value);
-  }
-  return null;
-}
-
 function parseDiagnosisValue<T>(value: unknown): T | null {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") {
@@ -89,20 +77,6 @@ function parseDiagnosisValue<T>(value: unknown): T | null {
     return (trimmed || null) as T | null;
   }
   return String(value) as T;
-}
-
-function parseJsonValue<T>(value: unknown): T | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    try {
-      return JSON.parse(trimmed) as T;
-    } catch {
-      return trimmed as T;
-    }
-  }
-  return value as T;
 }
 
 export async function PATCH(
@@ -149,7 +123,7 @@ export async function PATCH(
         values.push(serializeDiagnosisValue(raw));
         updates.push(`${field} = $${values.length}`);
       } else if (field === "dx_list") {
-        values.push(serializeJsonValue(raw));
+        values.push(serializeDiagnosisValue(raw));
         updates.push(`${field} = $${values.length}`);
       }
     }
@@ -230,7 +204,7 @@ export async function PATCH(
           ...result.rows[0],
           pdx: parseDiagnosisValue(result.rows[0].pdx),
           ext_dx: parseDiagnosisValue(result.rows[0].ext_dx),
-          dx_list: parseJsonValue(result.rows[0].dx_list),
+          dx_list: parseDiagnosisValue(result.rows[0].dx_list),
         }
       : null;
 
