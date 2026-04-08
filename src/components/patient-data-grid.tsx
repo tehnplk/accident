@@ -2438,11 +2438,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         </select>
                       </label>
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 sm:col-span-2 lg:col-span-6">
-                        <span>อาการสำคัญ <span className="text-rose-600">*</span></span>
+                        <span>อาการสำคัญ(CC) และ ประวัติการเจ็บป่วย(PI) <span className="text-rose-600">*</span></span>
                         <textarea
                           rows={1}
                           className="min-h-[40px] w-full min-w-0 border border-sky-200 bg-white px-3 py-2 text-[12px] leading-5 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          placeholder="บันทึกอาการสำคัญหรือหมายเหตุเบื้องต้น"
+                          placeholder="บันทึก อาการสำคัญ (CC) และ ประวัติการเจ็บป่วย (PI)"
                           autoComplete="off"
                           value={createDraft.cc}
                           onChange={(event) => updateCreateDraft({ cc: event.target.value })}
