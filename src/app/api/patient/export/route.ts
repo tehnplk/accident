@@ -31,6 +31,7 @@ type ExportRow = {
   changwat: string | null;
   pdx: unknown;
   ext_dx: unknown;
+  dx_list: string | null;
   location_road: string | null;
   location_detail: string | null;
   location_moo: string | null;
@@ -109,28 +110,32 @@ function formatAddress(row: ExportRow) {
   return parts.length > 0 ? parts.join(" ") : "-";
 }
 
-function formatDiagnosisEntry(value: unknown) {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (!trimmed) return "";
-    try {
-      return formatDiagnosisEntry(JSON.parse(trimmed));
-    } catch {
-      return trimmed;
-    }
-  }
+function parseDxListCodes(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return [] as string[];
 
-  if (!value || typeof value !== "object") return "";
-  const row = value as { code?: unknown; name?: unknown };
-  const code = typeof row.code === "string" ? row.code.trim() : "";
-  const name = typeof row.name === "string" ? row.name.trim() : "";
-  if (code && name) return `${code} - ${name}`;
-  return code || name;
+  const seen = new Set<string>();
+
+  return trimmed
+    .split("|")
+    .map((item) => item.trim().toUpperCase())
+    .filter((code) => {
+      if (!code || seen.has(code)) return false;
+      seen.add(code);
+      return true;
+    });
 }
 
-function formatDiagnosis(pdx: unknown, extDx: unknown) {
-  const parts = [formatDiagnosisEntry(pdx), formatDiagnosisEntry(extDx)].filter(Boolean);
-  return parts.length > 0 ? parts.join(" ; ") : "-";
+function formatDiagnosis(dxList: string | null | undefined, icdMap: Map<string, string>) {
+  const codes = parseDxListCodes(dxList);
+  if (codes.length === 0) return "-";
+
+  return codes
+    .map((code) => {
+      const name = icdMap.get(code);
+      return name ? `${code}-${name}` : code;
+    })
+    .join(", ");
 }
 
 function parseExportFilters(params: URLSearchParams) {
@@ -354,6 +359,7 @@ export async function GET(request: NextRequest) {
         p.changwat,
         p.pdx,
         p.ext_dx,
+        p.dx_list,
         loc.location_road,
         loc.location_detail,
         loc.location_moo,
@@ -374,11 +380,35 @@ export async function GET(request: NextRequest) {
     `;
 
     const result = await dbQuery<ExportRow>(query, [...filterValues, aesSecret]);
+    const allDxCodes = Array.from(
+      new Set(result.rows.flatMap((row) => parseDxListCodes(row.dx_list))),
+    );
+    const icdMap = new Map<string, string>();
+
+    if (allDxCodes.length > 0) {
+      const icdResult = await dbQuery<{ code: string; name: string | null }>(
+        `
+          SELECT
+            i.code,
+            COALESCE(NULLIF(i.tname, ''), i.name) AS name
+          FROM public.icd101 i
+          WHERE i.code = ANY($1::text[])
+        `,
+        [allDxCodes],
+      );
+
+      for (const icdRow of icdResult.rows) {
+        const code = icdRow.code.trim().toUpperCase();
+        if (!code) continue;
+        icdMap.set(code, icdRow.name?.trim() || "-");
+      }
+    }
+
     const exportRows = result.rows.map((row) => ({
       "วันที่มาถึงรพ./เวลา": formatVisitDateTime(row.visit_date, row.visit_time),
       "ชื่อ-นามสกุล": row.patient_name ?? "-",
       "เลขบัตรประชาชน": row.cid ?? "-",
-      "วินิจฉัย (Diagnosis)": formatDiagnosis(row.pdx, row.ext_dx),
+      "วินิจฉัย (Diagnosis)": formatDiagnosis(row.dx_list, icdMap),
       "อาการสำคัญ": row.cc ?? "-",
       "การคัดแยก(Triage)": row.triage ?? "-",
       ภูมิลำเนา: formatAddress(row),
