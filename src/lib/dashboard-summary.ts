@@ -214,7 +214,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          num_pt_case
        FROM ranked
        WHERE rn = 1
-       ORDER BY hosname ASC, date_time DESC`,
+       ORDER BY date_time DESC, hosname ASC`,
     ),
   ]);
 
