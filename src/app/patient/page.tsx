@@ -42,7 +42,7 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
     name: pickParam(searchParams.name),
     hn: pickParam(searchParams.hn),
     area: pickParam(searchParams.area),
-    vehicle: pickParam(searchParams.vehicle),
+    visitDate: pickParam(searchParams.visit_date),
     alcohol: pickParam(searchParams.alcohol),
     sex: pickParam(searchParams.sex),
     isRejected: pickParam(searchParams.is_rejected) === "true" ? "true" : "false",
@@ -68,7 +68,7 @@ function buildPatientQuery(filters: FilterState) {
   const nameParam = filters.name.trim() ? `%${filters.name.trim()}%` : null;
   const hnParam = filters.hn.trim() ? `%${filters.hn.trim()}%` : null;
   const areaParam = filters.area.trim() || null;
-  const vehicleParam = filters.vehicle.trim() || null;
+  const visitDateParam = filters.visitDate.trim() || null;
   const alcoholParam = filters.alcohol.trim() || null;
   const sexParam = filters.sex || null;
 
@@ -76,7 +76,7 @@ function buildPatientQuery(filters: FilterState) {
   if (nameParam) filterValues.push(nameParam);
   if (hnParam) filterValues.push(hnParam);
   if (areaParam) filterValues.push(areaParam);
-  if (vehicleParam) filterValues.push(vehicleParam);
+  if (visitDateParam) filterValues.push(visitDateParam);
   if (alcoholParam) filterValues.push(alcoholParam);
   if (sexParam) filterValues.push(sexParam);
 
@@ -102,9 +102,9 @@ function buildPatientQuery(filters: FilterState) {
     paramIndex += 1;
     whereParts.push(`loc.area = $${paramIndex}`);
   }
-  if (vehicleParam) {
+  if (visitDateParam) {
     paramIndex += 1;
-    whereParts.push(`detail.vehicle = $${paramIndex}`);
+    whereParts.push(`p.visit_date = $${paramIndex}::date`);
   }
   if (alcoholParam) {
     paramIndex += 1;
@@ -223,23 +223,11 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     ) x
     ORDER BY area ASC
   `;
-  const vehicleQuery = `
-    SELECT DISTINCT vehicle
-    FROM (
-      SELECT COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) AS vehicle
-      FROM public.patient_detail pd
-      LEFT JOIN public.acd_vihicle av ON av.code = pd.acd_vihicle
-      WHERE COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) IS NOT NULL
-        AND COALESCE(NULLIF(pd.acd_vihicle_addon, ''), av.name) <> ''
-    ) x
-    ORDER BY vehicle ASC
-  `;
-  const [countResult, rowsResult, hospitalResult, areaResult, vehicleResult] = await Promise.all([
+  const [countResult, rowsResult, hospitalResult, areaResult] = await Promise.all([
     dbQuery<{ total: number }>(countQuery, countValues),
     dbQuery<PatientRow>(dataQuery, pageValues),
     dbQuery<HospitalOption>(hospitalQuery),
     dbQuery<{ area: string }>(areaQuery),
-    dbQuery<{ vehicle: string }>(vehicleQuery),
   ]);
 
   const rows = rowsResult.rows.map((row) => ({
@@ -254,7 +242,6 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     canExportXlsx: false,
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
-    vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),
     userProfile: null,
     userName: null,
   };

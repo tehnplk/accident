@@ -591,7 +591,7 @@ export type FilterState = {
   name: string;
   hn: string;
   area: string;
-  vehicle: string;
+  visitDate: string;
   alcohol: string;
   sex: string;
   isRejected: "true" | "false";
@@ -609,7 +609,6 @@ export type PatientGridInitialData = {
   canExportXlsx: boolean;
   hospitalChoices: HospitalOption[];
   areaOptions: string[];
-  vehicleOptions: string[];
   userProfile: Record<string, unknown> | null;
   userName: string | null;
 };
@@ -638,7 +637,7 @@ function buildQueryString(state: FilterState) {
   if (state.name.trim()) params.set("name", state.name.trim());
   if (state.hn.trim()) params.set("hn", state.hn.trim());
   if (state.area.trim()) params.set("area", state.area.trim());
-  if (state.vehicle.trim()) params.set("vehicle", state.vehicle.trim());
+  if (state.visitDate.trim()) params.set("visit_date", state.visitDate.trim());
   if (state.alcohol.trim()) params.set("alcohol", state.alcohol.trim());
   if (state.sex) params.set("sex", state.sex);
   if (state.isRejected === "true") params.set("is_rejected", "true");
@@ -695,7 +694,7 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
     name: searchParams.get("name") ?? "",
     hn: searchParams.get("hn") ?? "",
     area: searchParams.get("area") ?? "",
-    vehicle: searchParams.get("vehicle") ?? "",
+    visitDate: searchParams.get("visit_date") ?? "",
     alcohol: searchParams.get("alcohol") ?? "",
     sex: searchParams.get("sex") ?? "",
     isRejected: searchParams.get("is_rejected") === "true" ? "true" : "false",
@@ -1250,7 +1249,6 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
 
   const hospitalChoices = initialData.hospitalChoices;
   const areaOptions = initialData.areaOptions;
-  const vehicleOptions = initialData.vehicleOptions;
   const authToken = initialData.authToken;
   const canExportXlsx = initialData.canExportXlsx;
 
@@ -2310,6 +2308,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             ))}
           </select>
           <input
+            type="date"
+            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+            value={filters.visitDate}
+            onChange={(event) => {
+              updateFilter({ visitDate: event.target.value, page: 1 });
+            }}
+            aria-label="วันที่ visit"
+          />
+          <input
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             placeholder="กรอง ชื่อ-นามสกุล"
             value={filters.name}
@@ -2328,20 +2335,6 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             {areaOptions.map((area) => (
               <option key={area} value={area}>
                 {area}
-              </option>
-            ))}
-          </select>
-          <select
-            className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-            value={filters.vehicle}
-            onChange={(event) => {
-              updateFilter({ vehicle: event.target.value, page: 1 });
-            }}
-          >
-            <option value="">ประเภทรถ</option>
-            {vehicleOptions.map((vehicle) => (
-              <option key={vehicle} value={vehicle}>
-                {vehicle}
               </option>
             ))}
           </select>

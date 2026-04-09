@@ -144,7 +144,7 @@ function parseExportFilters(params: URLSearchParams) {
     name: params.get("name")?.trim() ?? "",
     hn: params.get("hn")?.trim() ?? "",
     area: params.get("area")?.trim() ?? "",
-    vehicle: params.get("vehicle")?.trim() ?? "",
+    visitDate: params.get("visit_date")?.trim() ?? "",
     alcohol: params.get("alcohol")?.trim() ?? "",
     sex: params.get("sex")?.trim() ?? "",
     isRejected: params.get("is_rejected") === "true",
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
     const nameParam = filters.name ? `%${filters.name}%` : null;
     const hnParam = filters.hn ? `%${filters.hn}%` : null;
     const areaParam = filters.area || null;
-    const vehicleParam = filters.vehicle || null;
+    const visitDateParam = filters.visitDate || null;
     const alcoholParam = filters.alcohol || null;
     const sexParam = filters.sex || null;
 
@@ -195,7 +195,7 @@ export async function GET(request: NextRequest) {
     if (nameParam) filterValues.push(nameParam);
     if (hnParam) filterValues.push(hnParam);
     if (areaParam) filterValues.push(areaParam);
-    if (vehicleParam) filterValues.push(vehicleParam);
+    if (visitDateParam) filterValues.push(visitDateParam);
     if (alcoholParam) filterValues.push(alcoholParam);
     if (sexParam) filterValues.push(sexParam);
 
@@ -225,9 +225,9 @@ export async function GET(request: NextRequest) {
       paramIndex += 1;
       whereParts.push(`loc.area = $${paramIndex}`);
     }
-    if (vehicleParam) {
+    if (visitDateParam) {
       paramIndex += 1;
-      whereParts.push(`detail.acd_vihicle_label = $${paramIndex}`);
+      whereParts.push(`p.visit_date = $${paramIndex}::date`);
     }
     if (alcoholParam) {
       paramIndex += 1;
