@@ -70,6 +70,8 @@ const VEHICLE_PALETTE = [
 ];
 
 const OTHER_COLOR = "#94a3b8";
+const DASHBOARD_MIN_VISIT_DATE = "2026-04-10";
+const DASHBOARD_MAX_VISIT_DATE = "2026-04-16";
 
 function normalizeLabel(value: string | null | undefined) {
   const text = value?.trim() ?? "";
@@ -106,15 +108,14 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
             OR COALESCE(status, '') LIKE '%ตาย%'
        )::int AS death_cases
      FROM public.patient
-     WHERE COALESCE(is_rejected, false) = false`,
+     WHERE COALESCE(is_rejected, false) = false
+       AND visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'`,
   );
 
   const rangeResult = await dbQuery<{ min_visit_date: string | null; max_visit_date: string | null }>(
     `SELECT
-       to_char(min(visit_date), 'YYYY-MM-DD') AS min_visit_date,
-       to_char(max(visit_date), 'YYYY-MM-DD') AS max_visit_date
-     FROM public.patient
-     WHERE COALESCE(is_rejected, false) = false`,
+       '${DASHBOARD_MIN_VISIT_DATE}'::text AS min_visit_date,
+       '${DASHBOARD_MAX_VISIT_DATE}'::text AS max_visit_date`,
   );
 
   const [statusResult, alcoholResult, vehicleResult, districtResult] = await Promise.all([
@@ -124,6 +125,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          count(*)::int AS value
        FROM public.patient
        WHERE COALESCE(is_rejected, false) = false
+         AND visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -137,6 +139,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          count(*)::int AS value
        FROM public.patient
        WHERE COALESCE(is_rejected, false) = false
+         AND visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -148,6 +151,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
        JOIN public.patient p ON p.id = detail.patient_id
        LEFT JOIN public.acd_vihicle av ON av.code = detail.acd_vihicle
        WHERE COALESCE(p.is_rejected, false) = false
+         AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -169,6 +173,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
           LIMIT 1
         ) loc ON TRUE
        WHERE COALESCE(p.is_rejected, false) = false
+         AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY cases DESC, district ASC`,
     ),

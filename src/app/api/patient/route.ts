@@ -9,6 +9,7 @@ import {
 import { normalizeShiftName } from "@/lib/shift";
 
 const PAGE_SIZES = new Set([20, 50, 100]);
+const MIN_PATIENT_VISIT_DATE = "2026-04-10";
 
 type CreatePatientBody = {
   hoscode?: string;
@@ -148,6 +149,7 @@ export async function GET(request: NextRequest) {
       paramIndex += 1;
       whereParts.push(`p.sex = $${paramIndex}`);
     }
+    whereParts.push(`p.visit_date >= DATE '${MIN_PATIENT_VISIT_DATE}'`);
 
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
     const baseFrom = `

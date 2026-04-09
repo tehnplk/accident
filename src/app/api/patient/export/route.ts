@@ -11,6 +11,7 @@ import {
 } from "@/lib/patient-security";
 
 export const runtime = "nodejs";
+const MIN_PATIENT_VISIT_DATE = "2026-04-10";
 
 type ExportRow = {
   id: number;
@@ -237,6 +238,7 @@ export async function GET(request: NextRequest) {
       paramIndex += 1;
       whereParts.push(`p.sex = $${paramIndex}`);
     }
+    whereParts.push(`p.visit_date >= DATE '${MIN_PATIENT_VISIT_DATE}'`);
     whereParts.push(filters.isRejected ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false");
 
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";

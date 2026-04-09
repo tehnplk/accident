@@ -23,6 +23,7 @@ type PatientPageProps = {
 };
 
 const PAGE_SIZES = new Set([20, 50, 100]);
+const MIN_PATIENT_VISIT_DATE = "2026-04-10";
 
 function pickParam(value: SearchParamsValue) {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -114,6 +115,7 @@ function buildPatientQuery(filters: FilterState) {
     paramIndex += 1;
     whereParts.push(`p.sex = $${paramIndex}`);
   }
+  whereParts.push(`p.visit_date >= DATE '${MIN_PATIENT_VISIT_DATE}'`);
   whereParts.push(
     filters.isRejected === "true" ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false",
   );
