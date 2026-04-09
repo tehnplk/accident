@@ -351,12 +351,12 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-sky-100 bg-white shadow-sm">
                   <Image src="/logo.png" alt="สำนักงานสาธารณสุขจังหวัดพิษณุโลก" width={40} height={40} className="h-10 w-10 object-contain" />
                 </div>
-                <p className="text-xs font-semibold tracking-[0.08em] text-sky-500">
+                <p className="text-sm font-semibold tracking-[0.08em] text-sky-500">
                   สำนักงานสาธารณสุขจังหวัดพิษณุโลก
                 </p>
               </div>
-              <h1 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-                ข้อมูลผู้ป่วยจากอุบัติเหตุทางถนนในช่วงเทศกาลสงกรานต์ ปี 2569 จังหวัดพิษณุโลก
+              <h1 className="mt-2 text-sm font-semibold tracking-tight text-slate-950 sm:text-lg">
+                ข้อมูลผู้ได้รับบาดเจ็บและเสียชีวิตจากอุบัติเหตุทางถนนในช่วงเทศกาลสงกรานต์ ปี 2569 จังหวัดพิษณุโลก
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                 ตั้งแต่วันที่ <span className="font-semibold text-slate-900">{dateRangeLabel}</span>
