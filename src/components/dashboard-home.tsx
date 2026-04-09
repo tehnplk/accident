@@ -224,7 +224,7 @@ function BarChartPanel({ rows }: { rows: DashboardBarRow[] }) {
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Bar Chart</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">จำนวนเคสรายพื้นที่</h2>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">จำนวนเคสแยกรายพื้นที่ที่เกิดเหตุ</h2>
         </div>
         <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
           {rows.length} อำเภอ
