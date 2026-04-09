@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     const aesSecret = getPatientAesSecret();
     const filterValues: unknown[] = [];
     const whereParts: string[] = [];
-    const hospitalParam = hospital ? `%${hospital}%` : null;
+    const hospitalParam = hospital || null;
     const nameParam = name ? `%${name}%` : null;
     const hnParam = hn ? `%${hn}%` : null;
     const areaParam = area || null;
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
 
     if (hospitalParam) {
       paramIndex += 1;
-      whereParts.push(`p.hosname ILIKE $${paramIndex}`);
+      whereParts.push(`p.hoscode = $${paramIndex}`);
     }
     if (nameParam) {
       paramIndex += 1;
@@ -303,7 +303,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!cid) {
-      return NextResponse.json({ message: "CID is required" }, { status: 400 });
+      return NextResponse.json({ message: "CID / Passport is required" }, { status: 400 });
     }
 
     if (!patientName) {
@@ -516,7 +516,7 @@ export async function POST(request: NextRequest) {
     const code = (error as { code?: string })?.code;
     if (code === "23505") {
       return NextResponse.json(
-        { message: "ข้อมูลซ้ำ: hoscode + CID + visit_date นี้มีอยู่แล้วในระบบ" },
+        { message: "ข้อมูลซ้ำ: hoscode + CID / Passport + visit_date นี้มีอยู่แล้วในระบบ" },
         { status: 409 },
       );
     }

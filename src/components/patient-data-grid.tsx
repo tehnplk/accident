@@ -607,7 +607,6 @@ export type PatientGridInitialData = {
   filters: FilterState;
   authToken: string;
   canExportXlsx: boolean;
-  hospitalOptions: string[];
   hospitalChoices: HospitalOption[];
   areaOptions: string[];
   vehicleOptions: string[];
@@ -1249,7 +1248,6 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     return () => controller.abort();
   }, [selectedDiagnosisRow]);
 
-  const hospitalOptions = initialData.hospitalOptions;
   const hospitalChoices = initialData.hospitalChoices;
   const areaOptions = initialData.areaOptions;
   const vehicleOptions = initialData.vehicleOptions;
@@ -2146,7 +2144,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     }
 
     if (!createDraft.cid.trim()) {
-      setCreateError("กรุณากรอก CID");
+      setCreateError("กรุณากรอก CID / Passport");
       return;
     }
 
@@ -2305,9 +2303,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             }}
           >
             <option value="">ทุก รพ.</option>
-            {hospitalOptions.map((hospital, index) => (
-              <option key={`${hospital}-${index}`} value={hospital}>
-                {formatHospitalName(hospital)}
+            {hospitalChoices.map((hospital) => (
+              <option key={`${hospital.hoscode ?? "unknown"}-${hospital.hosname}`} value={hospital.hoscode ?? ""}>
+                {hospital.hoscode ? `${hospital.hoscode} - ${formatHospitalName(hospital.hosname)}` : formatHospitalName(hospital.hosname)}
               </option>
             ))}
           </select>
@@ -2591,7 +2589,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   <p className="mt-1 text-[12px] leading-5 text-slate-600">
                     {createModalMode === "edit"
                       ? "แก้ไขข้อมูลผู้ป่วยหลัก แล้วกดบันทึกเพื่ออัปเดต"
-                      : "กรอกข้อมูลผู้ป่วย (บังคับ: รพ., CID, ชื่อผู้ป่วย, เพศ, อายุ, Triage, อาการสำคัญ)"}
+                      : "กรอกข้อมูลผู้ป่วย (บังคับ: รพ., CID / Passport, ชื่อผู้ป่วย, เพศ, อายุ, Triage, อาการสำคัญ)"}
                   </p>
                 </div>
                 <button
@@ -2677,15 +2675,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
                         <input
                           className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          inputMode="numeric"
-                          maxLength={13}
                           autoComplete="off"
-                          placeholder="CID *"
-                          aria-label="CID"
+                          placeholder="CID / Passport *"
+                          aria-label="CID / Passport"
                           value={createDraft.cid}
-                          onChange={(event) =>
-                            updateCreateDraft({ cid: event.target.value.replace(/\D/g, "").slice(0, 13) })
-                          }
+                          onChange={(event) => updateCreateDraft({ cid: event.target.value })}
                         />
                       </label>
                       <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">

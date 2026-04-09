@@ -64,7 +64,7 @@ function buildPatientQuery(filters: FilterState) {
   const aesSecret = getPatientAesSecret();
   const filterValues: unknown[] = [];
   const whereParts: string[] = [];
-  const hospitalParam = filters.hospital.trim() ? `%${filters.hospital.trim()}%` : null;
+  const hospitalParam = filters.hospital.trim() || null;
   const nameParam = filters.name.trim() ? `%${filters.name.trim()}%` : null;
   const hnParam = filters.hn.trim() ? `%${filters.hn.trim()}%` : null;
   const areaParam = filters.area.trim() || null;
@@ -88,7 +88,7 @@ function buildPatientQuery(filters: FilterState) {
 
   if (hospitalParam) {
     paramIndex += 1;
-    whereParts.push(`p.hosname ILIKE $${paramIndex}`);
+    whereParts.push(`p.hoscode = $${paramIndex}`);
   }
   if (nameParam) {
     paramIndex += 1;
@@ -246,17 +246,12 @@ async function loadInitialData(filters: FilterState): Promise<PatientGridInitial
     ...row,
     shift_name: normalizeShiftName(row.visit_time, row.shift_name),
   }));
-  const uniqueHospitalNames = Array.from(
-    new Set(hospitalResult.rows.map((row) => row.hosname).filter((value): value is string => Boolean(value))),
-  );
-
   return {
     rows,
     total: countResult.rows[0]?.total ?? 0,
     filters,
     authToken: createPatientApiToken(),
     canExportXlsx: false,
-    hospitalOptions: uniqueHospitalNames,
     hospitalChoices: hospitalResult.rows,
     areaOptions: areaResult.rows.map((row) => row.area),
     vehicleOptions: vehicleResult.rows.map((row) => row.vehicle),

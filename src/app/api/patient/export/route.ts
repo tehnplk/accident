@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
     const filterValues: unknown[] = [];
     const whereParts: string[] = [];
     const scopedHoscodes = hasFullHoscodeAccess ? null : userHoscodes;
-    const hospitalParam = filters.hospital ? `%${filters.hospital}%` : null;
+    const hospitalParam = filters.hospital || null;
     const nameParam = filters.name ? `%${filters.name}%` : null;
     const hnParam = filters.hn ? `%${filters.hn}%` : null;
     const areaParam = filters.area || null;
@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
     }
     if (hospitalParam) {
       paramIndex += 1;
-      whereParts.push(`p.hosname ILIKE $${paramIndex}`);
+      whereParts.push(`p.hoscode = $${paramIndex}`);
     }
     if (nameParam) {
       paramIndex += 1;
