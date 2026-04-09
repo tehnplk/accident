@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { Activity, Skull, Users } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Activity, Clock3, Skull, Users, X } from "lucide-react";
 import {
   ArcElement,
   BarElement,
@@ -20,6 +20,7 @@ import { Bar, Doughnut, Line } from "react-chartjs-2";
 import type {
   DashboardBarRow,
   DashboardLinePoint,
+  DashboardLastSyncRow,
   DashboardSegment,
   DashboardSummary,
 } from "@/lib/dashboard-summary";
@@ -39,6 +40,91 @@ ChartJS.register(
 type DashboardHomeProps = {
   initialData: DashboardSummary;
 };
+
+function LastSyncDialog({
+  rows,
+  onClose,
+}: {
+  rows: DashboardLastSyncRow[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="flex max-h-[calc(100vh-3rem)] w-full max-w-4xl flex-col overflow-hidden border border-sky-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="last-sync-dialog-title"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-sky-100 bg-sky-50/50 px-4 py-4 sm:px-5">
+          <div>
+            <h2 id="last-sync-dialog-title" className="text-[14px] font-semibold text-slate-900">
+              Last Sync
+            </h2>
+            <p className="mt-1 text-[12px] text-slate-500">เวลาล่าสุดของแต่ละโรงพยาบาลจากตาราง sync_log</p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100"
+            onClick={onClose}
+            aria-label="Close last sync dialog"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-4 py-4 sm:px-5">
+          <div className="overflow-hidden border border-sky-100 bg-white">
+            <table className="min-w-full divide-y divide-sky-100 text-[12px]">
+              <thead className="bg-sky-50/70 text-slate-600">
+                <tr>
+                  <th className="w-16 px-3 py-3 text-left font-semibold">#</th>
+                  <th className="w-28 px-3 py-3 text-left font-semibold">hoscode</th>
+                  <th className="px-3 py-3 text-left font-semibold">hosname</th>
+                  <th className="w-56 px-3 py-3 text-left font-semibold">date_time_sync</th>
+                  <th className="w-24 px-3 py-3 text-right font-semibold">rows</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                      ยังไม่มีข้อมูล sync_log
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((row, index) => (
+                    <tr key={`${row.hoscode}-${row.hosname}-${row.dateTimeSync}`} className="text-slate-700">
+                      <td className="px-3 py-3">{index + 1}</td>
+                      <td className="whitespace-nowrap px-3 py-3">{row.hoscode}</td>
+                      <td className="px-3 py-3">{row.hosname}</td>
+                      <td className="whitespace-nowrap px-3 py-3">{row.dateTimeSync}</td>
+                      <td className="whitespace-nowrap px-3 py-3 text-right">{row.rows}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SummaryCard({
   label,
@@ -337,6 +423,7 @@ function LineChartPanel({
 }
 
 export default function DashboardHome({ initialData }: DashboardHomeProps) {
+  const [isLastSyncOpen, setIsLastSyncOpen] = useState(false);
   const dateRangeLabel = formatDateRange(initialData.minVisitDate, initialData.maxVisitDate);
   const deathCount = initialData.deathCases;
   const injuredCount = Math.max(initialData.totalCases - deathCount, 0);
@@ -373,6 +460,14 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
               >
                 Patient
               </Link>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                onClick={() => setIsLastSyncOpen(true)}
+              >
+                <Clock3 className="h-4 w-4" />
+                Last Sync
+              </button>
             </nav>
           </div>
         </header>
@@ -419,6 +514,9 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
           <LineChartPanel points={initialData.dailyCases} dateRangeLabel={dateRangeLabel} />
         </section>
       </div>
+      {isLastSyncOpen ? (
+        <LastSyncDialog rows={initialData.lastSyncRows} onClose={() => setIsLastSyncOpen(false)} />
+      ) : null}
     </main>
   );
 }

@@ -19,6 +19,13 @@ export type DashboardLinePoint = {
   value: number;
 };
 
+export type DashboardLastSyncRow = {
+  hoscode: string;
+  hosname: string;
+  dateTimeSync: string;
+  rows: number;
+};
+
 export type DashboardSummary = {
   totalCases: number;
   deathCases: number;
@@ -29,6 +36,7 @@ export type DashboardSummary = {
   vehicleSegments: DashboardSegment[];
   districtRows: DashboardBarRow[];
   dailyCases: DashboardLinePoint[];
+  lastSyncRows: DashboardLastSyncRow[];
 };
 
 type LabelCountRow = {
@@ -45,6 +53,13 @@ type DistrictCountRow = {
 type DailyCountRow = {
   day: string;
   value: number;
+};
+
+type LastSyncRow = {
+  hoscode: string | null;
+  hosname: string | null;
+  date_time_sync: string | null;
+  num_pt_case: number | null;
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -118,7 +133,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
        '${DASHBOARD_MAX_VISIT_DATE}'::text AS max_visit_date`,
   );
 
-  const [statusResult, alcoholResult, vehicleResult, districtResult] = await Promise.all([
+  const [statusResult, alcoholResult, vehicleResult, districtResult, lastSyncResult] = await Promise.all([
     dbQuery<LabelCountRow>(
       `SELECT
          COALESCE(NULLIF(status, ''), 'ไม่ระบุ') AS label,
@@ -176,6 +191,30 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY cases DESC, district ASC`,
+    ),
+    dbQuery<LastSyncRow>(
+      `WITH ranked AS (
+         SELECT
+           hoscode,
+           hosname,
+           date_time,
+           num_pt_case,
+           row_number() OVER (
+             PARTITION BY hoscode
+             ORDER BY date_time DESC, id DESC
+           ) AS rn
+         FROM public.sync_log
+         WHERE hoscode IS NOT NULL
+           AND trim(hoscode) <> ''
+       )
+       SELECT
+         hoscode,
+         COALESCE(NULLIF(hosname, ''), hoscode, '-') AS hosname,
+         to_char(date_time AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS date_time_sync,
+         num_pt_case
+       FROM ranked
+       WHERE rn = 1
+       ORDER BY hosname ASC, date_time DESC`,
     ),
   ]);
 
@@ -246,6 +285,13 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     }),
   );
 
+  const lastSyncRows = lastSyncResult.rows.map((row) => ({
+    hoscode: row.hoscode?.trim() || "-",
+    hosname: row.hosname?.trim() || "-",
+    dateTimeSync: row.date_time_sync?.trim() || "-",
+    rows: Number(row.num_pt_case) || 0,
+  }));
+
   return {
     totalCases: Number(totalResult.rows[0]?.total) || 0,
     deathCases: Number(totalResult.rows[0]?.death_cases) || 0,
@@ -256,5 +302,6 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     vehicleSegments,
     districtRows,
     dailyCases,
+    lastSyncRows,
   };
 }
