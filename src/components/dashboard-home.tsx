@@ -88,8 +88,8 @@ function LastSyncDialog({
         </div>
 
         <div className="overflow-y-auto px-4 py-4 sm:px-5">
-          <div className="overflow-hidden border border-sky-100 bg-white">
-            <table className="min-w-full divide-y divide-sky-100 text-[12px]">
+          <div className="overflow-x-auto border border-sky-100 bg-white">
+            <table className="min-w-[720px] divide-y divide-sky-100 text-[12px]">
               <thead className="bg-sky-50/70 text-slate-600">
                 <tr>
                   <th className="w-16 px-3 py-3 text-left font-semibold">#</th>
