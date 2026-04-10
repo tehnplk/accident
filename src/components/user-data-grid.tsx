@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -223,24 +223,27 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
 
         <section className="rounded-[28px] border border-sky-100/80 bg-white/95 p-5 shadow-[0_18px_55px_rgba(37,99,235,0.08)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-semibold text-slate-900">Users DataGrid</p>
-              <p className="text-sm text-slate-500">ทั้งหมด {rows.length} รายการ</p>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold text-slate-900">Users DataGrid</p>
+                <p className="text-sm text-slate-500">ทั้งหมด {rows.length} รายการ</p>
+              </div>
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="ค้นหา username / hcode / hname"
                 className="h-11 min-w-[280px] rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-sky-400"
               />
+            </div>
+
+            <div className="flex justify-start lg:justify-end">
               <button
                 type="button"
                 onClick={openCreateModal}
-                className="h-11 rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700"
+                className="inline-flex h-11 items-center gap-2 rounded-2xl bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700"
               >
-                เพิ่มผู้ใช้
+                <Plus className="h-4 w-4" />
+                <span>เพิ่มผู้ใช้</span>
               </button>
             </div>
           </div>
