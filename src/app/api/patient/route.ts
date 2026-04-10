@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     }
     if (nameParam) {
       paramIndex += 1;
-      whereParts.push(`${decryptedPatientNameSql} ILIKE $${paramIndex}`);
+      whereParts.push(`(${decryptedPatientNameSql} ILIKE $${paramIndex} OR p.id::text ILIKE $${paramIndex})`);
     }
     if (hnParam) {
       paramIndex += 1;
