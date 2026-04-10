@@ -515,6 +515,15 @@ type PatientDetailRow = {
   updated_at: string | null;
 };
 
+type PatientLocationRow = {
+  prov_code: string | null;
+  amp_code: string | null;
+  tmb_code: string | null;
+  moo: string | null;
+  road: string | null;
+  detail: string | null;
+};
+
 export type HospitalOption = {
   hoscode: string | null;
   hosname: string;
@@ -1055,6 +1064,20 @@ function getAcdOption(options: AcdOption[], code: string) {
   return options.find((option) => String(option.code) === code) ?? null;
 }
 
+function formatAcdValueDisplay(
+  option: AcdOption | null,
+  addonValue: string | null | undefined,
+  codeValue?: string | number | null,
+  fallback = "-",
+) {
+  const addon = addonValue?.trim() ?? "";
+  if (addon) return addon;
+  if (option) return formatAcdOptionLabel(option);
+  const code = String(codeValue ?? "").trim();
+  if (code) return code;
+  return fallback;
+}
+
 function emptyDetailDraft() {
   return Object.fromEntries(
     ACD_GROUPS.map((group) => [group.name, { code: "", addon_value: "" }]),
@@ -1141,6 +1164,19 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetailRow, setSelectedDetailRow] = useState<PatientRow | null>(null);
+  const [isLocationViewModalOpen, setIsLocationViewModalOpen] = useState(false);
+  const [selectedLocationViewRow, setSelectedLocationViewRow] = useState<PatientRow | null>(null);
+  const [locationViewRow, setLocationViewRow] = useState<PatientLocationRow | null>(null);
+  const [locationViewLoading, setLocationViewLoading] = useState(false);
+  const [locationViewLabels, setLocationViewLabels] = useState({
+    province: "-",
+    amphoe: "-",
+    tambon: "-",
+  });
+  const [isDetailViewModalOpen, setIsDetailViewModalOpen] = useState(false);
+  const [selectedDetailViewRow, setSelectedDetailViewRow] = useState<PatientRow | null>(null);
+  const [detailViewRow, setDetailViewRow] = useState<PatientDetailRow | null>(null);
+  const [detailViewLoading, setDetailViewLoading] = useState(false);
   const [selectedChiefComplaintRow, setSelectedChiefComplaintRow] = useState<PatientRow | null>(null);
   const [selectedDiagnosisRow, setSelectedDiagnosisRow] = useState<PatientRow | null>(null);
   const [diagnosisLookupRows, setDiagnosisLookupRows] = useState<IcdLookupItem[]>([]);
@@ -1593,6 +1629,110 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   }, [authToken, isDetailModalOpen, selectedDetailRow]);
 
   useEffect(() => {
+    if (!isLocationViewModalOpen || !selectedLocationViewRow) return;
+
+    const controller = new AbortController();
+    setLocationViewLoading(true);
+    setLocationViewRow(null);
+    setLocationViewLabels({
+      province: "-",
+      amphoe: "-",
+      tambon: "-",
+    });
+
+    fetch(`/api/patient/${selectedLocationViewRow.id}/location`, {
+      signal: controller.signal,
+      headers: createPatientApiHeaders(authToken),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load location");
+        }
+        return response.json() as Promise<{ row: PatientLocationRow | null }>;
+      })
+      .then(async (payload) => {
+        const row = payload.row;
+        setLocationViewRow(row);
+        if (!row) return;
+
+        const provinceCode = expandSavedLocationCode(row.prov_code, "province");
+        const provinceList =
+          provinceOptions.length > 0 ? provinceOptions : await fetchThaiAddressOptions("level=province", controller.signal);
+        const provinceOption = provinceList.find((option) => String(option.code) === provinceCode) ?? null;
+
+        let amphoeOption: ThaiAddressOption | null = null;
+        if (provinceOption) {
+          const districtOptions = await fetchThaiAddressOptions(
+            `level=district&province_id=${provinceOption.id}`,
+            controller.signal,
+          );
+          const amphoeCode = expandSavedLocationCode(row.amp_code, "district", provinceCode);
+          amphoeOption = districtOptions.find((option) => String(option.code) === amphoeCode) ?? null;
+        }
+
+        let tambonOption: ThaiAddressOption | null = null;
+        if (amphoeOption) {
+          const subdistrictOptions = await fetchThaiAddressOptions(
+            `level=subdistrict&district_id=${amphoeOption.id}`,
+            controller.signal,
+          );
+          const tambonCode = expandSavedLocationCode(
+            row.tmb_code,
+            "subdistrict",
+            provinceCode,
+            expandSavedLocationCode(row.amp_code, "district", provinceCode),
+          );
+          tambonOption = subdistrictOptions.find((option) => String(option.code) === tambonCode) ?? null;
+        }
+
+        setLocationViewLabels({
+          province: optionLabel(provinceOption),
+          amphoe: optionLabel(amphoeOption),
+          tambon: optionLabel(tambonOption),
+        });
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load location failed");
+      })
+      .finally(() => setLocationViewLoading(false));
+
+    return () => controller.abort();
+  }, [authToken, isLocationViewModalOpen, provinceOptions, selectedLocationViewRow]);
+
+  useEffect(() => {
+    if (!isDetailViewModalOpen || !selectedDetailViewRow) return;
+
+    const controller = new AbortController();
+    setDetailViewLoading(true);
+    setDetailViewRow(null);
+
+    fetch(`/api/patient/${selectedDetailViewRow.id}/detail`, {
+      signal: controller.signal,
+      headers: createPatientApiHeaders(authToken),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message ?? "Failed to load patient detail");
+        }
+
+        return response.json() as Promise<{ row?: PatientDetailRow | null }>;
+      })
+      .then((payload) => {
+        setDetailViewRow(payload.row ?? null);
+      })
+      .catch((fetchError: unknown) => {
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : "Load patient detail failed");
+      })
+      .finally(() => setDetailViewLoading(false));
+
+    return () => controller.abort();
+  }, [authToken, isDetailViewModalOpen, selectedDetailViewRow]);
+
+  useEffect(() => {
     if (provinceOptions.length > 0) return;
 
     const controller = new AbortController();
@@ -1885,6 +2025,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const startEdit = (row: PatientRow) => {
+    if (!canEditRow(row)) {
+      setError(null);
+      setSelectedLocationViewRow(row);
+      setIsLocationViewModalOpen(true);
+      return;
+    }
+
     setError(null);
     setSelectedRow(row);
     setDraft({
@@ -1994,10 +2141,38 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const openDetailModal = (row: PatientRow) => {
+    if (!canEditRow(row)) {
+      setError(null);
+      setSelectedDetailViewRow(row);
+      setIsDetailViewModalOpen(true);
+      return;
+    }
+
     setError(null);
     setSelectedDetailRow(row);
     setDetailDraft(emptyDetailDraft());
     setIsDetailModalOpen(true);
+  };
+
+  const closeLocationViewModal = () => {
+    setError(null);
+    setIsLocationViewModalOpen(false);
+    setSelectedLocationViewRow(null);
+    setLocationViewRow(null);
+    setLocationViewLoading(false);
+    setLocationViewLabels({
+      province: "-",
+      amphoe: "-",
+      tambon: "-",
+    });
+  };
+
+  const closeDetailViewModal = () => {
+    setError(null);
+    setIsDetailViewModalOpen(false);
+    setSelectedDetailViewRow(null);
+    setDetailViewRow(null);
+    setDetailViewLoading(false);
   };
 
   const performDeletePatientRow = async (row: PatientRow) => {
@@ -2522,10 +2697,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
-                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 cursor-pointer" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 cursor-pointer" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-pointer"}`}
                           onClick={() => startEdit(row)}
-                          title="บันทึกจุดเกิดเหตุ"
-                          disabled={!canEditRow(row)}
+                          title={canEditRow(row) ? "บันทึกจุดเกิดเหตุ" : "ดูจุดเกิดเหตุ"}
                         >
                           <MapPin size={16} />
                         </button>
@@ -2535,10 +2709,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <div className="flex items-center justify-end">
                         <button
                           type="button"
-                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 cursor-pointer" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+                          className={`inline-flex h-8 w-8 items-center justify-center border ${canEditRow(row) ? "border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 cursor-pointer" : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-pointer"}`}
                           onClick={() => openDetailModal(row)}
-                          title="กรอกข้อมูลเพิ่มเติม"
-                          disabled={!canEditRow(row)}
+                          title={canEditRow(row) ? "กรอกข้อมูลเพิ่มเติม" : "ดูข้อมูลเพิ่มเติม"}
                         >
                           <FileText size={16} />
                         </button>
@@ -3365,6 +3538,123 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
         </div>
       ) : null}
 
+      {isLocationViewModalOpen && selectedLocationViewRow ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-6 backdrop-blur-[2px]"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeLocationViewModal();
+          }}
+        >
+          <div
+            className="w-full max-w-4xl border border-indigo-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="patient-location-view-title"
+          >
+            <div className="border-b border-indigo-100 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="patient-location-view-title" className="text-[12px] font-semibold text-slate-900">
+                    {`ดูจุดเกิดเหตุ (${selectedLocationViewRow.id})`}
+                  </h2>
+                  <p className="mt-1 text-[12px] text-slate-600">แสดงข้อมูลจาก patient_acd_location</p>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                  onClick={closeLocationViewModal}
+                  aria-label="Close location view modal"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="mt-4 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-3 py-2">
+                  <span className="block text-slate-500">วันที่มา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">
+                    {formatDate(selectedLocationViewRow.visit_date)}
+                  </span>
+                </div>
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-3 py-2">
+                  <span className="block text-slate-500">เวลามา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">
+                    {formatTime(selectedLocationViewRow.visit_time)}
+                  </span>
+                </div>
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-3 py-2">
+                  <span className="block text-slate-500">เลขบัตร</span>
+                  <span className="block font-medium text-slate-900">{selectedLocationViewRow.cid ?? "-"}</span>
+                </div>
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-3 py-2">
+                  <span className="block text-slate-500">ชื่อ-นามสกุล</span>
+                  <span className="block font-medium text-slate-900">
+                    {selectedLocationViewRow.patient_name ?? "-"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-6">
+              {locationViewLoading ? (
+                <div className="border border-indigo-100 bg-indigo-50/40 px-4 py-6 text-center text-[12px] text-slate-500">
+                  กำลังโหลดข้อมูลจุดเกิดเหตุ...
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2 text-[12px] text-slate-700">
+                    <span>จังหวัด</span>
+                    <div className="min-h-9 border border-indigo-100 bg-indigo-50/40 px-3 py-2 text-slate-900">
+                      {locationViewLabels.province}
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-[12px] text-slate-700">
+                    <span>อำเภอ</span>
+                    <div className="min-h-9 border border-indigo-100 bg-indigo-50/40 px-3 py-2 text-slate-900">
+                      {locationViewLabels.amphoe}
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-[12px] text-slate-700">
+                    <span>ตำบล</span>
+                    <div className="min-h-9 border border-indigo-100 bg-indigo-50/40 px-3 py-2 text-slate-900">
+                      {locationViewLabels.tambon}
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-[12px] text-slate-700">
+                    <span>หมู่ที่</span>
+                    <div className="min-h-9 border border-indigo-100 bg-indigo-50/40 px-3 py-2 text-slate-900">
+                      {locationViewRow?.moo?.trim() || "-"}
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-[12px] text-slate-700 sm:col-span-2">
+                    <span>ถนน</span>
+                    <div className="min-h-9 border border-indigo-100 bg-indigo-50/40 px-3 py-2 text-slate-900">
+                      {locationViewRow?.road?.trim() || "-"}
+                    </div>
+                  </div>
+                  <div className="grid gap-2 text-[12px] text-slate-700 sm:col-span-2">
+                    <span>จุดเกิดเหตุ</span>
+                    <div className="min-h-9 border border-indigo-100 bg-indigo-50/40 px-3 py-2 text-slate-900">
+                      {locationViewRow?.detail?.trim() || "-"}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end border-t border-indigo-100 px-6 py-4">
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center border border-indigo-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-indigo-50"
+                onClick={closeLocationViewModal}
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {isDetailModalOpen && selectedDetailRow ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
@@ -3727,6 +4017,167 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
               >
                 <Pencil size={16} />
                 {detailSaving ? "Saving..." : "บันทึกเพิ่มเติม"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isDetailViewModalOpen && selectedDetailViewRow ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 px-4 py-5 backdrop-blur-[2px]"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeDetailViewModal();
+          }}
+        >
+          <div
+            className="flex max-h-[calc(100vh-2.5rem)] w-full max-w-5xl flex-col overflow-hidden border border-indigo-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.18)]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="patient-detail-view-title"
+          >
+            <div className="border-b border-indigo-100 bg-indigo-50/50 px-4 py-4 sm:px-5 sm:py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="patient-detail-view-title" className="text-[14px] font-semibold text-slate-900">
+                    {`ดูข้อมูลเพิ่มเติม (${selectedDetailViewRow.id})`}
+                  </h2>
+                  <p className="mt-1 text-[12px] text-slate-600">แสดงข้อมูลจาก patient_detail</p>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                  onClick={closeDetailViewModal}
+                  aria-label="Close detail view modal"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="mt-3 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-2">
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-2.5 py-2">
+                  <span className="block text-slate-500">เลขบัตร</span>
+                  <span className="block font-medium text-slate-900">{selectedDetailViewRow.cid ?? "-"}</span>
+                </div>
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-2.5 py-2">
+                  <span className="block text-slate-500">ชื่อ-นามสกุล</span>
+                  <span className="block font-medium text-slate-900">{selectedDetailViewRow.patient_name ?? "-"}</span>
+                </div>
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-2.5 py-2">
+                  <span className="block text-slate-500">วันที่มา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">
+                    {formatDate(selectedDetailViewRow.visit_date)}
+                  </span>
+                </div>
+                <div className="rounded-none border border-indigo-100 bg-indigo-50/60 px-2.5 py-2">
+                  <span className="block text-slate-500">เวลามา</span>
+                  <span className="block whitespace-nowrap font-medium text-slate-900">
+                    {formatTime(selectedDetailViewRow.visit_time)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-5">
+              {detailViewLoading ? (
+                <div className="border border-indigo-100 bg-indigo-50/40 px-4 py-6 text-center text-[12px] text-slate-500">
+                  กำลังโหลดข้อมูลเพิ่มเติม...
+                </div>
+              ) : detailViewRow ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(() => {
+                    const values = [
+                      {
+                        label: "ประเภทผู้ประสบเหตุ",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_type ?? [], String(detailViewRow.acd_type ?? "")),
+                          detailViewRow.acd_type_addon,
+                          detailViewRow.acd_type,
+                        ),
+                      },
+                      {
+                        label: "ถนน",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_road ?? [], String(detailViewRow.acd_road ?? "")),
+                          detailViewRow.acd_road_addon,
+                          detailViewRow.acd_road,
+                        ),
+                      },
+                      {
+                        label: "ยานพาหนะของผู้ป่วย",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_vihicle ?? [], String(detailViewRow.acd_vihicle ?? "")),
+                          detailViewRow.acd_vihicle_addon,
+                          detailViewRow.acd_vihicle,
+                        ),
+                      },
+                      {
+                        label: "ยานพาหนะคู่กรณี",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(
+                            acdOptions.acd_vihicle ?? [],
+                            String(detailViewRow.acd_vihicle_counterpart ?? ""),
+                          ),
+                          detailViewRow.acd_vihicle_counterpart_addon,
+                          detailViewRow.acd_vihicle_counterpart,
+                        ),
+                      },
+                      {
+                        label: "มาตรการ",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_measure ?? [], String(detailViewRow.acd_measure ?? "")),
+                          detailViewRow.acd_measure_addon,
+                          detailViewRow.acd_measure,
+                        ),
+                      },
+                      {
+                        label: "นำส่ง/EMS",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_transfer ?? [], String(detailViewRow.acd_transfer ?? "")),
+                          detailViewRow.acd_transfer_addon,
+                          detailViewRow.acd_transfer,
+                        ),
+                      },
+                      {
+                        label: "ผลการรักษา",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_result ?? [], String(detailViewRow.acd_result ?? "")),
+                          detailViewRow.acd_result_addon,
+                          detailViewRow.acd_result,
+                        ),
+                      },
+                      {
+                        label: "Refer/Admit",
+                        value: formatAcdValueDisplay(
+                          getAcdOption(acdOptions.acd_refer ?? [], String(detailViewRow.acd_refer ?? "")),
+                          detailViewRow.acd_refer_addon,
+                          detailViewRow.acd_refer,
+                        ),
+                      },
+                    ];
+
+                    return values.map((item) => (
+                      <div key={item.label} className="grid gap-2 border border-indigo-100 bg-indigo-50/40 p-3">
+                        <span className="text-[12px] text-slate-500">{item.label}</span>
+                        <div className="text-[12px] font-medium text-slate-900 break-words">{item.value}</div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              ) : (
+                <div className="border border-indigo-100 bg-indigo-50/40 px-4 py-6 text-center text-[12px] text-slate-500">
+                  ไม่มีข้อมูลเพิ่มเติม
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end border-t border-indigo-100 px-4 py-3 sm:px-5">
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center border border-indigo-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-indigo-50"
+                onClick={closeDetailViewModal}
+              >
+                ปิด
               </button>
             </div>
           </div>
