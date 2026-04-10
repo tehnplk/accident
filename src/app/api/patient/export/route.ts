@@ -410,7 +410,11 @@ export async function GET(request: NextRequest) {
       "วันที่มาถึงรพ./เวลา": formatVisitDateTime(row.visit_date, row.visit_time),
       "ชื่อ-นามสกุล": row.patient_name ?? "-",
       "เลขบัตรประชาชน": row.cid ?? "-",
-      "วินิจฉัย (Diagnosis)": formatDiagnosis(row.dx_list, icdMap),
+      "วินิจฉัย (Diagnosis)": (() => {
+        const raw = row.dx_list?.trim() ?? "";
+        if (raw && raw !== "-") return formatDiagnosis(row.dx_list, icdMap);
+        return [row.pdx, row.ext_dx].filter(Boolean).join(", ") || "-";
+      })(),
       "อาการสำคัญ": row.cc ?? "-",
       "การคัดแยก(Triage)": row.triage ?? "-",
       ภูมิลำเนา: formatAddress(row),
