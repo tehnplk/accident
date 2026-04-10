@@ -350,7 +350,7 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" autoComplete="off">
               <div className="grid gap-4 md:grid-cols-3">
                 <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
                   USER
@@ -358,6 +358,7 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
                     value={form.username}
                     onChange={(event) => updateForm("username", event.target.value)}
                     className="h-11 rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-sky-400"
+                    autoComplete="off"
                     required
                   />
                 </label>
@@ -365,10 +366,11 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
                 <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
                   PASSWORD {editingId !== null ? "(เว้นว่างถ้าไม่เปลี่ยน)" : ""}
                   <input
-                    type="password"
+                    type="text"
                     value={form.password}
                     onChange={(event) => updateForm("password", event.target.value)}
                     className="h-11 rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-sky-400"
+                    autoComplete="off"
                     required={editingId === null}
                   />
                 </label>
@@ -376,10 +378,11 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
                 <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
                   CONFIRM-PASSWORD
                   <input
-                    type="password"
+                    type="text"
                     value={form.confirmPassword}
                     onChange={(event) => updateForm("confirmPassword", event.target.value)}
                     className="h-11 rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-sky-400"
+                    autoComplete="off"
                     required={editingId === null}
                   />
                 </label>
@@ -392,6 +395,7 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
                     value={form.hcode}
                     onChange={(event) => updateForm("hcode", event.target.value)}
                     className="h-11 rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-sky-400"
+                    autoComplete="off"
                     required
                   />
                 </label>
@@ -402,6 +406,7 @@ export function UserDataGrid({ initialRows, userName }: UserDataGridProps) {
                     value={form.hname}
                     onChange={(event) => updateForm("hname", event.target.value)}
                     className="h-11 rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-sky-400"
+                    autoComplete="off"
                   />
                 </label>
               </div>
