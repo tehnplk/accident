@@ -27,11 +27,11 @@ const LEVEL_QUERY: Record<string, { sql: string; values: (params: URLSearchParam
     sql: `
       SELECT id, code, name_in_thai AS name, province_id
       FROM public.districts
-      WHERE province_id = $1
+      WHERE code::text LIKE '65%'
         AND name_in_thai NOT ILIKE 'เทศบาล%'
       ORDER BY code ASC, id ASC
     `,
-    values: (params) => [parseIntParam(params.get("province_id"))],
+    values: () => [],
   },
   subdistrict: {
     sql: `

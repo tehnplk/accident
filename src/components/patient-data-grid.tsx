@@ -1535,7 +1535,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           } | null;
         }>;
       })
-      .then((payload) => {
+      .then(async (payload) => {
         const locationRow = payload.row;
         if (!locationRow) {
           return fetchThaiAddressDefaultSelection(controller.signal).then((defaultRow) => {
@@ -1561,12 +1561,39 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           amphoeCode,
         );
 
-        setSelectedProvinceCode(provinceCode || DEFAULT_PROVINCE_CODE);
+        const nextProvinceOptions =
+          provinceOptions.length > 0 ? provinceOptions : await fetchThaiAddressOptions("level=province", controller.signal);
+        if (provinceOptions.length === 0) {
+          setProvinceOptions(nextProvinceOptions);
+        }
+
+        let nextAmphoeOptions: ThaiAddressOption[] = [];
+        let matchedAmphoe: ThaiAddressOption | null = null;
+        nextAmphoeOptions = (await fetchThaiAddressOptions("level=district", controller.signal)).sort((a, b) =>
+          a.name.localeCompare(b.name, "th"),
+        );
+        matchedAmphoe = nextAmphoeOptions.find((option) => String(option.code) === amphoeCode) ?? null;
+
+        let nextTambonOptions: ThaiAddressOption[] = [];
+        let matchedTambon: ThaiAddressOption | null = null;
+        if (matchedAmphoe) {
+          nextTambonOptions = (
+            await fetchThaiAddressOptions(`level=subdistrict&district_id=${matchedAmphoe.id}`, controller.signal)
+          ).sort((a, b) => a.name.localeCompare(b.name, "th"));
+          matchedTambon = nextTambonOptions.find((option) => String(option.code) === tambonCode) ?? null;
+        }
+
+        setAmphoeOptions(nextAmphoeOptions);
+        setTambonOptions(nextTambonOptions);
+
+        setSelectedProvinceCode(DEFAULT_PROVINCE_CODE);
         setSelectedAmphoeCode(amphoeCode);
         setSelectedTambonCode(tambonCode);
         setDraft((current) => ({
           ...current,
-          moo: "",
+          amphoe: matchedAmphoe?.name ?? "",
+          tumbon: matchedTambon?.name ?? "",
+          moo: locationRow.moo ?? "",
           road: locationRow.road ?? "",
           cc: locationRow.detail ?? "",
         }));
@@ -1661,15 +1688,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           provinceOptions.length > 0 ? provinceOptions : await fetchThaiAddressOptions("level=province", controller.signal);
         const provinceOption = provinceList.find((option) => String(option.code) === provinceCode) ?? null;
 
-        let amphoeOption: ThaiAddressOption | null = null;
-        if (provinceOption) {
-          const districtOptions = await fetchThaiAddressOptions(
-            `level=district&province_id=${provinceOption.id}`,
-            controller.signal,
-          );
-          const amphoeCode = expandSavedLocationCode(row.amp_code, "district", provinceCode);
-          amphoeOption = districtOptions.find((option) => String(option.code) === amphoeCode) ?? null;
-        }
+        const districtOptions = await fetchThaiAddressOptions("level=district", controller.signal);
+        const amphoeCode = expandSavedLocationCode(row.amp_code, "district", provinceCode);
+        const amphoeOption = districtOptions.find((option) => String(option.code) === amphoeCode) ?? null;
 
         let tambonOption: ThaiAddressOption | null = null;
         if (amphoeOption) {
@@ -1750,7 +1771,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   }, [provinceOptions.length]);
 
   useEffect(() => {
-    if (!isModalOpen || !selectedProvinceCode || provinceOptions.length === 0) {
+    if (!isModalOpen) {
       setAmphoeOptions([]);
       setSelectedAmphoeCode("");
       setTambonOptions([]);
@@ -1758,13 +1779,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       return;
     }
 
-    const selectedProvince = provinceOptions.find((option) => String(option.code) === selectedProvinceCode);
-    if (!selectedProvince) return;
-
     const controller = new AbortController();
     setDistrictLoading(true);
 
-    fetchThaiAddressOptions(`level=district&province_id=${selectedProvince.id}`, controller.signal)
+    fetchThaiAddressOptions("level=district", controller.signal)
       .then((rows) => {
         const sortedRows = [...rows].sort((a, b) => a.name.localeCompare(b.name, "th"));
         setAmphoeOptions(sortedRows);
@@ -1787,10 +1805,16 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setDistrictLoading(false));
 
     return () => controller.abort();
-  }, [isModalOpen, provinceOptions, selectedProvinceCode]);
+  }, [isModalOpen]);
 
   useEffect(() => {
-    if (!isModalOpen || !selectedProvinceCode || !selectedAmphoeCode || amphoeOptions.length === 0) {
+    if (!isModalOpen || !selectedAmphoeCode) {
+      setTambonOptions([]);
+      setSelectedTambonCode("");
+      return;
+    }
+
+    if (amphoeOptions.length === 0) {
       setTambonOptions([]);
       return;
     }
@@ -1821,7 +1845,35 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       .finally(() => setSubdistrictLoading(false));
 
     return () => controller.abort();
-  }, [amphoeOptions, isModalOpen, selectedAmphoeCode, selectedProvinceCode]);
+  }, [amphoeOptions, isModalOpen, selectedAmphoeCode]);
+
+  useEffect(() => {
+    const matchedAmphoe = amphoeOptions.find((option) => String(option.code) === selectedAmphoeCode);
+    if (!matchedAmphoe) return;
+
+    setDraft((current) =>
+      current.amphoe === matchedAmphoe.name
+        ? current
+        : {
+            ...current,
+            amphoe: matchedAmphoe.name,
+          },
+    );
+  }, [amphoeOptions, selectedAmphoeCode]);
+
+  useEffect(() => {
+    const matchedTambon = tambonOptions.find((option) => String(option.code) === selectedTambonCode);
+    if (!matchedTambon) return;
+
+    setDraft((current) =>
+      current.tumbon === matchedTambon.name
+        ? current
+        : {
+            ...current,
+            tumbon: matchedTambon.name,
+          },
+    );
+  }, [selectedTambonCode, tambonOptions]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -3430,14 +3482,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         tumbon: "",
                       }));
                     }}
-                    disabled={!selectedProvinceCode || (districtLoading && amphoeOptions.length === 0)}
+                    disabled={!selectedProvinceCode}
                   >
                     <option value="">
-                      {!selectedProvinceCode
-                        ? "เลือกจังหวัดก่อน"
-                        : districtLoading && amphoeOptions.length === 0
-                          ? "Loading..."
-                          : "เลือกอำเภอ"}
+                      {!selectedProvinceCode ? "เลือกจังหวัดก่อน" : "เลือกอำเภอ"}
                     </option>
                     {amphoeOptions.map((option) => (
                       <option key={option.id} value={String(option.code)}>
@@ -3462,14 +3510,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         tumbon: matchedTambon?.name ?? "",
                       }));
                     }}
-                    disabled={!selectedAmphoeCode || (subdistrictLoading && tambonOptions.length === 0)}
+                    disabled={!selectedAmphoeCode}
                   >
                     <option value="">
-                      {!selectedAmphoeCode
-                        ? "เลือกอำเภอก่อน"
-                        : subdistrictLoading && tambonOptions.length === 0
-                          ? "Loading..."
-                          : "เลือกตำบล"}
+                      {!selectedAmphoeCode ? "เลือกอำเภอก่อน" : "เลือกตำบล"}
                     </option>
                     {tambonOptions.map((option) => (
                       <option key={option.id} value={String(option.code)}>
