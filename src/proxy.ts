@@ -8,5 +8,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/patient/:path*"],
+  matcher: ["/patient/:path*", "/users/:path*"],
 };

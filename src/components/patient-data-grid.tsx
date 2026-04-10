@@ -2288,6 +2288,14 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             >
               กลับ Dashboard
             </Link>
+            {isSuperUser ? (
+              <Link
+                href="/users"
+                className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-[12px] font-medium text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-900"
+              >
+                Users
+              </Link>
+            ) : null}
             <UserMenu profile={userProfile} userName={userName} />
           </div>
         </div>

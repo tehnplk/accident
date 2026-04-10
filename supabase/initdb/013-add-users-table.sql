@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   hcode       TEXT NOT NULL,
   hname       TEXT NOT NULL DEFAULT '',
   is_active   BOOLEAN NOT NULL DEFAULT true,
+  not_hospital BOOLEAN NOT NULL DEFAULT false,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
