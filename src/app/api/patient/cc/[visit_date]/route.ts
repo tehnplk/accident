@@ -53,6 +53,12 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ vi
           COALESCE(p.is_rejected, false) AS is_rejected
         FROM public.patient p
         WHERE p.visit_date = $1::date
+          AND COALESCE(p.is_rejected, false) = false
+          AND NOT EXISTS (
+            SELECT 1
+            FROM public.patient_expect_not_accident pena
+            WHERE pena.patient_id = p.id
+          )
         ORDER BY p.visit_time ASC NULLS LAST, p.id ASC
       `,
       [visitDate],

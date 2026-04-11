@@ -62,3 +62,8 @@ test-results/
 *.tsbuildinfo
 next-env.d.ts
 /csv
+
+# local agent artifacts
+.codex-local*.log
+.codex-today-*.json
+/skills/
