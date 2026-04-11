@@ -328,40 +328,36 @@ export async function POST(request: NextRequest) {
     // POST /api/patient must never create or overwrite rejection state.
     // patient.is_rejected and patient.rejected_note are controlled only by PATCH /api/patient/[id].
 
-    // external client (source='auto') ใช้ ON CONFLICT (hoscode, vn) DO UPDATE
-    // เพื่อรองรับการ push ซ้ำจาก HIS
-    // form (source='man') ใช้ INSERT ธรรมดา ชนแล้วคืน 409
-    const isAutoSource = source === "auto";
-    const upsertClause = isAutoSource
-      ? `ON CONFLICT (hoscode, cid_hash, visit_date)
-         WHERE hoscode IS NOT NULL AND cid_hash IS NOT NULL AND visit_date IS NOT NULL
-         DO UPDATE SET
-          hosname          = EXCLUDED.hosname,
-          hn               = EXCLUDED.hn,
-          cid              = EXCLUDED.cid,
-          cid_hash         = EXCLUDED.cid_hash,
-          patient_name     = EXCLUDED.patient_name,
-          vn               = COALESCE(EXCLUDED.vn, public.patient.vn),
-          visit_date       = EXCLUDED.visit_date,
-          visit_time       = EXCLUDED.visit_time,
-          sex              = EXCLUDED.sex,
-          age              = EXCLUDED.age,
-          house_no         = EXCLUDED.house_no,
-          moo              = EXCLUDED.moo,
-          road             = EXCLUDED.road,
-          tumbon           = EXCLUDED.tumbon,
-          amphoe           = EXCLUDED.amphoe,
-          changwat         = EXCLUDED.changwat,
-          triage           = EXCLUDED.triage,
-          status           = EXCLUDED.status,
-          cc               = EXCLUDED.cc,
-          source           = EXCLUDED.source,
-          alcohol          = EXCLUDED.alcohol,
-          pdx              = EXCLUDED.pdx,
-          ext_dx           = EXCLUDED.ext_dx,
-          dx_list          = EXCLUDED.dx_list,
-          updated_at       = now()`
-      : "";
+    // Always upsert by (hoscode, cid_hash, visit_date) so duplicate pushes
+    // update the existing visit regardless of source.
+    const upsertClause = `ON CONFLICT (hoscode, cid_hash, visit_date)
+       WHERE hoscode IS NOT NULL AND cid_hash IS NOT NULL AND visit_date IS NOT NULL
+       DO UPDATE SET
+        hosname          = EXCLUDED.hosname,
+        hn               = EXCLUDED.hn,
+        cid              = EXCLUDED.cid,
+        cid_hash         = EXCLUDED.cid_hash,
+        patient_name     = EXCLUDED.patient_name,
+        vn               = COALESCE(EXCLUDED.vn, public.patient.vn),
+        visit_date       = EXCLUDED.visit_date,
+        visit_time       = EXCLUDED.visit_time,
+        sex              = EXCLUDED.sex,
+        age              = EXCLUDED.age,
+        house_no         = EXCLUDED.house_no,
+        moo              = EXCLUDED.moo,
+        road             = EXCLUDED.road,
+        tumbon           = EXCLUDED.tumbon,
+        amphoe           = EXCLUDED.amphoe,
+        changwat         = EXCLUDED.changwat,
+        triage           = EXCLUDED.triage,
+        status           = EXCLUDED.status,
+        cc               = EXCLUDED.cc,
+        source           = EXCLUDED.source,
+        alcohol          = EXCLUDED.alcohol,
+        pdx              = EXCLUDED.pdx,
+        ext_dx           = EXCLUDED.ext_dx,
+        dx_list          = EXCLUDED.dx_list,
+        updated_at       = now()`;
 
     const sql = `
       WITH inserted AS (
