@@ -226,7 +226,7 @@ export async function PATCH(
     const code = (error as { code?: string })?.code;
     if (code === "23505") {
       return NextResponse.json(
-        { message: "Duplicate hoscode + hn + visit_date is not allowed" },
+        { message: "ข้อมูลซ้ำ: hoscode + CID / Passport + visit_date นี้มีอยู่แล้วในระบบ" },
         { status: 409 },
       );
     }

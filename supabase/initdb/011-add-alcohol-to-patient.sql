@@ -10,8 +10,5 @@ ALTER TABLE public.patient_detail
 ALTER TABLE public.patient_detail
   DROP COLUMN IF EXISTS acd_alcohol_addon;
 
--- Unique index for external client upsert by (hoscode, vn)
--- vn = visit number from HIS, used for idempotent push
-CREATE UNIQUE INDEX IF NOT EXISTS patient_uk_hoscode_vn
-  ON public.patient (hoscode, vn)
-  WHERE vn IS NOT NULL AND vn <> '';
+-- Removed: patient_uk_hoscode_vn unique index
+-- Uniqueness is now enforced only by patient_uk_hoscode_cid_visitdate (hoscode, cid_hash, visit_date)

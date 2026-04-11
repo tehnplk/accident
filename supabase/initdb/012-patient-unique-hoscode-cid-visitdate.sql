@@ -5,6 +5,11 @@
 ALTER TABLE public.patient
   ADD COLUMN IF NOT EXISTS cid_hash text;
 
+-- Drop legacy unique constraints replaced by cid_hash-based index
+ALTER TABLE public.patient DROP CONSTRAINT IF EXISTS patient_uk_hoscode_hn_visit_date;
+DROP INDEX IF EXISTS patient_uk_hoscode_hn_visit_date;
+DROP INDEX IF EXISTS patient_uk_hoscode_vn;
+
 -- Unique constraint: one patient (hoscode + CID + visit_date) per record.
 -- Partial index excludes rows where any key part is null (legacy / incomplete data).
 CREATE UNIQUE INDEX IF NOT EXISTS patient_uk_hoscode_cid_visitdate
