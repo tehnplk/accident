@@ -438,6 +438,7 @@ export type PatientRow = {
   ext_dx: unknown;
   dx_list?: unknown;
   has_expect_not_accident?: boolean;
+  has_confirm_dead?: boolean;
 };
 
 type GridResponse = {
@@ -985,11 +986,6 @@ function getShiftTextClass(shiftName: string | null) {
   if (shiftName === "เวรบ่าย") return "text-orange-600";
   if (shiftName === "เวรดึก") return "text-indigo-600";
   return "text-slate-500";
-}
-
-function isDeathStatus(status: string | null | undefined) {
-  const text = status?.trim() ?? "";
-  return text.includes("เสียชีวิต") || text.includes("ตาย");
 }
 
 function isManualSource(source: string | null | undefined) {
@@ -2734,7 +2730,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                       <span className="block">{row.patient_name ?? "-"}</span>
                       <span className="mt-1 flex flex-wrap items-center gap-2 text-[9px] text-slate-300">
                         <span>ID: {row.id ?? "-"}</span>
-                        {isDeathStatus(row.status) ? (
+                        {row.has_confirm_dead ? (
                           <span className="font-medium text-rose-600">เสียชีวิต</span>
                         ) : null}
                       </span>

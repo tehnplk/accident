@@ -157,6 +157,12 @@ function buildPatientQuery(filters: FilterState) {
         WHERE pena.patient_id = p.id
         LIMIT 1
       ) expect_not_accident ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT true AS has_confirm_dead
+        FROM public.patient_road_accident_confirm_dead pracd
+        WHERE pracd.patient_id = p.id
+        LIMIT 1
+      ) confirm_dead ON TRUE
   `;
   const orderBy =
     filters.sortBy === "visit_date_time"
@@ -200,6 +206,7 @@ function buildPatientQuery(filters: FilterState) {
         shift.shift_name AS shift_name,
         loc.area AS area,
         COALESCE(expect_not_accident.has_expect_not_accident, false) AS has_expect_not_accident,
+        COALESCE(confirm_dead.has_confirm_dead, false) AS has_confirm_dead,
         to_char(p.created_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
         to_char(p.updated_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS updated_at
       ${baseFrom}

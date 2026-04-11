@@ -119,12 +119,17 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     `SELECT
        count(*)::int AS total,
        count(*) FILTER (
-         WHERE COALESCE(status, '') LIKE '%เสียชีวิต%'
-            OR COALESCE(status, '') LIKE '%ตาย%'
+         WHERE COALESCE(confirm_dead.has_confirm_dead, false)
        )::int AS death_cases
-     FROM public.patient
-     WHERE COALESCE(is_rejected, false) = false
-       AND visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'`,
+     FROM public.patient p
+     LEFT JOIN LATERAL (
+       SELECT true AS has_confirm_dead
+       FROM public.patient_road_accident_confirm_dead pcd
+       WHERE pcd.patient_id = p.id
+       LIMIT 1
+     ) confirm_dead ON TRUE
+     WHERE COALESCE(p.is_rejected, false) = false
+       AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'`,
   );
 
   const rangeResult = await dbQuery<{ min_visit_date: string | null; max_visit_date: string | null }>(
@@ -136,11 +141,20 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
   const [statusResult, alcoholResult, vehicleResult, districtResult, lastSyncResult] = await Promise.all([
     dbQuery<LabelCountRow>(
       `SELECT
-         COALESCE(NULLIF(status, ''), 'ไม่ระบุ') AS label,
+         CASE
+           WHEN COALESCE(confirm_dead.has_confirm_dead, false) THEN 'เสียชีวิต'
+           ELSE COALESCE(NULLIF(p.status, ''), 'ไม่ระบุ')
+         END AS label,
          count(*)::int AS value
-       FROM public.patient
-       WHERE COALESCE(is_rejected, false) = false
-         AND visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
+       FROM public.patient p
+       LEFT JOIN LATERAL (
+         SELECT true AS has_confirm_dead
+         FROM public.patient_road_accident_confirm_dead pcd
+         WHERE pcd.patient_id = p.id
+         LIMIT 1
+       ) confirm_dead ON TRUE
+       WHERE COALESCE(p.is_rejected, false) = false
+         AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),
@@ -175,8 +189,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          COALESCE(NULLIF(loc.district_name, ''), 'ไม่ระบุ') AS district,
          count(*)::int AS cases,
          count(*) FILTER (
-           WHERE COALESCE(p.status, '') LIKE '%เสียชีวิต%'
-              OR COALESCE(p.status, '') LIKE '%ตาย%'
+           WHERE COALESCE(confirm_dead.has_confirm_dead, false)
          )::int AS deaths
        FROM public.patient p
         LEFT JOIN LATERAL (
@@ -187,6 +200,12 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
           ORDER BY l.id DESC
           LIMIT 1
         ) loc ON TRUE
+        LEFT JOIN LATERAL (
+          SELECT true AS has_confirm_dead
+          FROM public.patient_road_accident_confirm_dead pcd
+          WHERE pcd.patient_id = p.id
+          LIMIT 1
+        ) confirm_dead ON TRUE
        WHERE COALESCE(p.is_rejected, false) = false
          AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
@@ -270,20 +289,23 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     }),
   );
 
-  const districtRows = withOtherBucket(
-    districtResult.rows.map((row) => ({
-      district: normalizeLabel(row.district),
-      cases: Number(row.cases) || 0,
-      deaths: Number(row.deaths) || 0,
-    })),
-    5,
-    (row) => row.cases,
-    (cases) => ({
-      district: "อื่น ๆ",
-      cases,
-      deaths: 0,
-    }),
-  );
+  const normalizedDistrictRows = districtResult.rows.map((row) => ({
+    district: normalizeLabel(row.district),
+    cases: Number(row.cases) || 0,
+    deaths: Number(row.deaths) || 0,
+  }));
+
+  const districtRows =
+    normalizedDistrictRows.length <= 5
+      ? normalizedDistrictRows
+      : [
+          ...normalizedDistrictRows.slice(0, 5),
+          {
+            district: "อื่น ๆ",
+            cases: normalizedDistrictRows.slice(5).reduce((sum, row) => sum + row.cases, 0),
+            deaths: normalizedDistrictRows.slice(5).reduce((sum, row) => sum + row.deaths, 0),
+          },
+        ];
 
   const lastSyncRows = lastSyncResult.rows.map((row) => ({
     hoscode: row.hoscode?.trim() || "-",
