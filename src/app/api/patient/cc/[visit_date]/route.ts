@@ -8,6 +8,7 @@ type PatientCcRow = {
   visit_time: string;
   pdx: string;
   cc: string;
+  status: string;
   is_rejected: boolean;
 };
 
@@ -50,6 +51,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ vi
           to_char(p.visit_time, 'HH24:MI:SS') AS visit_time,
           COALESCE(p.pdx, '') AS pdx,
           COALESCE(p.cc, '') AS cc,
+          COALESCE(p.status, '') AS status,
           COALESCE(p.is_rejected, false) AS is_rejected
         FROM public.patient p
         WHERE p.visit_date = $1::date
