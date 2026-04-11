@@ -234,22 +234,26 @@ function ChiefComplaintDialog({
 function ChiefComplaintCell({
   value,
   onOpen,
+  highlighted = false,
 }: {
   value: string | null;
   onOpen: () => void;
+  highlighted?: boolean;
 }) {
   const text = value?.trim() || "-";
   const isEmpty = text === "-";
 
   if (isEmpty) {
-    return <span className="text-slate-400">-</span>;
+    return <span className={highlighted ? "text-orange-500" : "text-slate-400"}>-</span>;
   }
 
   return (
     <div className="group relative">
       <button
         type="button"
-        className="w-full cursor-pointer text-left text-[10px] leading-5 text-slate-700 transition hover:text-sky-700 focus:outline-none"
+        className={`w-full cursor-pointer text-left text-[10px] leading-5 transition focus:outline-none ${
+          highlighted ? "text-orange-700 hover:text-orange-800" : "text-slate-700 hover:text-sky-700"
+        }`}
         onClick={onOpen}
       >
         <span
@@ -262,12 +266,20 @@ function ChiefComplaintCell({
         >
           {text}
         </span>
-        <span className="mt-1 inline-flex text-[10px] font-medium text-sky-600 underline underline-offset-2">
+        <span
+          className={`mt-1 inline-flex text-[10px] font-medium underline underline-offset-2 ${
+            highlighted ? "text-orange-600" : "text-sky-600"
+          }`}
+        >
           ดูเพิ่มเติม
         </span>
       </button>
 
-      <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-1 hidden w-72 max-w-[28rem] border border-sky-200 bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block">
+      <div
+        className={`pointer-events-none absolute bottom-full left-0 z-20 mb-1 hidden w-72 max-w-[28rem] bg-white/95 p-2 text-[10px] leading-5 text-slate-700 shadow-xl backdrop-blur-sm group-hover:block ${
+          highlighted ? "border border-orange-200" : "border border-sky-200"
+        }`}
+      >
         {text}
       </div>
     </div>
@@ -425,6 +437,7 @@ export type PatientRow = {
   pdx: unknown;
   ext_dx: unknown;
   dx_list?: unknown;
+  has_expect_not_accident?: boolean;
 };
 
 type GridResponse = {
@@ -2729,8 +2742,12 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <td className="px-2 py-3">{renderSexDisplay(row.sex)}</td>
                     <td className="px-2 py-3">{row.age ?? "-"}</td>
                     <td className="px-2 py-3">{row.triage ?? "-"}</td>
-                    <td className="px-2 py-3">
-                      <ChiefComplaintCell value={row.cc} onOpen={() => setSelectedChiefComplaintRow(row)} />
+                    <td className={`px-2 py-3 ${row.has_expect_not_accident ? "bg-orange-50" : ""}`}>
+                      <ChiefComplaintCell
+                        value={row.cc}
+                        highlighted={Boolean(row.has_expect_not_accident)}
+                        onOpen={() => setSelectedChiefComplaintRow(row)}
+                      />
                     </td>
                     <td className="px-2 py-3">
                       <DiagnosisCell

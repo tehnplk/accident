@@ -180,6 +180,12 @@ export async function GET(request: NextRequest) {
         ORDER BY tt.id ASC
         LIMIT 1
       ) shift ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT true AS has_expect_not_accident
+        FROM public.patient_expect_not_accident pena
+        WHERE pena.patient_id = p.id
+        LIMIT 1
+      ) expect_not_accident ON TRUE
     `;
     const orderBy =
       sortBy === "visit_date_time"
@@ -226,6 +232,7 @@ export async function GET(request: NextRequest) {
         detail.vehicle AS vehicle,
         shift.shift_name AS shift_name,
         loc.area AS area,
+        COALESCE(expect_not_accident.has_expect_not_accident, false) AS has_expect_not_accident,
         to_char(p.created_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS created_at,
         to_char(p.updated_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD HH24:MI:SS') AS updated_at
       ${baseFrom}
