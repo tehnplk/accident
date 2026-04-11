@@ -616,7 +616,7 @@ export type FilterState = {
   area: string;
   visitDate: string;
   alcohol: string;
-  sex: string;
+  patientStatus: string;
   isRejected: "true" | "false";
   sortBy: "visit_date" | "visit_date_time" | "age" | "created_at";
   sortDir: "asc" | "desc";
@@ -662,7 +662,7 @@ function buildQueryString(state: FilterState) {
   if (state.area.trim()) params.set("area", state.area.trim());
   if (state.visitDate.trim()) params.set("visit_date", state.visitDate.trim());
   if (state.alcohol.trim()) params.set("alcohol", state.alcohol.trim());
-  if (state.sex) params.set("sex", state.sex);
+  if (state.patientStatus) params.set("patient_status", state.patientStatus);
   if (state.isRejected === "true") params.set("is_rejected", "true");
   params.set("sortBy", state.sortBy);
   params.set("sortDir", state.sortDir);
@@ -719,7 +719,7 @@ function stateFromSearchParams(searchParams: ReturnType<typeof useSearchParams>)
     area: searchParams.get("area") ?? "",
     visitDate: searchParams.get("visit_date") ?? "",
     alcohol: searchParams.get("alcohol") ?? "",
-    sex: searchParams.get("sex") ?? "",
+    patientStatus: searchParams.get("patient_status") ?? "",
     isRejected: searchParams.get("is_rejected") === "true" ? "true" : "false",
     sortBy:
       searchParams.get("sortBy") === "visit_date_time"
@@ -2595,14 +2595,14 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
           </select>
           <select
             className="h-9 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-            value={filters.sex}
+            value={filters.patientStatus}
             onChange={(event) => {
-              updateFilter({ sex: event.target.value, page: 1 });
+              updateFilter({ patientStatus: event.target.value, page: 1 });
             }}
           >
-            <option value="">ทุกเพศ</option>
-            <option value="ชาย">ชาย</option>
-            <option value="หญิง">หญิง</option>
+            <option value="">สถานะ</option>
+            <option value="injured">บาดเจ็บ</option>
+            <option value="dead">เสียชีวิต</option>
           </select>
         </div>
 

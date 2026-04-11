@@ -45,7 +45,7 @@ function parseInitialFilters(searchParams: Record<string, SearchParamsValue>): F
     area: pickParam(searchParams.area),
     visitDate: pickParam(searchParams.visit_date),
     alcohol: pickParam(searchParams.alcohol),
-    sex: pickParam(searchParams.sex),
+    patientStatus: pickParam(searchParams.patient_status),
     isRejected: pickParam(searchParams.is_rejected) === "true" ? "true" : "false",
     sortBy:
       pickParam(searchParams.sortBy) === "visit_date_time"
@@ -71,7 +71,7 @@ function buildPatientQuery(filters: FilterState) {
   const areaParam = filters.area.trim() || null;
   const visitDateParam = filters.visitDate.trim() || null;
   const alcoholParam = filters.alcohol.trim() || null;
-  const sexParam = filters.sex || null;
+  const patientStatusParam = filters.patientStatus || null;
 
   if (hospitalParam) filterValues.push(hospitalParam);
   if (nameParam) filterValues.push(nameParam);
@@ -79,7 +79,6 @@ function buildPatientQuery(filters: FilterState) {
   if (areaParam) filterValues.push(areaParam);
   if (visitDateParam) filterValues.push(visitDateParam);
   if (alcoholParam) filterValues.push(alcoholParam);
-  if (sexParam) filterValues.push(sexParam);
 
   const dataSecretParamIndex = filterValues.length + 1;
   const decryptedPatientNameSql = patientDecryptedColumnSql("patient_name", dataSecretParamIndex);
@@ -111,14 +110,15 @@ function buildPatientQuery(filters: FilterState) {
     paramIndex += 1;
     whereParts.push(`p.alcohol = $${paramIndex}::smallint`);
   }
-  if (sexParam) {
-    paramIndex += 1;
-    whereParts.push(`p.sex = $${paramIndex}`);
-  }
   whereParts.push(`p.visit_date >= DATE '${MIN_PATIENT_VISIT_DATE}'`);
   whereParts.push(
     filters.isRejected === "true" ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false",
   );
+  if (patientStatusParam === "dead") {
+    whereParts.push(`COALESCE(confirm_dead.has_confirm_dead, false) = true`);
+  } else if (patientStatusParam === "injured") {
+    whereParts.push(`COALESCE(confirm_dead.has_confirm_dead, false) = false`);
+  }
 
   const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
   const countValues = nameParam || hnParam ? [...filterValues, aesSecret] : filterValues;

@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     const area = params.get("area")?.trim() ?? "";
     const visitDate = params.get("visit_date")?.trim() ?? "";
     const alcohol = params.get("alcohol")?.trim() ?? "";
-    const sex = params.get("sex")?.trim() ?? "";
+    const patientStatus = params.get("patient_status")?.trim() ?? "";
     const isRejected = params.get("is_rejected") === "true";
     const sortBy =
       params.get("sortBy") === "visit_date_time"
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     const areaParam = area || null;
     const visitDateParam = visitDate || null;
     const alcoholParam = alcohol || null;
-    const sexParam = sex || null;
+    const patientStatusParam = patientStatus || null;
 
     if (hospitalParam) filterValues.push(hospitalParam);
     if (nameParam) filterValues.push(nameParam);
@@ -112,7 +112,6 @@ export async function GET(request: NextRequest) {
     if (areaParam) filterValues.push(areaParam);
     if (visitDateParam) filterValues.push(visitDateParam);
     if (alcoholParam) filterValues.push(alcoholParam);
-    if (sexParam) filterValues.push(sexParam);
     whereParts.push(isRejected ? "p.is_rejected = true" : "COALESCE(p.is_rejected, false) = false");
 
     const dataSecretParamIndex = filterValues.length + 1;
@@ -145,11 +144,12 @@ export async function GET(request: NextRequest) {
       paramIndex += 1;
       whereParts.push(`p.alcohol = $${paramIndex}::smallint`);
     }
-    if (sexParam) {
-      paramIndex += 1;
-      whereParts.push(`p.sex = $${paramIndex}`);
-    }
     whereParts.push(`p.visit_date >= DATE '${MIN_PATIENT_VISIT_DATE}'`);
+    if (patientStatusParam === "dead") {
+      whereParts.push(`COALESCE(confirm_dead.has_confirm_dead, false) = true`);
+    } else if (patientStatusParam === "injured") {
+      whereParts.push(`COALESCE(confirm_dead.has_confirm_dead, false) = false`);
+    }
 
     const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
     const baseFrom = `
