@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbQuery } from "@/lib/db";
+import { patientApiAuthorized } from "@/lib/patient-security";
 
 type PatientCcRow = {
   id: number;
@@ -31,6 +32,10 @@ function isValidVisitDate(value: string) {
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ visit_date: string }> }) {
   try {
+    if (!patientApiAuthorized(_request)) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const { visit_date: visitDate } = await context.params;
 
     if (!isValidVisitDate(visitDate)) {
