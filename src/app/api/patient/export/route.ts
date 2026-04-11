@@ -47,6 +47,7 @@ type ExportRow = {
   acd_transfer_export_label: string | null;
   acd_result_export_label: string | null;
   acd_refer_export_label: string | null;
+  has_confirm_dead: boolean;
 };
 
 function formatVisitDateTime(visitDate: string | null, visitTime: string | null) {
@@ -339,6 +340,12 @@ export async function GET(request: NextRequest) {
         WHERE pd.patient_id = p.id
         LIMIT 1
       ) detail ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT true AS has_confirm_dead
+        FROM public.patient_road_accident_confirm_dead pcd
+        WHERE pcd.patient_id = p.id
+        LIMIT 1
+      ) confirm_dead ON TRUE
     `;
 
     const query = `
@@ -375,7 +382,8 @@ export async function GET(request: NextRequest) {
         detail.acd_measure_export_label,
         detail.acd_transfer_export_label,
         detail.acd_result_export_label,
-        detail.acd_refer_export_label
+        detail.acd_refer_export_label,
+        COALESCE(confirm_dead.has_confirm_dead, false) AS has_confirm_dead
       ${baseFrom}
       ${whereClause}
       ORDER BY ${orderBy}
@@ -427,7 +435,7 @@ export async function GET(request: NextRequest) {
       ),
       อายุ: row.age ?? "-",
       เพศ: row.sex ?? "-",
-      "1 สถานะ (status)": row.status ?? "-",
+      "1 สถานะ (status)": row.has_confirm_dead ? "เสียชีวิต" : (row.status ?? "-"),
       "2.1 ยานพาหนะ ผู้บาดเจ็บ": row.acd_vihicle_export_label ?? "-",
       "2.2 ยานพาหนะ คู่กรณี": row.acd_vihicle_counterpart_label ?? "-",
       "3 ถนน": row.acd_road_export_label ?? "-",
