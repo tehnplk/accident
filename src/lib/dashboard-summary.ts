@@ -295,17 +295,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     deaths: Number(row.deaths) || 0,
   }));
 
-  const districtRows =
-    normalizedDistrictRows.length <= 5
-      ? normalizedDistrictRows
-      : [
-          ...normalizedDistrictRows.slice(0, 5),
-          {
-            district: "อื่น ๆ",
-            cases: normalizedDistrictRows.slice(5).reduce((sum, row) => sum + row.cases, 0),
-            deaths: normalizedDistrictRows.slice(5).reduce((sum, row) => sum + row.deaths, 0),
-          },
-        ];
+  const districtRows = normalizedDistrictRows;
 
   const lastSyncRows = lastSyncResult.rows.map((row) => ({
     hoscode: row.hoscode?.trim() || "-",

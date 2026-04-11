@@ -15,6 +15,7 @@ import {
   LineElement,
   PointElement,
   Tooltip,
+  type Plugin,
 } from "chart.js";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import type {
@@ -36,6 +37,44 @@ ChartJS.register(
   PointElement,
   Tooltip,
 );
+
+const barEndValuePlugin: Plugin<"bar"> = {
+  id: "barSegmentValue",
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    ctx.save();
+    ctx.font = "600 9px sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (meta.hidden) return;
+
+      meta.data.forEach((bar, index) => {
+        const value = Number(dataset.data[index] ?? 0);
+        if (!Number.isFinite(value) || value <= 0) return;
+
+        const barShape = bar as typeof bar & { base: number; x: number; y: number };
+        const left = Math.min(barShape.x, barShape.base);
+        const right = Math.max(barShape.x, barShape.base);
+        const text = value.toLocaleString("th-TH");
+        const segmentWidth = right - left;
+        const isDeathSegment = datasetIndex === 1;
+        const fontSize = isDeathSegment && segmentWidth < 18 ? 8 : 9;
+        const minWidth = isDeathSegment ? Math.max(8, text.length * 4) : Math.max(14, text.length * 4.75);
+        if (segmentWidth < minWidth) return;
+
+        ctx.font = `600 ${fontSize}px sans-serif`;
+        const centerX = left + (right - left) / 2;
+        ctx.fillText(text, centerX, barShape.y);
+      });
+    });
+
+    ctx.restore();
+  },
+};
 
 type DashboardHomeProps = {
   initialData: DashboardSummary;
@@ -228,9 +267,6 @@ function ChartPanel({
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">{title}</p>
           <h2 className="mt-2 text-xl font-semibold text-slate-900">{subtitle}</h2>
         </div>
-        <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-          รวม {total} เคส
-        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
@@ -285,22 +321,26 @@ function ChartPanel({
 
 function BarChartPanel({ rows }: { rows: DashboardBarRow[] }) {
   const labels = rows.map((row) => row.district);
+  const chartHeight = Math.max(340, rows.length * 34 + 48);
+  const injuredCases = rows.map((row) => Math.max(row.cases - row.deaths, 0));
   const data = {
     labels,
     datasets: [
       {
         label: "จำนวนเคส",
-        data: rows.map((row) => row.cases),
+        data: injuredCases,
         backgroundColor: "#64748b",
-        borderRadius: 12,
+        borderRadius: 0,
         borderSkipped: false,
+        stack: "cases",
       },
       {
         label: "เสียชีวิต",
         data: rows.map((row) => row.deaths),
         backgroundColor: "#b91c1c",
-        borderRadius: 12,
+        borderRadius: 0,
         borderSkipped: false,
+        stack: "cases",
       },
     ],
   };
@@ -310,16 +350,14 @@ function BarChartPanel({ rows }: { rows: DashboardBarRow[] }) {
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Bar Chart</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-900">จำนวนเคสแยกรายพื้นที่ที่เกิดเหตุ</h2>
-        </div>
-        <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-          {rows.length} อำเภอ
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">จำนวนเคสแยกตามพื้นที่ที่เกิดเหตุ</h2>
         </div>
       </div>
 
-      <div className="h-[340px]">
+      <div style={{ height: `${chartHeight}px` }}>
         <Bar
           data={data}
+          plugins={[barEndValuePlugin]}
           options={{
             responsive: true,
             maintainAspectRatio: false,
@@ -330,20 +368,34 @@ function BarChartPanel({ rows }: { rows: DashboardBarRow[] }) {
                 labels: {
                   usePointStyle: true,
                   boxWidth: 10,
+                  generateLabels(chart) {
+                    return ChartJS.defaults.plugins.legend.labels.generateLabels(chart).map((label, index) => ({
+                      ...label,
+                      text: index === 0 ? "บาดเจ็บ" : "เสียชีวิต",
+                    }));
+                  },
                 },
               },
               tooltip: {
                 backgroundColor: "#111827",
                 padding: 12,
                 cornerRadius: 12,
+                callbacks: {
+                  label(context) {
+                    const label = context.datasetIndex === 0 ? "บาดเจ็บ" : "เสียชีวิต";
+                    return `${label}: ${Number(context.parsed.x ?? 0).toLocaleString("th-TH")}`;
+                  },
+                },
               },
             },
             scales: {
               x: {
                 beginAtZero: true,
+                stacked: true,
                 grid: { color: "rgba(100, 116, 139, 0.16)" },
               },
               y: {
+                stacked: true,
                 grid: { display: false },
               },
             },
@@ -497,17 +549,17 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
         </section>
 
         <section className="grid gap-6 xl:grid-cols-2">
-          <ChartPanel
-            title="Summary Chart"
-            subtitle="สถานะผู้ป่วย"
-            segments={initialData.statusSegments}
-          />
+          <BarChartPanel rows={initialData.districtRows} />
           <ChartPanel title="Pie Chart" subtitle="การดื่มสุรา" segments={initialData.alcoholSegments} />
         </section>
 
         <section className="grid gap-6 xl:grid-cols-2">
           <ChartPanel title="Pie Chart" subtitle="ประเภทรถ" segments={initialData.vehicleSegments} />
-          <BarChartPanel rows={initialData.districtRows} />
+          <ChartPanel
+            title="Summary Chart"
+            subtitle="สถานะผู้ป่วย"
+            segments={initialData.statusSegments}
+          />
         </section>
 
         <section className="grid gap-6">
