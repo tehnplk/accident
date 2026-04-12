@@ -4,6 +4,9 @@ import { patientApiAuthorized } from "@/lib/patient-security";
 
 type PatientCcRow = {
   id: number;
+  hoscode: string;
+  hosname: string;
+  cid_hash: string;
   visit_date: string;
   visit_time: string;
   pdx: string;
@@ -11,6 +14,26 @@ type PatientCcRow = {
   status: string;
   is_rejected: boolean;
 };
+
+const PIPE_HEADERS: Array<keyof PatientCcRow> = [
+  "id",
+  "hoscode",
+  "hosname",
+  "cid_hash",
+  "visit_date",
+  "visit_time",
+  "pdx",
+  "cc",
+  "status",
+  "is_rejected",
+];
+
+function formatPipeValue(value: string | number | boolean | null | undefined) {
+  return String(value ?? "")
+    .replace(/\|/g, "/")
+    .replace(/\r?\n/g, " ")
+    .trim();
+}
 
 function isValidVisitDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -47,6 +70,9 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ vi
       `
         SELECT
           p.id,
+          COALESCE(p.hoscode, '') AS hoscode,
+          COALESCE(p.hosname, '') AS hosname,
+          COALESCE(p.cid_hash, '') AS cid_hash,
           to_char(p.visit_date, 'YYYY-MM-DD') AS visit_date,
           to_char(p.visit_time, 'HH24:MI:SS') AS visit_time,
           COALESCE(p.pdx, '') AS pdx,
@@ -66,7 +92,16 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ vi
       [visitDate],
     );
 
-    return NextResponse.json(result.rows);
+    const lines = [
+      PIPE_HEADERS.join("|"),
+      ...result.rows.map((row) => PIPE_HEADERS.map((header) => formatPipeValue(row[header])).join("|")),
+    ];
+
+    return new NextResponse(lines.join("\n"), {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       {
