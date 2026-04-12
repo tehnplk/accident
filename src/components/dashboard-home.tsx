@@ -555,7 +555,7 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
                   onClick={() => setIsLastSyncOpen(true)}
                 >
                   <Clock3 className="h-4 w-4" />
-                  Last Sync
+                  Sync
                 </button>
               </nav>
             </div>
