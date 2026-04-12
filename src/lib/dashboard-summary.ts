@@ -29,6 +29,7 @@ export type DashboardLastSyncRow = {
 export type DashboardSummary = {
   totalCases: number;
   deathCases: number;
+  viewCount: number;
   minVisitDate: string | null;
   maxVisitDate: string | null;
   statusSegments: DashboardSegment[];
@@ -136,6 +137,11 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     `SELECT
        '${DASHBOARD_MIN_VISIT_DATE}'::text AS min_visit_date,
        '${DASHBOARD_MAX_VISIT_DATE}'::text AS max_visit_date`,
+  );
+
+  const viewCountResult = await dbQuery<{ total: number }>(
+    `SELECT count(*)::int AS total
+     FROM public.view_count`,
   );
 
   const [statusResult, alcoholResult, vehicleResult, districtResult, lastSyncResult] = await Promise.all([
@@ -307,6 +313,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
   return {
     totalCases: Number(totalResult.rows[0]?.total) || 0,
     deathCases: Number(totalResult.rows[0]?.death_cases) || 0,
+    viewCount: Number(viewCountResult.rows[0]?.total) || 0,
     minVisitDate,
     maxVisitDate,
     statusSegments,

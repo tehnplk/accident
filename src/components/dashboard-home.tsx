@@ -476,51 +476,89 @@ function LineChartPanel({
 
 export default function DashboardHome({ initialData }: DashboardHomeProps) {
   const [isLastSyncOpen, setIsLastSyncOpen] = useState(false);
+  const [viewCount, setViewCount] = useState(initialData.viewCount);
   const dateRangeLabel = formatDateRange(initialData.minVisitDate, initialData.maxVisitDate);
   const deathCount = initialData.deathCases;
   const injuredCount = Math.max(initialData.totalCases - deathCount, 0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function syncViewCount() {
+      try {
+        const response = await fetch("/api/view-count", {
+          method: "POST",
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as { viewCount?: number };
+        if (active && typeof payload.viewCount === "number") {
+          setViewCount(payload.viewCount);
+        }
+      } catch {
+        // Keep the server-rendered value when view-count sync fails.
+      }
+    }
+
+    void syncViewCount();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <header className="rounded-[30px] border border-sky-100/80 bg-white/80 px-5 py-4 shadow-[0_18px_55px_rgba(37,99,235,0.06)] backdrop-blur-sm sm:px-7">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-sky-100 bg-white shadow-sm">
                   <Image src="/logo.png" alt="สำนักงานสาธารณสุขจังหวัดพิษณุโลก" width={40} height={40} className="h-10 w-10 object-contain" />
                 </div>
-                <p className="text-sm font-semibold tracking-[0.08em] text-sky-500">
+                <p className="min-w-0 text-sm font-semibold tracking-[0.08em] text-sky-500">
                   สำนักงานสาธารณสุขจังหวัดพิษณุโลก
                 </p>
               </div>
-              <h1 className="mt-2 text-sm font-semibold tracking-tight text-slate-950 sm:text-lg">
-                ข้อมูลผู้ได้รับบาดเจ็บและเสียชีวิตจากอุบัติเหตุทางถนนในช่วงเทศกาลสงกรานต์ ปี 2569 จังหวัดพิษณุโลก
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                ตั้งแต่วันที่ <span className="font-semibold text-slate-900">{dateRangeLabel}</span>
-              </p>
+
+              <span className="whitespace-nowrap text-sm font-medium text-slate-500">
+                เข้าใช้งาน {viewCount.toLocaleString("th-TH")} ครั้ง
+              </span>
             </div>
 
-            <nav className="flex items-center gap-2 text-sm font-medium">
-              <span className="rounded-full bg-sky-600 px-4 py-2 text-white shadow-sm">
-                Dashboard
-              </span>
-              <Link
-                href="/patient"
-                className="rounded-full px-4 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
-              >
-                Patient
-              </Link>
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
-                onClick={() => setIsLastSyncOpen(true)}
-              >
-                <Clock3 className="h-4 w-4" />
-                Last Sync
-              </button>
-            </nav>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-sm font-semibold tracking-tight text-slate-950 sm:text-lg">
+                  ข้อมูลผู้ได้รับบาดเจ็บและเสียชีวิตจากอุบัติเหตุทางถนนในช่วงเทศกาลสงกรานต์ ปี 2569 จังหวัดพิษณุโลก
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                  ตั้งแต่วันที่ <span className="font-semibold text-slate-900">{dateRangeLabel}</span>
+                </p>
+              </div>
+
+              <nav className="flex items-center gap-2 text-sm font-medium">
+                <span className="rounded-full bg-sky-600 px-4 py-2 text-white shadow-sm">
+                  Dashboard
+                </span>
+                <Link
+                  href="/patient"
+                  className="rounded-full px-4 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                >
+                  Patient
+                </Link>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+                  onClick={() => setIsLastSyncOpen(true)}
+                >
+                  <Clock3 className="h-4 w-4" />
+                  Last Sync
+                </button>
+              </nav>
+            </div>
           </div>
         </header>
 
@@ -565,6 +603,7 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
         <section className="grid gap-6">
           <LineChartPanel points={initialData.dailyCases} dateRangeLabel={dateRangeLabel} />
         </section>
+
       </div>
       {isLastSyncOpen ? (
         <LastSyncDialog rows={initialData.lastSyncRows} onClose={() => setIsLastSyncOpen(false)} />

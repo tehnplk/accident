@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS public.view_count (
+  id SERIAL PRIMARY KEY,
+  ip TEXT NOT NULL,
+  datetime TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
