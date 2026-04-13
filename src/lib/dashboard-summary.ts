@@ -64,16 +64,16 @@ type LastSyncRow = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  "กลับบ้าน": "#475569",
-  "รับไว้รักษา": "#2563eb",
-  "เสียชีวิต": "#b91c1c",
-  "ไม่ระบุ": "#94a3b8",
+  กลับบ้าน: "#475569",
+  รับไว้รักษา: "#2563eb",
+  เสียชีวิต: "#b91c1c",
+  ไม่ระบุ: "#94a3b8",
 };
 
 const ALCOHOL_COLORS: Record<string, string> = {
-  "ไม่ดื่ม": "#334155",
+  ไม่ดื่ม: "#334155",
   ดื่ม: "#b45309",
-  "ไม่ระบุ": "#94a3b8",
+  ไม่ระบุ: "#94a3b8",
 };
 
 const VEHICLE_PALETTE = [
@@ -88,10 +88,13 @@ const VEHICLE_PALETTE = [
 const OTHER_COLOR = "#94a3b8";
 const DASHBOARD_MIN_VISIT_DATE = "2026-04-10";
 const DASHBOARD_MAX_VISIT_DATE = "2026-04-16";
+const DEATH_STATUS_LABEL = "เสียชีวิต";
+const UNKNOWN_STATUS_LABEL = "ไม่ระบุ";
+const STATUS_DEATH_CONDITION = `COALESCE(confirm_dead.has_confirm_dead, false)`;
 
 function normalizeLabel(value: string | null | undefined) {
   const text = value?.trim() ?? "";
-  return text || "ไม่ระบุ";
+  return text || UNKNOWN_STATUS_LABEL;
 }
 
 function makeSegment(row: LabelCountRow, index: number, palette: string[]) {
@@ -120,15 +123,13 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     `SELECT
        count(*)::int AS total,
        count(*) FILTER (
-         WHERE COALESCE(confirm_dead.has_confirm_dead, false)
+         WHERE ${STATUS_DEATH_CONDITION}
        )::int AS death_cases
      FROM public.patient p
-     LEFT JOIN LATERAL (
-       SELECT true AS has_confirm_dead
-       FROM public.patient_road_accident_confirm_dead pcd
-       WHERE pcd.patient_id = p.id
-       LIMIT 1
-     ) confirm_dead ON TRUE
+     LEFT JOIN (
+       SELECT DISTINCT patient_id, true AS has_confirm_dead
+       FROM public.patient_road_accident_confirm_dead
+     ) confirm_dead ON confirm_dead.patient_id = p.id
      WHERE COALESCE(p.is_rejected, false) = false
        AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'`,
   );
@@ -148,17 +149,17 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     dbQuery<LabelCountRow>(
       `SELECT
          CASE
-           WHEN COALESCE(confirm_dead.has_confirm_dead, false) THEN 'เสียชีวิต'
-           ELSE COALESCE(NULLIF(p.status, ''), 'ไม่ระบุ')
+           WHEN ${STATUS_DEATH_CONDITION} THEN '${DEATH_STATUS_LABEL}'
+           WHEN COALESCE(NULLIF(trim(p.status), ''), '${UNKNOWN_STATUS_LABEL}') = '${DEATH_STATUS_LABEL}'
+             THEN '${UNKNOWN_STATUS_LABEL}'
+           ELSE COALESCE(NULLIF(trim(p.status), ''), '${UNKNOWN_STATUS_LABEL}')
          END AS label,
          count(*)::int AS value
        FROM public.patient p
-       LEFT JOIN LATERAL (
-         SELECT true AS has_confirm_dead
-         FROM public.patient_road_accident_confirm_dead pcd
-         WHERE pcd.patient_id = p.id
-         LIMIT 1
-       ) confirm_dead ON TRUE
+       LEFT JOIN (
+         SELECT DISTINCT patient_id, true AS has_confirm_dead
+         FROM public.patient_road_accident_confirm_dead
+       ) confirm_dead ON confirm_dead.patient_id = p.id
        WHERE COALESCE(p.is_rejected, false) = false
          AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
@@ -210,7 +211,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
          COALESCE(NULLIF(loc.district_name, ''), 'ไม่ระบุ') AS district,
          count(*)::int AS cases,
          count(*) FILTER (
-           WHERE COALESCE(confirm_dead.has_confirm_dead, false)
+           WHERE ${STATUS_DEATH_CONDITION}
          )::int AS deaths
        FROM public.patient p
         LEFT JOIN LATERAL (
@@ -221,12 +222,10 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
           ORDER BY l.id DESC
           LIMIT 1
         ) loc ON TRUE
-        LEFT JOIN LATERAL (
-          SELECT true AS has_confirm_dead
-          FROM public.patient_road_accident_confirm_dead pcd
-          WHERE pcd.patient_id = p.id
-          LIMIT 1
-        ) confirm_dead ON TRUE
+        LEFT JOIN (
+          SELECT DISTINCT patient_id, true AS has_confirm_dead
+          FROM public.patient_road_accident_confirm_dead
+        ) confirm_dead ON confirm_dead.patient_id = p.id
        WHERE COALESCE(p.is_rejected, false) = false
          AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
@@ -310,13 +309,11 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     }),
   );
 
-  const normalizedDistrictRows = districtResult.rows.map((row) => ({
+  const districtRows = districtResult.rows.map((row) => ({
     district: normalizeLabel(row.district),
     cases: Number(row.cases) || 0,
     deaths: Number(row.deaths) || 0,
   }));
-
-  const districtRows = normalizedDistrictRows;
 
   const lastSyncRows = lastSyncResult.rows.map((row) => ({
     hoscode: row.hoscode?.trim() || "-",
