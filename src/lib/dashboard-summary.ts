@@ -172,9 +172,24 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
            ELSE 'ไม่ระบุ'
          END AS label,
          count(*)::int AS value
-       FROM public.patient
-       WHERE COALESCE(is_rejected, false) = false
-         AND visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
+       FROM (
+         SELECT
+           p.visit_date,
+           p.is_rejected,
+           CASE
+             WHEN p.alcohol = 1 OR EXISTS (
+               SELECT 1
+               FROM public.patient_drunk pd
+               WHERE pd.patient_id = p.id
+                 AND pd.hoscode = p.hoscode
+                 AND pd.visit_date = p.visit_date
+             ) THEN 1
+             ELSE p.alcohol
+           END AS alcohol
+         FROM public.patient p
+       ) p
+       WHERE COALESCE(p.is_rejected, false) = false
+         AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
        GROUP BY 1
        ORDER BY value DESC, label ASC`,
     ),

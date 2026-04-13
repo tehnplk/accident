@@ -67,3 +67,4 @@ next-env.d.ts
 .codex-local*.log
 .codex-today-*.json
 /skills/
+/0
