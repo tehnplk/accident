@@ -47,6 +47,10 @@ function normalizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeCidPassport(value: unknown) {
+  return normalizeText(value).replace(/[\s-]+/g, "");
+}
+
 function serializeDiagnosisValue(value: unknown) {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") {
@@ -290,7 +294,7 @@ export async function POST(request: NextRequest) {
     const hoscode = normalizeText(body.hoscode) || null;
     const hosname = normalizeText(body.hosname) || null;
     const hn = normalizeText(body.hn) || null;
-    const cid = normalizeText(body.cid);
+    const cid = normalizeCidPassport(body.cid);
     const patientName = normalizeText(body.patient_name);
     const vn = normalizeText(body.vn) || null;
     const visitDate = normalizeText(body.visit_date) || null;

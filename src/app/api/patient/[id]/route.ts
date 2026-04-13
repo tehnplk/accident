@@ -65,6 +65,11 @@ const ALLOWED_FIELDS: Array<keyof UpdateBody> = [
   "rejected_note",
 ];
 
+function normalizeStringField(field: keyof UpdateBody, value: string) {
+  const trimmed = value.trim();
+  return field === "cid" ? trimmed.replace(/[\s-]+/g, "") : trimmed;
+}
+
 function serializeDiagnosisValue(value: unknown) {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") {
@@ -109,7 +114,7 @@ export async function PATCH(
       if (!hasOwnField(field)) continue;
       const raw = body[field];
       if (typeof raw === "string") {
-        values.push(raw.trim());
+        values.push(normalizeStringField(field, raw));
         if (field === "hn" || field === "cid" || field === "patient_name") {
           updates.push(`${field} = ${patientEncryptedValueSql(values.length, 1)}`);
           if (field === "cid") {

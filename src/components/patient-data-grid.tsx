@@ -680,6 +680,10 @@ function sanitizeAgeInput(value: string) {
   return value.replace(/\D/g, "").slice(0, 3);
 }
 
+function sanitizeCidPassportInput(value: string) {
+  return value.replace(/[\s-]+/g, "");
+}
+
 function createInitialPatientDraft(): PatientCreateDraft {
   const now = new Date();
   return {
@@ -2416,11 +2420,13 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setCreateSaving(true);
 
     try {
+      const sanitizedCid = sanitizeCidPassportInput(createDraft.cid);
+
       const body = {
         hoscode: createDraft.hoscode.trim(),
         hosname: createDraft.hosname.trim(),
         hn: createDraft.hn.trim(),
-        cid: createDraft.cid.trim(),
+        cid: sanitizedCid,
         patient_name: createDraft.patient_name.trim(),
         house_no: createDraft.house_no.trim(),
         moo: createDraft.moo.trim(),
@@ -2918,7 +2924,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                           placeholder="CID / Passport *"
                           aria-label="CID / Passport"
                           value={createDraft.cid}
-                          onChange={(event) => updateCreateDraft({ cid: event.target.value })}
+                          onChange={(event) => updateCreateDraft({ cid: sanitizeCidPassportInput(event.target.value) })}
                         />
                       </label>
                       <label className="grid min-w-0 text-[12px] text-slate-700 sm:col-span-2">
