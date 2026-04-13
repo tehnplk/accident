@@ -15,26 +15,6 @@ type PatientCcRow = {
   is_rejected: boolean;
 };
 
-const PIPE_HEADERS: Array<keyof PatientCcRow> = [
-  "id",
-  "hoscode",
-  "hosname",
-  "cid_hash",
-  "visit_date",
-  "visit_time",
-  "pdx",
-  "cc",
-  "status",
-  "is_rejected",
-];
-
-function formatPipeValue(value: string | number | boolean | null | undefined) {
-  return String(value ?? "")
-    .replace(/\|/g, "/")
-    .replace(/\r?\n/g, " ")
-    .trim();
-}
-
 function isValidVisitDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
 
@@ -82,26 +62,12 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ vi
         FROM public.patient p
         WHERE p.visit_date = $1::date
           AND COALESCE(p.is_rejected, false) = false
-          AND NOT EXISTS (
-            SELECT 1
-            FROM public.patient_expect_not_accident pena
-            WHERE pena.patient_id = p.id
-          )
         ORDER BY p.visit_time ASC NULLS LAST, p.id ASC
       `,
       [visitDate],
     );
 
-    const lines = [
-      PIPE_HEADERS.join("|"),
-      ...result.rows.map((row) => PIPE_HEADERS.map((header) => formatPipeValue(row[header])).join("|")),
-    ];
-
-    return new NextResponse(lines.join("\n"), {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
-    });
+    return NextResponse.json(result.rows);
   } catch (error) {
     return NextResponse.json(
       {
