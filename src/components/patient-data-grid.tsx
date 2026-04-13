@@ -1238,6 +1238,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const counterpartVehicleAddonInputRef = useRef<HTMLInputElement | null>(null);
   const hospitalSuggestRef = useRef<HTMLLabelElement | null>(null);
 
+  const editingPatientRow =
+    editingPatientId === null ? null : rows.find((row) => row.id === editingPatientId) ?? null;
+  const canDeleteEditingPatient =
+    editingPatientRow !== null && canEditRow(editingPatientRow) && editingPatientRow.source !== "auto";
+
   useEffect(() => {
     selectedAmphoeCodeRef.current = selectedAmphoeCode;
   }, [selectedAmphoeCode]);
@@ -2271,8 +2276,8 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   };
 
   const requestDeleteCurrentPatient = () => {
-    if (!editingPatientId) return;
-    setPendingDeleteRow(rows.find((row) => row.id === editingPatientId) ?? selectedRow ?? null);
+    if (!editingPatientId || !canDeleteEditingPatient) return;
+    setPendingDeleteRow(editingPatientRow ?? selectedRow ?? null);
     setIsDeleteConfirmOpen(true);
   };
 
@@ -3314,9 +3319,14 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                   <>
                     <button
                       type="button"
-                      className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow) ? "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100" : "border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed"}`}
+                      className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${
+                        canDeleteEditingPatient
+                          ? "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                          : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-300"
+                      }`}
                       onClick={requestDeleteCurrentPatient}
-                      disabled={createSaving || !canEditRow(rows.find((r) => r.id === editingPatientId) ?? {} as PatientRow)}
+                      disabled={createSaving || !canDeleteEditingPatient}
+                      title={editingPatientRow?.source === "auto" ? "ข้อมูล source = auto ไม่สามารถลบได้" : undefined}
                     >
                       <Trash2 size={16} />
                       ลบผู้ป่วย
@@ -3324,15 +3334,15 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <button
                       type="button"
                       className={`inline-flex h-11 items-center justify-center gap-2 border px-4 text-[12px] font-medium ${
-                        rows.find((r) => r.id === editingPatientId)?.is_rejected
+                        editingPatientRow?.is_rejected
                           ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
                           : "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
                       }`}
                       onClick={() => void markCurrentPatientRejected()}
-                      disabled={createSaving || rejectingPatient || rows.find((r) => r.id === editingPatientId)?.is_rejected}
+                      disabled={createSaving || rejectingPatient || editingPatientRow?.is_rejected}
                     >
                       <User size={16} />
-                      {rows.find((r) => r.id === editingPatientId)?.is_rejected ? "ไม่นับเคสแล้ว" : "ไม่นับเคส"}
+                      {editingPatientRow?.is_rejected ? "ไม่นับเคสแล้ว" : "ไม่นับเคส"}
                     </button>
                   </>
                 ) : null}
