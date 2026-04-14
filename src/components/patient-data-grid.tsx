@@ -591,6 +591,10 @@ const PATIENT_STREAM_RETRY_MS = Number.parseInt(
   process.env.NEXT_PUBLIC_PATIENT_STREAM_RETRY_MS ?? "5000",
   10,
 );
+const PATIENT_REALTIME_REFRESH_DEBOUNCE_MS = Number.parseInt(
+  process.env.NEXT_PUBLIC_PATIENT_REALTIME_REFRESH_DEBOUNCE_MS ?? "1500",
+  10,
+);
 const EMPTY_DRAFT: PatientEditDraft = {
   changwat: "",
   amphoe: "",
@@ -1124,6 +1128,10 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const realtimeMode = useMemo(() => getRealtimeMode(), []);
   const pollIntervalMs = useMemo(() => getSafeInterval(PATIENT_POLL_INTERVAL_MS, 30000), []);
   const streamRetryMs = useMemo(() => getSafeInterval(PATIENT_STREAM_RETRY_MS, 5000), []);
+  const realtimeRefreshDebounceMs = useMemo(
+    () => getSafeInterval(PATIENT_REALTIME_REFRESH_DEBOUNCE_MS, 1500),
+    [],
+  );
 
   const userProfile = initialData.userProfile;
   const userName = initialData.userName;
@@ -1937,8 +1945,21 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     let eventSource: EventSource | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let refreshInFlight = false;
+    let refreshQueued = false;
+    let lastRefreshStartedAt = 0;
 
-    const refreshForRealtime = async () => {
+    const runRealtimeRefresh = async () => {
+      if (!active || refreshInFlight) {
+        refreshQueued = true;
+        return;
+      }
+
+      refreshInFlight = true;
+      refreshQueued = false;
+      lastRefreshStartedAt = Date.now();
+
       try {
         const payload = await fetchPatientGridWithAuth(filters, authToken);
         if (!active) return;
@@ -1947,13 +1968,43 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       } catch (fetchError) {
         if (!active) return;
         setError(fetchError instanceof Error ? fetchError.message : "Realtime refresh failed");
+      } finally {
+        refreshInFlight = false;
+
+        if (!active || !refreshQueued) return;
+
+        const remainingDelay = Math.max(
+          0,
+          realtimeRefreshDebounceMs - (Date.now() - lastRefreshStartedAt),
+        );
+        refreshTimer = setTimeout(() => {
+          refreshTimer = null;
+          void runRealtimeRefresh();
+        }, remainingDelay);
       }
+    };
+
+    const scheduleRealtimeRefresh = () => {
+      if (!active) return;
+      refreshQueued = true;
+
+      if (refreshTimer || refreshInFlight) return;
+
+      const delay =
+        lastRefreshStartedAt === 0
+          ? 0
+          : Math.max(0, realtimeRefreshDebounceMs - (Date.now() - lastRefreshStartedAt));
+
+      refreshTimer = setTimeout(() => {
+        refreshTimer = null;
+        void runRealtimeRefresh();
+      }, delay);
     };
 
     const startPolling = () => {
       if (pollTimer) return;
       pollTimer = setInterval(() => {
-        void refreshForRealtime();
+        scheduleRealtimeRefresh();
       }, pollIntervalMs);
     };
 
@@ -1986,7 +2037,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       );
 
       eventSource.addEventListener("message", () => {
-        void refreshForRealtime();
+        scheduleRealtimeRefresh();
       });
 
       eventSource.addEventListener("ready", () => {
@@ -2008,8 +2059,9 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       eventSource?.close();
       stopPolling();
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (refreshTimer) clearTimeout(refreshTimer);
     };
-  }, [authToken, filters, pollIntervalMs, realtimeMode, streamRetryMs]);
+  }, [authToken, filters, pollIntervalMs, realtimeMode, realtimeRefreshDebounceMs, streamRetryMs]);
 
   const provinceLabel = useMemo(() => {
     const selectedProvince = provinceOptions.find((option) => String(option.code) === selectedProvinceCode);

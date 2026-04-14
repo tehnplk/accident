@@ -289,7 +289,6 @@ export async function POST(request: NextRequest) {
       is_rejected?: unknown;
       rejected_note?: unknown;
     };
-    console.log(`[${new Date().toISOString()}] [POST /api/patient] payload:`, body);
 
     const hoscode = normalizeText(body.hoscode) || null;
     const hosname = normalizeText(body.hosname) || null;

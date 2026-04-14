@@ -10,6 +10,7 @@ const SSE_HEADERS = {
 const STREAM_HEARTBEAT_MS = Number.parseInt(process.env.PATIENT_STREAM_HEARTBEAT_MS ?? "20000", 10);
 const STREAM_MAX_DURATION_MS = Number.parseInt(process.env.PATIENT_STREAM_MAX_DURATION_MS ?? "240000", 10);
 const STREAM_RETRY_MS = Number.parseInt(process.env.NEXT_PUBLIC_PATIENT_STREAM_RETRY_MS ?? "5000", 10);
+const STREAM_COALESCE_MS = Number.parseInt(process.env.PATIENT_STREAM_COALESCE_MS ?? "1000", 10);
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
 
   let heartbeat: NodeJS.Timeout | null = null;
   let shutdownTimer: NodeJS.Timeout | null = null;
+  let notifyTimer: NodeJS.Timeout | null = null;
   let closed = false;
   let streamClosed = false;
 
@@ -50,6 +52,11 @@ export async function GET(request: Request) {
     if (shutdownTimer) {
       clearTimeout(shutdownTimer);
       shutdownTimer = null;
+    }
+
+    if (notifyTimer) {
+      clearTimeout(notifyTimer);
+      notifyTimer = null;
     }
 
     try {
@@ -90,16 +97,27 @@ export async function GET(request: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      let hasPendingNotification = false;
+
       const shutdown = () => {
         client.off("notification", onNotification);
         void closeStream().finally(() => closeController(controller));
       };
 
-      const onNotification = (message: { payload?: string | null }) => {
-        const payload = message.payload ?? "{}";
-        if (!enqueueEvent(controller, "message", payload)) {
+      const flushNotification = () => {
+        notifyTimer = null;
+        if (!hasPendingNotification) return;
+        hasPendingNotification = false;
+
+        if (!enqueueEvent(controller, "message", '{"batched":true}')) {
           shutdown();
         }
+      };
+
+      const onNotification = (_message: { payload?: string | null }) => {
+        hasPendingNotification = true;
+        if (notifyTimer) return;
+        notifyTimer = setTimeout(flushNotification, Math.max(STREAM_COALESCE_MS, 250));
       };
 
       client.on("notification", onNotification);
