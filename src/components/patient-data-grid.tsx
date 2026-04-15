@@ -4,7 +4,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDownUp, Briefcase, Building2, ChevronDown, FileText, LogOut, MapPin, Pencil, Plus, Save, Trash2, User, X } from "lucide-react";
+import { ArrowDownUp, Briefcase, Building2, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3, FileText, LogOut, MapPin, Pencil, Plus, Save, Trash2, User, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Swal from "sweetalert2";
 
@@ -808,6 +808,269 @@ function toTimeInputValue(input: string | null | undefined) {
   return `${match[1]}:${match[2]}`;
 }
 
+function parseLocalDateInput(input: string | null | undefined) {
+  if (!input) return null;
+  const match = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const year = Number.parseInt(match[1], 10);
+  const monthIndex = Number.parseInt(match[2], 10) - 1;
+  const day = Number.parseInt(match[3], 10);
+  const parsed = new Date(year, monthIndex, day);
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== monthIndex ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function formatMonthLabel(input: Date) {
+  const monthLabels = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
+  ];
+
+  return `${monthLabels[input.getMonth()] ?? "-"} ${input.getFullYear() + 543}`;
+}
+
+function buildCalendarDays(viewMonth: Date) {
+  const monthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+  const gridStart = new Date(monthStart);
+  gridStart.setDate(monthStart.getDate() - monthStart.getDay());
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart);
+    date.setDate(gridStart.getDate() + index);
+    return {
+      iso: `${date.getFullYear()}-${padTimePart(date.getMonth() + 1)}-${padTimePart(date.getDate())}`,
+      label: date.getDate(),
+      inMonth: date.getMonth() === viewMonth.getMonth(),
+      date,
+    };
+  });
+}
+
+function VisitDateTimePickerModal({
+  mode,
+  dateValue,
+  timeValue,
+  onClose,
+  onSelectDate,
+  onSelectTime,
+}: {
+  mode: "date" | "time";
+  dateValue: string;
+  timeValue: string;
+  onClose: () => void;
+  onSelectDate: (value: string) => void;
+  onSelectTime: (value: string) => void;
+}) {
+  const today = new Date();
+  const todayIso = `${today.getFullYear()}-${padTimePart(today.getMonth() + 1)}-${padTimePart(today.getDate())}`;
+  const initialDate = parseLocalDateInput(dateValue) ?? today;
+  const [viewMonth, setViewMonth] = useState(() => new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
+  const [selectedHour, setSelectedHour] = useState(() => {
+    const [hour] = toTimeInputValue(timeValue).split(":");
+    return hour && /^\d{2}$/.test(hour) ? hour : padTimePart(today.getHours());
+  });
+  const [selectedMinute, setSelectedMinute] = useState(() => {
+    const [, minute] = toTimeInputValue(timeValue).split(":");
+    return minute && /^\d{2}$/.test(minute) ? minute : padTimePart(today.getMinutes());
+  });
+
+  const calendarDays = useMemo(() => buildCalendarDays(viewMonth), [viewMonth]);
+  const selectedDateValue = toDateInputValue(dateValue);
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-[2px]"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-md border border-sky-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.25)]"
+        role="dialog"
+        aria-modal="true"
+        aria-label={mode === "date" ? "เลือกวันที่มา" : "เลือกเวลามา"}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-sky-100 bg-sky-50/50 px-5 py-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-slate-900">
+              {mode === "date" ? "เลือกวันที่มา" : "เลือกเวลามา"}
+            </h3>
+            <p className="mt-1 text-[12px] text-slate-600">
+              {mode === "date" ? "กดวันที่จากปฏิทิน" : "เลือกนาฬิกาและนาที"}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-white text-sky-700 hover:bg-sky-100"
+            onClick={onClose}
+            aria-label="Close picker"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {mode === "date" ? (
+          <div className="px-5 py-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-white text-sky-700 hover:bg-sky-50"
+                onClick={() => setViewMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
+                aria-label="Previous month"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div className="text-[13px] font-semibold text-slate-900">{formatMonthLabel(viewMonth)}</div>
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center border border-sky-200 bg-white text-sky-700 hover:bg-sky-50"
+                onClick={() => setViewMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
+                aria-label="Next month"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-medium text-slate-500">
+              {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((label) => (
+                <div key={label} className="py-1">{label}</div>
+              ))}
+            </div>
+
+            <div className="mt-2 grid grid-cols-7 gap-2">
+              {calendarDays.map((day) => {
+                const isSelected = day.iso === selectedDateValue;
+                const isToday = day.iso === todayIso;
+
+                return (
+                  <button
+                    key={day.iso}
+                    type="button"
+                    className={`inline-flex h-10 items-center justify-center border text-[12px] transition ${
+                      isSelected
+                        ? "border-sky-500 bg-sky-600 font-semibold text-white"
+                        : day.inMonth
+                          ? "border-sky-100 bg-white text-slate-800 hover:bg-sky-50"
+                          : "border-slate-100 bg-slate-50 text-slate-300 hover:bg-slate-100"
+                    } ${isToday && !isSelected ? "ring-1 ring-amber-300" : ""}`}
+                    onClick={() => {
+                      onSelectDate(day.iso);
+                      onClose();
+                    }}
+                  >
+                    {day.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                className="inline-flex h-10 items-center justify-center border border-slate-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                onClick={() => {
+                  setViewMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                  onSelectDate(todayIso);
+                  onClose();
+                }}
+              >
+                วันนี้
+              </button>
+              <div className="text-[12px] text-slate-500">{formatDate(selectedDateValue || todayIso)}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-5 py-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2 text-[12px] text-slate-700">
+                <span>นาฬิกา</span>
+                <select
+                  className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                  value={selectedHour}
+                  onChange={(event) => setSelectedHour(event.target.value)}
+                >
+                  {Array.from({ length: 24 }, (_, hour) => {
+                    const value = padTimePart(hour);
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </select>
+              </label>
+              <label className="grid gap-2 text-[12px] text-slate-700">
+                <span>นาที</span>
+                <select
+                  className="h-10 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                  value={selectedMinute}
+                  onChange={(event) => setSelectedMinute(event.target.value)}
+                >
+                  {Array.from({ length: 60 }, (_, minute) => {
+                    const value = padTimePart(minute);
+                    return <option key={value} value={value}>{value}</option>;
+                  })}
+                </select>
+              </label>
+            </div>
+
+            <div className="mt-5 flex items-center justify-between gap-3">
+              <div className="text-[13px] font-semibold text-slate-900">
+                {selectedHour}:{selectedMinute} น.
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex h-10 items-center justify-center border border-slate-200 bg-white px-4 text-[12px] font-medium text-slate-700 hover:bg-slate-50"
+                  onClick={onClose}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex h-10 items-center justify-center border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700"
+                  onClick={() => {
+                    onSelectTime(`${selectedHour}:${selectedMinute}`);
+                    onClose();
+                  }}
+                >
+                  เลือกเวลา
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 async function fetchThaiAddressOptions(query: string, signal?: AbortSignal) {
   const response = await fetch(`/api/thai-address?${query}`, { signal });
   const payload = (await response.json().catch(() => ({}))) as {
@@ -1220,6 +1483,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const [createError, setCreateError] = useState<string | null>(null);
   const [createHospitalQuery, setCreateHospitalQuery] = useState("");
   const [isHospitalSuggestOpen, setIsHospitalSuggestOpen] = useState(false);
+  const [visitPickerMode, setVisitPickerMode] = useState<"date" | "time" | null>(null);
   const deferredHospitalQuery = useDeferredValue(createHospitalQuery);
   const [provinceOptions, setProvinceOptions] = useState<ThaiAddressOption[]>([]);
   const [amphoeOptions, setAmphoeOptions] = useState<ThaiAddressOption[]>([]);
@@ -2189,6 +2453,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     const nextDraft = createInitialPatientDraft();
     setError(null);
     setCreateError(null);
+    setVisitPickerMode(null);
     setCreateDraft(nextDraft);
     setCreateHospitalQuery("");
     setIsHospitalSuggestOpen(false);
@@ -2201,6 +2466,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
   const openUpdatePatientModal = (row: PatientRow) => {
     setError(null);
     setCreateError(null);
+    setVisitPickerMode(null);
     setCreateDraft({
       hoscode: row.hoscode ?? "",
       hosname: row.hosname ?? "",
@@ -2236,6 +2502,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
     setError(null);
     setCreateError(null);
     setIsCreateModalOpen(false);
+    setVisitPickerMode(null);
     setCreateDraft(createInitialPatientDraft());
     setCreateHospitalQuery("");
     setIsHospitalSuggestOpen(false);
@@ -3101,21 +3368,25 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-3">
                         <span>วันที่มา <span className="text-rose-600">*</span></span>
-                        <input
-                          type="date"
-                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          value={createDraft.visit_date}
-                          onChange={(event) => updateCreateDraft({ visit_date: event.target.value })}
-                        />
+                        <button
+                          type="button"
+                          className="flex h-10 w-full min-w-0 items-center justify-between border border-sky-200 bg-white px-3 text-left text-[12px] text-slate-900 outline-none transition hover:bg-sky-50 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          onClick={() => setVisitPickerMode("date")}
+                        >
+                          <span>{createDraft.visit_date ? formatDate(createDraft.visit_date) : "เลือกวันที่มา"}</span>
+                          <CalendarDays size={16} className="text-sky-600" />
+                        </button>
                       </label>
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-3">
                         <span>เวลามา</span>
-                        <input
-                          type="time"
-                          className="h-10 w-full min-w-0 border border-sky-200 bg-white px-3 text-[12px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                          value={createDraft.visit_time}
-                          onChange={(event) => updateCreateDraft({ visit_time: event.target.value })}
-                        />
+                        <button
+                          type="button"
+                          className="flex h-10 w-full min-w-0 items-center justify-between border border-sky-200 bg-white px-3 text-left text-[12px] text-slate-900 outline-none transition hover:bg-sky-50 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                          onClick={() => setVisitPickerMode("time")}
+                        >
+                          <span>{createDraft.visit_time ? formatTime(createDraft.visit_time) : "เลือกเวลามา"}</span>
+                          <Clock3 size={16} className="text-sky-600" />
+                        </button>
                       </label>
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-2">
                         <span>Triage <span className="text-rose-600">*</span></span>
@@ -3479,6 +3750,17 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
             </div>
           </div>
         </div>
+      ) : null}
+
+      {isCreateModalOpen && visitPickerMode ? (
+        <VisitDateTimePickerModal
+          mode={visitPickerMode}
+          dateValue={createDraft.visit_date}
+          timeValue={createDraft.visit_time}
+          onClose={() => setVisitPickerMode(null)}
+          onSelectDate={(value) => updateCreateDraft({ visit_date: value })}
+          onSelectTime={(value) => updateCreateDraft({ visit_time: value })}
+        />
       ) : null}
 
       {isModalOpen && selectedRow ? (
