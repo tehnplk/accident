@@ -26,6 +26,14 @@ export type DashboardLastSyncRow = {
   rows: number;
 };
 
+export type DashboardHospitalTotalRow = {
+  hoscode: string;
+  hosname: string;
+  injuredPatients: number;
+  deathPatients: number;
+  totalPatients: number;
+};
+
 export type DashboardSummary = {
   totalCases: number;
   deathCases: number;
@@ -37,6 +45,7 @@ export type DashboardSummary = {
   vehicleSegments: DashboardSegment[];
   districtRows: DashboardBarRow[];
   dailyCases: DashboardLinePoint[];
+  hospitalTotals: DashboardHospitalTotalRow[];
   lastSyncRows: DashboardLastSyncRow[];
 };
 
@@ -61,6 +70,14 @@ type LastSyncRow = {
   hosname: string | null;
   date_time_sync: string | null;
   num_pt_case: number | null;
+};
+
+type HospitalTotalRow = {
+  hoscode: string | null;
+  hosname: string | null;
+  injured_patients: number;
+  death_patients: number;
+  total_patients: number;
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -145,7 +162,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
      FROM public.view_count`,
   );
 
-  const [statusResult, alcoholResult, vehicleResult, districtResult, lastSyncResult] = await Promise.all([
+  const [statusResult, alcoholResult, vehicleResult, districtResult, hospitalTotalResult, lastSyncResult] = await Promise.all([
     dbQuery<LabelCountRow>(
       `SELECT
          CASE
@@ -231,6 +248,29 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
        GROUP BY 1
        ORDER BY cases DESC, district ASC`,
     ),
+    dbQuery<HospitalTotalRow>(
+      `SELECT
+         p.hoscode,
+         COALESCE(MAX(NULLIF(trim(p.hosname), '')), p.hoscode, '-') AS hosname,
+         count(*) FILTER (
+           WHERE NOT ${STATUS_DEATH_CONDITION}
+         )::int AS injured_patients,
+         count(*) FILTER (
+           WHERE ${STATUS_DEATH_CONDITION}
+         )::int AS death_patients,
+         count(*)::int AS total_patients
+       FROM public.patient p
+       LEFT JOIN (
+         SELECT DISTINCT patient_id, true AS has_confirm_dead
+         FROM public.patient_road_accident_confirm_dead
+       ) confirm_dead ON confirm_dead.patient_id = p.id
+       WHERE COALESCE(p.is_rejected, false) = false
+         AND p.visit_date BETWEEN DATE '${DASHBOARD_MIN_VISIT_DATE}' AND DATE '${DASHBOARD_MAX_VISIT_DATE}'
+         AND p.hoscode IS NOT NULL
+         AND trim(p.hoscode) <> ''
+       GROUP BY p.hoscode
+       ORDER BY total_patients DESC, p.hoscode ASC`,
+    ),
     dbQuery<LastSyncRow>(
       `WITH ranked AS (
          SELECT
@@ -315,6 +355,14 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     deaths: Number(row.deaths) || 0,
   }));
 
+  const hospitalTotals = hospitalTotalResult.rows.map((row) => ({
+    hoscode: row.hoscode?.trim() || "-",
+    hosname: row.hosname?.trim() || "-",
+    injuredPatients: Number(row.injured_patients) || 0,
+    deathPatients: Number(row.death_patients) || 0,
+    totalPatients: Number(row.total_patients) || 0,
+  }));
+
   const lastSyncRows = lastSyncResult.rows.map((row) => ({
     hoscode: row.hoscode?.trim() || "-",
     hosname: row.hosname?.trim() || "-",
@@ -333,6 +381,7 @@ export async function loadDashboardSummary(): Promise<DashboardSummary> {
     vehicleSegments,
     districtRows,
     dailyCases,
+    hospitalTotals,
     lastSyncRows,
   };
 }

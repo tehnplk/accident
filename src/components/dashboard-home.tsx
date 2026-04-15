@@ -20,6 +20,7 @@ import {
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import type {
   DashboardBarRow,
+  DashboardHospitalTotalRow,
   DashboardLinePoint,
   DashboardLastSyncRow,
   DashboardSegment,
@@ -474,6 +475,60 @@ function LineChartPanel({
   );
 }
 
+function HospitalTotalsTable({ rows }: { rows: DashboardHospitalTotalRow[] }) {
+  return (
+    <section className="rounded-[28px] border border-sky-100/80 bg-white/90 p-6 shadow-[0_18px_55px_rgba(37,99,235,0.08)] backdrop-blur-sm">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Hospital Totals</p>
+          <h2 className="mt-2 text-xl font-semibold text-slate-900">จำนวนผู้ป่วยสะสมรายโรงพยาบาล</h2>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto border border-sky-100 bg-white">
+        <table className="min-w-[720px] divide-y divide-sky-100 text-[12px]">
+          <thead className="bg-sky-50/70 text-slate-600">
+            <tr>
+              <th className="w-16 px-3 py-3 text-left font-semibold">ลำดับ</th>
+              <th className="w-28 px-3 py-3 text-left font-semibold">รหัส รพ.</th>
+              <th className="px-3 py-3 text-left font-semibold">ชื่อโรงพยาบาล</th>
+              <th className="w-28 px-3 py-3 text-right font-semibold">บาดเจ็บ</th>
+              <th className="w-28 px-3 py-3 text-right font-semibold">เสียชีวิต</th>
+              <th className="w-28 px-3 py-3 text-right font-semibold">รวม</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
+                  ยังไม่มีข้อมูลโรงพยาบาล
+                </td>
+              </tr>
+            ) : (
+              rows.map((row, index) => (
+                <tr key={row.hoscode} className="text-slate-700">
+                  <td className="px-3 py-3">{index + 1}</td>
+                  <td className="whitespace-nowrap px-3 py-3">{row.hoscode}</td>
+                  <td className="px-3 py-3">{row.hosname}</td>
+                  <td className="whitespace-nowrap px-3 py-3 text-right">
+                    {row.injuredPatients.toLocaleString("th-TH")}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 text-right">
+                    {row.deathPatients.toLocaleString("th-TH")}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 text-right">
+                    {row.totalPatients.toLocaleString("th-TH")}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 export default function DashboardHome({ initialData }: DashboardHomeProps) {
   const [isLastSyncOpen, setIsLastSyncOpen] = useState(false);
   const [viewCount, setViewCount] = useState(initialData.viewCount);
@@ -602,6 +657,7 @@ export default function DashboardHome({ initialData }: DashboardHomeProps) {
 
         <section className="grid gap-6">
           <LineChartPanel points={initialData.dailyCases} dateRangeLabel={dateRangeLabel} />
+          <HospitalTotalsTable rows={initialData.hospitalTotals} />
         </section>
 
       </div>
