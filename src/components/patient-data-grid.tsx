@@ -689,7 +689,6 @@ function sanitizeCidPassportInput(value: string) {
 }
 
 function createInitialPatientDraft(): PatientCreateDraft {
-  const now = new Date();
   return {
     hoscode: "",
     hosname: "",
@@ -704,8 +703,8 @@ function createInitialPatientDraft(): PatientCreateDraft {
     changwat: DEFAULT_PROVINCE_NAME,
     pdx: "",
     ext_dx: "",
-    visit_date: now.toISOString().split("T")[0] ?? "",
-    visit_time: `${padTimePart(now.getHours())}:${padTimePart(now.getMinutes())}`,
+    visit_date: "",
+    visit_time: "",
     sex: "",
     age: "",
     triage: "",
@@ -887,11 +886,11 @@ function VisitDateTimePickerModal({
   const [viewMonth, setViewMonth] = useState(() => new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
   const [selectedHour, setSelectedHour] = useState(() => {
     const [hour] = toTimeInputValue(timeValue).split(":");
-    return hour && /^\d{2}$/.test(hour) ? hour : padTimePart(today.getHours());
+    return hour && /^\d{2}$/.test(hour) ? hour : "";
   });
   const [selectedMinute, setSelectedMinute] = useState(() => {
     const [, minute] = toTimeInputValue(timeValue).split(":");
-    return minute && /^\d{2}$/.test(minute) ? minute : padTimePart(today.getMinutes());
+    return minute && /^\d{2}$/.test(minute) ? minute : "";
   });
 
   const calendarDays = useMemo(() => buildCalendarDays(viewMonth), [viewMonth]);
@@ -1019,6 +1018,7 @@ function VisitDateTimePickerModal({
                   value={selectedHour}
                   onChange={(event) => setSelectedHour(event.target.value)}
                 >
+                  <option value="">เลือกนาฬิกา</option>
                   {Array.from({ length: 24 }, (_, hour) => {
                     const value = padTimePart(hour);
                     return <option key={value} value={value}>{value}</option>;
@@ -1032,6 +1032,7 @@ function VisitDateTimePickerModal({
                   value={selectedMinute}
                   onChange={(event) => setSelectedMinute(event.target.value)}
                 >
+                  <option value="">เลือกนาที</option>
                   {Array.from({ length: 60 }, (_, minute) => {
                     const value = padTimePart(minute);
                     return <option key={value} value={value}>{value}</option>;
@@ -1042,7 +1043,7 @@ function VisitDateTimePickerModal({
 
             <div className="mt-5 flex items-center justify-between gap-3">
               <div className="text-[13px] font-semibold text-slate-900">
-                {selectedHour}:{selectedMinute} น.
+                {selectedHour && selectedMinute ? `${selectedHour}:${selectedMinute}` : "--:--"} น.
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -1054,8 +1055,10 @@ function VisitDateTimePickerModal({
                 </button>
                 <button
                   type="button"
-                  className="inline-flex h-10 items-center justify-center border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700"
+                  className="inline-flex h-10 items-center justify-center border border-sky-400 bg-sky-600 px-4 text-[12px] font-medium text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!selectedHour || !selectedMinute}
                   onClick={() => {
+                    if (!selectedHour || !selectedMinute) return;
                     onSelectTime(`${selectedHour}:${selectedMinute}`);
                     onClose();
                   }}
@@ -2731,6 +2734,11 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
       return;
     }
 
+    if (!createDraft.visit_time.trim()) {
+      setCreateError("กรุณาเลือกเวลามา");
+      return;
+    }
+
     if (!createDraft.triage.trim()) {
       setCreateError("กรุณาเลือก Triage");
       return;
@@ -3378,7 +3386,7 @@ export function PatientDataGrid({ initialData }: PatientDataGridProps) {
                         </button>
                       </label>
                       <label className="grid min-w-0 gap-2 text-[12px] text-slate-700 lg:col-span-3">
-                        <span>เวลามา</span>
+                        <span>เวลามา <span className="text-rose-600">*</span></span>
                         <button
                           type="button"
                           className="flex h-10 w-full min-w-0 items-center justify-between border border-sky-200 bg-white px-3 text-left text-[12px] text-slate-900 outline-none transition hover:bg-sky-50 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
