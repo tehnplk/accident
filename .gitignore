@@ -43,6 +43,7 @@ yarn-error.log*
 .playwright-cli/
 /test/
 .claude/
+.gemini/
 tmp/
 py-example/
 docker-acd-plk-sync/
